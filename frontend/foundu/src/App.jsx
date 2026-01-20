@@ -14,6 +14,9 @@ import UserTypeSelection from './pages/UserTypeSelection'
 import LoginSignup from './pages/LoginSignup'
 import FreelancerJobs from './pages/FreelancerJobs'
 import FreelancerDashboard from './pages/FreelancerDashboard'
+import PPolicy from './pages/PPolicy'
+import TermsOfService from './pages/TermsOfService'
+import CPolicy from './pages/CPolicy'
 
 function App() {
   return (
@@ -33,6 +36,11 @@ function App() {
         <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
         <Route path="/job-description" element={<FreelancerJobDetail />} />
         <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
+        <Route path="/privacy-policy" element={<PPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/cookie-policy" element={<CPolicy />} />
+
+
 
       </Routes>
     </Router>
