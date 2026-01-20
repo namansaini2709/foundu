@@ -221,9 +221,63 @@ function HomePage() {
     )
   }
 
-  // Steps Section (Black to Blue)
+  // Users We Cater Section (Black to Blue)
+  const UsersWeCater = () => {
+    const userTypes = [
+      {
+        title: 'Startups',
+        description: 'Find the perfect co-founders and freelancers to bring your vision to life',
+        bgColor: 'bg-blue-600/20',
+        borderColor: 'border-blue-400',
+        textColor: 'text-blue-300',
+      },
+      {
+        title: 'Freelancers',
+        description: 'Discover exciting projects and collaborate with innovative startups',
+        bgColor: 'bg-indigo-600/20',
+        borderColor: 'border-indigo-400',
+        textColor: 'text-indigo-300',
+      },
+      {
+        title: 'Co-founders',
+        description: 'Connect with startups looking for your skills and expertise to grow',
+        bgColor: 'bg-purple-600/20',
+        borderColor: 'border-purple-400',
+        textColor: 'text-purple-300',
+      },
+    ]
+
+    return (
+      <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
+        <h2 className="text-center text-4xl md:text-6xl font-bold mb-16 relative z-10">
+          <span className="text-white">TYPES OF USERS </span>
+          <span className="text-blue-300">WE CATER</span>
+        </h2>
+
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {userTypes.map((userType, index) => (
+              <div
+                key={index}
+                className={`${userType.bgColor} backdrop-blur-sm border-2 ${userType.borderColor} rounded-xl p-8 h-full transition-all duration-300 hover:scale-105 hover:shadow-xl`}
+              >
+                <h3 className={`text-3xl font-bold mb-4 ${userType.textColor}`}>
+                  {userType.title}
+                </h3>
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  {userType.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Steps Section (Blue to Black - alternating from previous)
   const StepsSection = () => {
-    const [hoveredStep, setHoveredStep] = useState(null)
+    const [activeStep, setActiveStep] = useState(0)
 
     const steps = [
       {
@@ -248,63 +302,64 @@ function HomePage() {
       },
     ]
 
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setActiveStep((prev) => (prev + 1) % steps.length)
+      }, 3000)
+      return () => clearInterval(interval)
+    }, [])
+
     return (
-      <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
-        <h2 className="text-center text-4xl md:text-6xl font-bold mb-20 relative z-10">
+      <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
+        <h2 className="text-center text-4xl md:text-6xl font-bold mb-16">
           <span className="text-white">STEPS TO </span>
           <span className="text-blue-300">USE THE APP</span>
         </h2>
 
-        <div className="max-w-7xl mx-auto relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4 relative">
-            {/* Connecting line in the background */}
-            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-blue-700/30 z-0" 
-              style={{ 
-                top: '50%',
-                left: '12.5%',
-                width: '75%',
-                transform: 'translateY(-50%)'
+        <div className="max-w-7xl mx-auto">
+          {/* Roadmap Line */}
+          <div className="relative mb-12">
+            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gray-700/50 z-0" />
+            <div
+              className="hidden lg:block absolute top-1/2 left-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 z-10 transition-all duration-1000"
+              style={{
+                width: `${((activeStep + 1) / steps.length) * 100}%`
               }}
             />
-            
+          </div>
+
+          {/* Steps Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {steps.map((step, index) => (
               <div
                 key={index}
-                className="relative z-10"
-                onMouseEnter={() => setHoveredStep(index)}
-                onMouseLeave={() => setHoveredStep(null)}
+                className={`relative z-20 transition-all duration-500 ${
+                  index <= activeStep ? 'scale-105' : 'scale-100 opacity-60'
+                }`}
+                onMouseEnter={() => setActiveStep(index)}
               >
                 <div
-                  className={`bg-gray-800/30 backdrop-blur-sm border-2 rounded-xl p-8 h-full transition-all duration-300 ${
-                    hoveredStep === index
-                      ? 'border-blue-400 scale-105 shadow-lg shadow-blue-400/50'
-                      : 'border-blue-700/50'
+                  className={`bg-gray-800/40 backdrop-blur-sm border-2 rounded-xl p-6 h-full transition-all duration-300 ${
+                    index <= activeStep
+                      ? 'border-blue-400 shadow-lg shadow-blue-400/50'
+                      : 'border-gray-700'
                   }`}
                 >
-                  <div className="text-blue-300 text-sm font-semibold mb-4">Step {index + 1}</div>
-                  <h3 className="text-2xl font-bold text-white mb-4">{step.title}</h3>
-                  <p className="text-gray-300 leading-relaxed">{step.description}</p>
-                </div>
-
-                {/* Animated connecting arrow to next step */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-6 w-12 h-0.5 z-20">
-                    <div 
-                      className={`h-full w-full transition-all duration-500 ${
-                        hoveredStep === index || hoveredStep === index + 1
-                          ? 'bg-blue-400'
-                          : 'bg-blue-700/50'
-                      }`}
-                    />
-                    <div 
-                      className={`absolute right-0 top-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-l-[8px] transition-all duration-500 transform -translate-y-1/2 ${
-                        hoveredStep === index || hoveredStep === index + 1
-                          ? 'border-l-blue-400 border-t-transparent border-b-transparent'
-                          : 'border-l-blue-700/50 border-t-transparent border-b-transparent'
-                      }`}
-                    />
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={`text-2xl font-bold ${index <= activeStep ? 'text-blue-300' : 'text-gray-500'}`}>
+                      {step.number}
+                    </span>
+                    {index <= activeStep && (
+                      <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
-                )}
+                  <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                  <p className="text-gray-300 text-sm">{step.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -326,7 +381,7 @@ function HomePage() {
     ]
 
     return (
-      <section className="py-32 px-4 relative min-h-screen flex items-center" style={gradientBlueToBlack}>
+      <section className="py-32 px-4 relative min-h-screen flex items-center" style={gradientBlackToBlue}>
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Image placeholder */}
@@ -380,7 +435,7 @@ function HomePage() {
     ]
 
     return (
-      <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
+      <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
         <h2 className="text-center text-4xl md:text-6xl font-bold mb-4 relative z-10">
           <span className="text-white">OUR </span>
           <span className="text-blue-300">ACHIEVEMENT</span>
@@ -444,7 +499,7 @@ function HomePage() {
     ]
 
     return (
-      <section className="py-32 px-4 overflow-hidden relative" style={gradientBlueToBlack}>
+      <section className="py-32 px-4 overflow-hidden relative" style={gradientBlackToBlue}>
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center text-4xl md:text-6xl font-bold mb-4 relative z-10">
             <span className="text-white">What our </span>
@@ -520,7 +575,7 @@ function HomePage() {
 
   // Footer (Black to Blue) with white touches
   const Footer = () => (
-    <footer className="relative py-16 px-4" style={gradientBlackToBlue}>
+    <footer className="relative py-16 px-4" style={gradientBlueToBlack}>
       <div className="max-w-7xl mx-auto">
         {/* Main Footer Content - White border */}
         <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-12 mb-8">
@@ -618,6 +673,7 @@ function HomePage() {
       <Navbar />
       <Hero />
       <TrustedBy />
+      <UsersWeCater />
       <StepsSection />
       <WhatYouLookingFor />
       <NumbersSection />
