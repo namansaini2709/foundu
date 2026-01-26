@@ -17,6 +17,7 @@ import FreelancerDashboard from './pages/FreelancerDashboard'
 import PPolicy from './pages/PPolicy'
 import TermsOfService from './pages/TermsOfService'
 import CPolicy from './pages/CPolicy'
+import AddJobs from './pages/AddJobs'
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
         <Route path="/startup-profile" element={<StartupProfile />} />
         <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
         <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
-        <Route path="/cofounderDashboard" element={<CoFounderDashboard />} />
+        <Route path="/cofounder-dashboard" element={<CoFounderDashboard />} />
         <Route path="/signup" element={<UserTypeSelection />} />
         <Route path="/login-signup" element={<LoginSignup />} />
         <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
@@ -39,6 +40,7 @@ function App() {
         <Route path="/privacy-policy" element={<PPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/cookie-policy" element={<CPolicy />} />
+        <Route path="/add-job" element={<AddJobs />} />
 
 
 
