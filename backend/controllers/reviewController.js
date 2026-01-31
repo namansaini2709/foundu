@@ -2,50 +2,68 @@ const db = require("../config/db");
 
 /* CREATE REVIEW */
 exports.createReview = (req, res) => {
-  const {
-    user_id,
-    reviewer_id,
-    freelancer_id,
-    cofounder_id,
-    review_text,
-    stars
-  } = req.body;
+  const { user_id, reviewer_id, review_text, stars } = req.body;
 
-  if (!freelancer_id && !cofounder_id) {
-    return res.status(400).json({
-      message: "Either freelancer_id or cofounder_id is required"
-    });
+  if (!user_id || !reviewer_id || !review_text || !stars) {
+    return res.status(400).json({ message: "All fields are required" });
   }
 
-  if (freelancer_id && cofounder_id) {
-    return res.status(400).json({
-      message: "Only one of freelancer_id or cofounder_id is allowed"
-    });
+  if (user_id === reviewer_id) {
+    return res.status(400).json({ message: "User cannot review himself" });
   }
 
+  // 1️⃣ Fetch user being reviewed
   db.query(
-    `INSERT INTO reviews 
-     (user_id, reviewer_id, freelancer_id, cofounder_id, review_text, stars)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      user_id,
-      reviewer_id,
-      freelancer_id || null,
-      cofounder_id || null,
-      review_text,
-      stars
-    ],
-    (err, result) => {
+    "SELECT user_type FROM users WHERE id = ?",
+    [user_id],
+    (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
+      if (!rows.length)
+        return res.status(404).json({ message: "User not found" });
 
-      res.json({
-        success: true,
-        message: "Review created successfully",
-        review_id: result.insertId
-      });
+      const userType = rows[0].user_type;
+
+      let freelancer_id = null;
+      let cofounder_id = null;
+
+      // 2️⃣ Decide based on user_type
+      if (userType === "freelancer") {
+        freelancer_id = user_id;
+      } else if (userType === "cofounder") {
+        cofounder_id = user_id;
+      } else {
+        return res.status(400).json({
+          message: "Reviews are allowed only for freelancers or cofounders"
+        });
+      }
+
+      // 3️⃣ Insert review
+      db.query(
+        `INSERT INTO reviews 
+         (user_id, reviewer_id, freelancer_id, cofounder_id, review_text, stars)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          user_id,
+          reviewer_id,
+          freelancer_id,
+          cofounder_id,
+          review_text,
+          stars
+        ],
+        (err, result) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          res.json({
+            success: true,
+            message: "Review added successfully",
+            review_id: result.insertId
+          });
+        }
+      );
     }
   );
 };
+
 
 /* GET ALL REVIEWS */
 exports.getAllReviews = (req, res) => {

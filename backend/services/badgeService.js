@@ -1,8 +1,8 @@
 const db = require("../config/db");
 
-/* ===============================
-   CHECK BLUE TICK ELIGIBILITY
-================================ */
+/* =========================
+   BLUE TICK ELIGIBILITY
+========================= */
 exports.isEligibleForBlueTick = (user_id, callback) => {
   db.query(
     "SELECT user_type FROM users WHERE id = ?",
@@ -10,14 +10,14 @@ exports.isEligibleForBlueTick = (user_id, callback) => {
     (err, rows) => {
       if (!rows.length) return callback(false);
 
+      const type = rows[0].user_type;
+
       db.query(
         "SELECT * FROM users_socials WHERE user_id = ?",
         [user_id],
         (err, socials) => {
           if (!socials.length) return callback(false);
-
           const s = socials[0];
-          const type = rows[0].user_type;
 
           if (
             type === "freelancer" &&
@@ -44,17 +44,109 @@ exports.isEligibleForBlueTick = (user_id, callback) => {
   );
 };
 
-/* ===============================
-   DUMMY CREDIBILITY BADGE
-================================ */
-exports.calculateCredibilityBadge = (user_id, callback) => {
-  // ML model will come later
-  // Dummy logic for now
-  const dummyBadge = "85-90";
+/* =========================
+   GREEN TICK (AUTOMATIC)
+========================= */
+exports.evaluateGreenTick = (user_id) => {
+  db.query(
+    "SELECT user_type FROM users WHERE id = ?",
+    [user_id],
+    (err, rows) => {
+      if (!rows.length) return;
 
+      const type = rows[0].user_type;
+
+      if (type === "freelancer") {
+        db.query(
+          "SELECT COUNT(*) as cnt FROM projects WHERE freelancer_id = ? AND status='completed'",
+          [user_id],
+          (err, res) => {
+            if (res[0].cnt >= 3) {
+              db.query(
+                "UPDATE users SET green_tick_verified = true WHERE id = ?",
+                [user_id]
+              );
+            }
+          }
+        );
+      }
+
+      if (type === "founder") {
+        db.query(
+          "SELECT COUNT(*) as cnt FROM foundu_jobs WHERE founder_id = ?",
+          [user_id],
+          (err, res) => {
+            if (res[0].cnt >= 3) {
+              db.query(
+                "UPDATE users SET green_tick_verified = true WHERE id = ?",
+                [user_id]
+              );
+            }
+          }
+        );
+      }
+
+      if (type === "cofounder") {
+        db.query(
+          "SELECT COUNT(*) as cnt FROM startup_connections WHERE cofounder_id = ? AND status='successful'",
+          [user_id],
+          (err, res) => {
+            if (res[0].cnt >= 3) {
+              db.query(
+                "UPDATE users SET green_tick_verified = true WHERE id = ?",
+                [user_id]
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
+/* =========================
+   GOLDEN TICK (MONTHLY)
+========================= */
+exports.evaluateGoldenTick = (user_id) => {
+  db.query(
+    `SELECT 
+      blue_tick_verified 
+     FROM users WHERE id = ?`,
+    [user_id],
+    (err, rows) => {
+      if (!rows.length || !rows[0].blue_tick_verified) return;
+
+      db.query(
+        `SELECT COUNT(*) as cnt 
+         FROM login_activity 
+         WHERE user_id = ? 
+         AND MONTH(created_at) = MONTH(CURRENT_DATE())`,
+        [user_id],
+        (err, res) => {
+          if (res[0].cnt >= 20) {
+            db.query(
+              "UPDATE users SET golden_tick_verified = true WHERE id = ?",
+              [user_id]
+            );
+          } else {
+            db.query(
+              "UPDATE users SET golden_tick_verified = false WHERE id = ?",
+              [user_id]
+            );
+          }
+        }
+      );
+    }
+  );
+};
+
+/* =========================
+   CREDIBILITY BADGE (DUMMY)
+========================= */
+exports.evaluateCredibilityBadge = (user_id) => {
+  const dummy = "85-90";
   db.query(
     "UPDATE users SET credibility_badge = ? WHERE id = ?",
-    [dummyBadge, user_id],
-    () => callback(dummyBadge)
+    [dummy, user_id]
   );
 };
