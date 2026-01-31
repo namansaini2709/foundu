@@ -18,10 +18,13 @@ import PPolicy from './pages/PPolicy'
 import TermsOfService from './pages/TermsOfService'
 import CPolicy from './pages/CPolicy'
 import AddJobs from './pages/AddJobs'
+import ScrollToTop from './components/ScrollToTop'
 
 function App() {
   return (
     <Router>
+    <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/startup-dashboard" element={<StartupDashboard />} />

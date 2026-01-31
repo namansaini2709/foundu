@@ -29,3 +29,21 @@
     animation: scroll-left 30s linear infinite;
   }
 }
+
+/* ===============================
+   Global background & scroll fix
+   =============================== */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background-color: #000; /* black background */
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent white overscroll bounce */
+body {
+  overscroll-behavior: none;
+}
