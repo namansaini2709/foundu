@@ -31,6 +31,9 @@ app.use("/api/freelancer-profiles", require("./routes/freelancerProfileRoutes"))
 app.use("/api/cofounder-profiles", require("./routes/cofounderProfileRoutes"));
 app.use("/api/startup-profiles", require("./routes/startupProfileRoutes"));
 app.use("/api", require("./routes/jobRoutes"));
+app.use("/api", require("./routes/usersSocialsRoutes"));
+app.use("/api", require("./routes/badgeRoutes"));
+app.use("/api", require("./routes/jobApplicantsRoutes"));
 
 
 
