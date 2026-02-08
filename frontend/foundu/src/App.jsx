@@ -1,29 +1,50 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import './App.css'
-import HomePage from './pages/HomePage'
-import StartupDashboard from './pages/StartupDashboard'
-import StartupServices from './pages/StartupServices'
-import CoFounderProfile from './pages/CoFounderProfile'
-import FreelancerProfile from './pages/FreelancerProfile'
-import StartupProfile from './pages/StartupProfile'
-import FreelancerJobDetail from './pages/FreelancerJobDetail'
-import CoFounderJobs from './pages/CoFounderJobs'
-import CoFounderJobDetail from './pages/CoFounderJobDetail'
-import CoFounderDashboard from './pages/CoFounderDashboard'
-import UserTypeSelection from './pages/UserTypeSelection'
-import LoginSignup from './pages/LoginSignup'
-import FreelancerJobs from './pages/FreelancerJobs'
-import FreelancerDashboard from './pages/FreelancerDashboard'
-import PPolicy from './pages/PPolicy'
-import TermsOfService from './pages/TermsOfService'
-import CPolicy from './pages/CPolicy'
-import AddJobs from './pages/AddJobs'
-import ScrollToTop from './components/ScrollToTop'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import "./App.css";
+
+import HomePage from "./pages/HomePage";
+import StartupDashboard from "./pages/StartupDashboard";
+import StartupServices from "./pages/StartupServices";
+import CoFounderProfile from "./pages/CoFounderProfile";
+import FreelancerProfile from "./pages/FreelancerProfile";
+import StartupProfile from "./pages/StartupProfile";
+import FreelancerJobDetail from "./pages/FreelancerJobDetail";
+import CoFounderJobs from "./pages/CoFounderJobs";
+import CoFounderJobDetail from "./pages/CoFounderJobDetail";
+import CoFounderDashboard from "./pages/CoFounderDashboard";
+import UserTypeSelection from "./pages/UserTypeSelection";
+import LoginSignup from "./pages/LoginSignup";
+import FreelancerJobs from "./pages/FreelancerJobs";
+import FreelancerDashboard from "./pages/FreelancerDashboard";
+import PPolicy from "./pages/PPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CPolicy from "./pages/CPolicy";
+import AddJobs from "./pages/AddJobs";
+import ScrollToTop from "./components/ScrollToTop";
+import LandingPage from "./pages/LandingPage";
+import FreelancerBadges from './pages/FreelancerBadges'
+import CoFounderBadges from './pages/CoFounderBadges'
+import FounderBadges from './pages/FounderBadges'
+
 
 function App() {
   return (
     <Router>
-    <ScrollToTop />
+      <ScrollToTop />
+
+      {/* ✅ GLOBAL TOAST CONTAINER */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="dark"
+      />
 
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -44,13 +65,14 @@ function App() {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/cookie-policy" element={<CPolicy />} />
         <Route path="/add-job" element={<AddJobs />} />
-
-
+        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/freelancer-badges" element={<FreelancerBadges />} />
+        <Route path="/cofounder-badges" element={<CoFounderBadges />} />
+        <Route path="/founder-badges" element={<FounderBadges />} />
 
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
-   
+export default App;

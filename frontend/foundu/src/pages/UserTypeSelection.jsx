@@ -34,7 +34,7 @@ function UserTypeSelection() {
         "Offer your skills and expertise to startups. Find exciting projects, work with innovative teams, and grow your freelance career.",
     },
     {
-      id: "startup",
+      id: "founder",
       name: "Startup",
       icon: Rocket,
       description:

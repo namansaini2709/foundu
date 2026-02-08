@@ -12,6 +12,7 @@ exports.createFreelancerJob = (req, res) => {
     duration,
     budget_range,
     urgency,
+    job_title,
     full_job_description
   } = req.body;
 
@@ -19,15 +20,15 @@ exports.createFreelancerJob = (req, res) => {
     return res.status(400).json({ message: "user_id is required" });
   }
 
-  // 1️⃣ Validate startup
+  // 1️⃣ Validate founder
   db.query(
-    "SELECT founder_id FROM users WHERE id = ?",
+    "SELECT user_type, founder_id FROM users WHERE id = ?",
     [user_id],
     (err, userRows) => {
-      if (!userRows.length || !userRows[0].founder_id) {
-        return res
-          .status(400)
-          .json({ message: "Only startups can post jobs" });
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (!userRows.length || userRows[0].user_type !== "founder") {
+        return res.status(403).json({ message: "Only founders can post jobs" });
       }
 
       const founder_id = userRows[0].founder_id;
@@ -37,44 +38,67 @@ exports.createFreelancerJob = (req, res) => {
         "SELECT startup_name FROM startup_profiles WHERE founder_id = ?",
         [founder_id],
         (err, startupRows) => {
+          if (err) return res.status(500).json({ error: err.message });
+
           if (!startupRows.length) {
-            return res
-              .status(400)
-              .json({ message: "Startup profile not found" });
+            return res.status(400).json({ message: "Startup profile not found" });
           }
 
           const startup_name = startupRows[0].startup_name;
 
-          // 3️⃣ Insert job
+          // 3️⃣ Get next freelancer_job_id
           db.query(
-            `INSERT INTO foundu_jobs (
-              user_id, founder_id, startup_name,
-              freelancer_job_id, job_type,
-              domain, role_category, work_type,
-              duration, budget_range, urgency,
-              full_job_description
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-            [
-              user_id,
-              founder_id,
-              startup_name,
-              Date.now(), // freelancer_job_id
-              "freelancer",
-              domain,
-              role_category,
-              work_type,
-              duration,
-              budget_range,
-              urgency,
-              full_job_description
-            ],
-            (err) => {
+            "SELECT COALESCE(MAX(freelancer_job_id), 0) + 1 AS next_id FROM foundu_jobs WHERE job_type = 'freelancer'",
+            (err, idRows) => {
               if (err) return res.status(500).json({ error: err.message });
 
-              res.json({
-                success: true,
-                message: "Freelancer job posted successfully"
-              });
+              const freelancer_job_id = idRows[0].next_id;
+
+              // 4️⃣ Insert job
+              db.query(
+                `INSERT INTO foundu_jobs (
+                  user_id,
+                  founder_id,
+                  startup_name,
+                  freelancer_job_id,
+                  job_type,
+                  domain,
+                  role_category,
+                  work_type,
+                  duration,
+                  budget_range,
+                  urgency,
+                  job_title,
+                  full_job_description
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                [
+                  user_id,
+                  founder_id,
+                  startup_name,
+                  freelancer_job_id,
+                  "freelancer",
+                  domain || null,
+                  role_category || null,
+                  work_type || null,
+                  duration || null,
+                  budget_range || null,
+                  urgency || null,
+                  job_title,
+                  full_job_description
+                ],
+                (err) => {
+                  if (err) {
+                    console.error("Freelancer job insert error:", err);
+                    return res.status(500).json({ error: err.message });
+                  }
+
+                  res.json({
+                    success: true,
+                    message: "Freelancer job posted successfully",
+                    freelancer_job_id
+                  });
+                }
+              );
             }
           );
         }
@@ -82,7 +106,6 @@ exports.createFreelancerJob = (req, res) => {
     }
   );
 };
-
 /* ===============================
    POST COFOUNDER JOB
 ================================ */
@@ -94,6 +117,7 @@ exports.createCofounderJob = (req, res) => {
     compensation,
     commitment,
     priority_factors,
+    job_title,
     full_job_description
   } = req.body;
 
@@ -102,13 +126,13 @@ exports.createCofounderJob = (req, res) => {
   }
 
   db.query(
-    "SELECT founder_id FROM users WHERE id = ?",
+    "SELECT user_type, founder_id FROM users WHERE id = ?",
     [user_id],
     (err, userRows) => {
-      if (!userRows.length || !userRows[0].founder_id) {
-        return res
-          .status(400)
-          .json({ message: "Only startups can post jobs" });
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (!userRows.length || userRows[0].user_type !== "founder") {
+        return res.status(403).json({ message: "Only founders can post jobs" });
       }
 
       const founder_id = userRows[0].founder_id;
@@ -117,42 +141,65 @@ exports.createCofounderJob = (req, res) => {
         "SELECT startup_name FROM startup_profiles WHERE founder_id = ?",
         [founder_id],
         (err, startupRows) => {
+          if (err) return res.status(500).json({ error: err.message });
+
           if (!startupRows.length) {
-            return res
-              .status(400)
-              .json({ message: "Startup profile not found" });
+            return res.status(400).json({ message: "Startup profile not found" });
           }
 
           const startup_name = startupRows[0].startup_name;
 
+          // 3️⃣ Get next cofounder_job_id
           db.query(
-            `INSERT INTO foundu_jobs (
-              user_id, founder_id, startup_name,
-              cofounder_job_id, job_type,
-              domain, role_type, compensation,
-              commitment, priority_factors,
-              full_job_description
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-            [
-              user_id,
-              founder_id,
-              startup_name,
-              Date.now(), // cofounder_job_id
-              "cofounder",
-              domain,
-              role_type,
-              compensation,
-              commitment,
-              JSON.stringify(priority_factors || []),
-              full_job_description
-            ],
-            (err) => {
+            "SELECT COALESCE(MAX(cofounder_job_id), 0) + 1 AS next_id FROM foundu_jobs WHERE job_type = 'cofounder'",
+            (err, idRows) => {
               if (err) return res.status(500).json({ error: err.message });
 
-              res.json({
-                success: true,
-                message: "Cofounder job posted successfully"
-              });
+              const cofounder_job_id = idRows[0].next_id;
+
+              // 4️⃣ Insert job
+              db.query(
+                `INSERT INTO foundu_jobs (
+                  user_id,
+                  founder_id,
+                  startup_name,
+                  cofounder_job_id,
+                  job_type,
+                  domain,
+                  role_type,
+                  compensation,
+                  commitment,
+                  priority_factors,
+                  job_title,
+                  full_job_description
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+                [
+                  user_id,
+                  founder_id,
+                  startup_name,
+                  cofounder_job_id,
+                  "cofounder",
+                  domain || null,
+                  role_type || null,
+                  compensation || null,
+                  commitment || null,
+                  JSON.stringify(priority_factors || []),
+                  job_title,
+                  full_job_description
+                ],
+                (err) => {
+                  if (err) {
+                    console.error("Cofounder job insert error:", err);
+                    return res.status(500).json({ error: err.message });
+                  }
+
+                  res.json({
+                    success: true,
+                    message: "Cofounder job posted successfully",
+                    cofounder_job_id
+                  });
+                }
+              );
             }
           );
         }
@@ -160,6 +207,7 @@ exports.createCofounderJob = (req, res) => {
     }
   );
 };
+
 
 /* ===============================
    GET ALL JOBS

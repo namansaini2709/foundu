@@ -4,245 +4,239 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-// Placeholder for getUserId - replace with actual import when utils/auth is available
+
 const getUserId = () => {
-  try {
-    const { getUserId: getUserIdFunc } = require("../utils/auth");
-    return getUserIdFunc();
-  } catch {
-    return localStorage.getItem("userId") || null;
-  }
+  return localStorage.getItem("user_id");
 };
 
-/**
- * Freelancer Profile Page Component
- * Profile completion page for freelancers
- * Opens after signup or Google signup
- */
 const FreelancerProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Form state management
   const [formData, setFormData] = useState({
-    // Personal Details
     firstName: "",
     lastName: "",
     email: "",
     phoneNumber: "",
-
-    // Education Details
     degreeType: "",
     educationLevel: "",
     graduationYear: "",
     college: "",
     university: "",
-
-    // Type of Freelancer
     freelancerType: "",
     freelancerTypeOther: "",
-
-    // Skills
     skillsDescription: "",
     describeBest: "",
-
-    // Experience
     experience: "",
-
-    // Role
     jobProfile: "",
     workingEnvironment: "",
     stipendExpectations: "",
     stipendOther: "",
-
-    // Important Links
     linkedin: "",
     github: "",
     otherLinks: "",
   });
 
-  // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
-    if (userId) {
-      fetchUserData(userId);
-      fetchProfile(userId);
-    } else {
-      // Fallback to localStorage signup data
-      const signupData = localStorage.getItem("signupData");
-      if (signupData) {
-        const data = JSON.parse(signupData);
-        setFormData((prev) => ({
-          ...prev,
-          email: data.email || "",
-          firstName: data.fullName?.split(" ")[0] || "",
-          lastName: data.fullName?.split(" ").slice(1).join(" ") || "",
-        }));
-      }
+    if (!userId) {
+      toast.error("User not logged in");
+      navigate("/login");
+      return;
     }
-  }, []);
+    fetchUser(userId);
+    fetchProfile(userId);
+  }, [navigate]);
 
-  // Fetch user data to populate name and email
-  const fetchUserData = async (userId) => {
+  const fetchUser = async (userId) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/api/users/${userId}`,
-        { withCredentials: true },
-      );
-      const user = response.data;
-
-      if (user.full_name) {
-        const nameParts = user.full_name.split(" ");
-        setFormData((prev) => ({
-          ...prev,
-          firstName: nameParts[0] || "",
-          lastName: nameParts.slice(1).join(" ") || "",
-          email: user.email || prev.email,
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          email: user.email || prev.email,
-        }));
-      }
+      const res = await axios.get(`http://localhost:4000/api/users/${userId}`);
+      const user = res.data;
+      const name = user.full_name?.split(" ") || [];
+      setFormData((prev) => ({
+        ...prev,
+        firstName: name[0] || "",
+        lastName: name.slice(1).join(" ") || "",
+        email: user.email || "",
+      }));
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error fetching user:", error);
+      toast.error("Failed to fetch user data");
     }
   };
 
-  // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/api/freelancer-profiles/user/${userId}`,
-        { withCredentials: true },
+      const res = await axios.get(
+        `http://localhost:4000/api/freelancer-profiles/user/${userId}`
       );
-      const profile = response.data;
-
-      // Map database fields to form fields
+      const p = res.data;
       setFormData({
-        firstName: profile.first_name || "",
-        lastName: profile.last_name || "",
-        email: profile.email || "",
-        phoneNumber: profile.phone_number || "",
-        degreeType: profile.degree_type || "",
-        educationLevel: profile.education_level || "",
-        graduationYear: profile.graduation_year || "",
-        college: profile.college || "",
-        university: profile.university || "",
-        freelancerType: profile.freelancer_type || "",
-        freelancerTypeOther: profile.freelancer_type_other || "",
-        skillsDescription: profile.skills_description || "",
-        describeBest: profile.describe_best || "",
-        experience: profile.experience || "",
-        jobProfile: profile.job_profile || "",
-        workingEnvironment: profile.working_environment || "",
-        stipendExpectations: profile.stipend_expectations || "",
-        stipendOther: profile.stipend_other || "",
-        linkedin: profile.linkedin || "",
-        github: profile.github || "",
-        otherLinks: profile.other_links || "",
+        firstName: p.first_name || "",
+        lastName: p.last_name || "",
+        email: p.email || "",
+        phoneNumber: p.phone_number || "",
+        degreeType: p.degree_type || "",
+        educationLevel: p.education_level || "",
+        graduationYear: p.graduation_year || "",
+        college: p.college || "",
+        university: p.university || "",
+        freelancerType: p.freelancer_type || "",
+        freelancerTypeOther: p.freelancer_type_other || "",
+        skillsDescription: p.skills_description || "",
+        describeBest: p.describe_best || "",
+        experience: p.experience || "",
+        jobProfile: p.job_profile || "",
+        workingEnvironment: p.working_environment || "",
+        stipendExpectations: p.stipend_expectations || "",
+        stipendOther: p.stipend_other || "",
+        linkedin: p.linkedin || "",
+        github: p.github || "",
+        otherLinks: p.other_links || "",
       });
-    } catch (error) {
-      // Profile doesn't exist yet, which is fine
-      if (error.response?.status !== 404) {
-        console.error("Error fetching profile:", error);
+      toast.success("Profile loaded successfully");
+    } catch (err) {
+      if (err.response?.status !== 404) {
+        console.error("Error fetching profile:", err);
+        toast.error("Failed to load profile");
       }
     }
   };
 
-  /**
-   * Handle input changes
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  /**
-   * Validate all form fields
-   */
-  const validateForm = () => {
+  // Validate fields for the current step only
+  const validateCurrentStep = () => {
     const errors = [];
 
-    // Personal Details
-    if (!formData.firstName?.trim()) errors.push("First Name is required");
-    if (!formData.lastName?.trim()) errors.push("Last Name is required");
-    if (!formData.email?.trim()) errors.push("Email ID is required");
-    if (!formData.phoneNumber?.trim()) errors.push("Phone Number is required");
+    switch (currentStep) {
+      case 1: // Personal Details
+        if (!formData.firstName?.trim()) {
+          errors.push("First Name is required");
+        }
+        if (!formData.lastName?.trim()) {
+          errors.push("Last Name is required");
+        }
+        if (!formData.email?.trim()) {
+          errors.push("Email is required");
+        }
+        if (!formData.phoneNumber?.trim()) {
+          errors.push("Phone Number is required");
+        }
+        break;
 
-    // Education Details
-    if (!formData.degreeType?.trim()) errors.push("Degree Type is required");
-    if (!formData.educationLevel?.trim())
-      errors.push("Education Level is required");
-    if (
-      formData.educationLevel === "Post graduate" &&
-      !formData.graduationYear?.trim()
-    ) {
-      errors.push(
-        "Graduation Year is required when Education Level is Post graduate",
-      );
+      case 2: // Education Details
+        if (!formData.degreeType?.trim()) {
+          errors.push("Degree Type is required");
+        }
+        if (!formData.educationLevel?.trim()) {
+          errors.push("Education Level is required");
+        }
+        if (formData.educationLevel === "Post graduate" && !formData.graduationYear?.trim()) {
+          errors.push("Graduation Year is required for Post graduate");
+        }
+        if (!formData.college?.trim()) {
+          errors.push("College is required");
+        }
+        if (!formData.university?.trim()) {
+          errors.push("University is required");
+        }
+        break;
+
+      case 3: // Type of Freelancer
+        if (!formData.freelancerType?.trim()) {
+          errors.push("Freelancer Type is required");
+        }
+        if (formData.freelancerType === "Other" && !formData.freelancerTypeOther?.trim()) {
+          errors.push("Please specify your freelancer type");
+        }
+        break;
+
+      case 4: // Skills
+        if (!formData.skillsDescription?.trim()) {
+          errors.push("Skills Description is required");
+        }
+        if (!formData.describeBest?.trim()) {
+          errors.push("Self Description is required");
+        }
+        break;
+
+      case 5: // Experience
+        if (!formData.experience?.trim()) {
+          errors.push("Experience is required");
+        }
+        break;
+
+      case 6: // Role
+        if (!formData.jobProfile?.trim()) {
+          errors.push("Job Profile is required");
+        }
+        if (!formData.workingEnvironment?.trim()) {
+          errors.push("Working Environment is required");
+        }
+        if (!formData.stipendExpectations?.trim()) {
+          errors.push("Stipend Expectations is required");
+        }
+        if (formData.stipendExpectations === "Other" && !formData.stipendOther?.trim()) {
+          errors.push("Please specify your stipend expectation");
+        }
+        break;
+
+      case 7: // Important Links
+        if (!formData.linkedin?.trim()) {
+          errors.push("LinkedIn profile is required");
+        }
+        if (!formData.github?.trim()) {
+          errors.push("GitHub profile is required");
+        }
+        if (!formData.otherLinks?.trim()) {
+          errors.push("Portfolio or other link is required");
+        }
+        break;
+
+      default:
+        break;
     }
-    if (!formData.college?.trim()) errors.push("College is required");
-    if (!formData.university?.trim()) errors.push("University is required");
-
-    // Type of Freelancer
-    if (!formData.freelancerType?.trim())
-      errors.push("Freelancer Type is required");
-    if (
-      formData.freelancerType === "Other" &&
-      !formData.freelancerTypeOther?.trim()
-    ) {
-      errors.push("Please specify your freelancer type");
-    }
-
-    // Skills
-    if (!formData.skillsDescription?.trim())
-      errors.push("Skills Description is required");
-    if (!formData.describeBest?.trim())
-      errors.push("What describes you best is required");
-
-    // Experience
-    if (!formData.experience?.trim()) errors.push("Experience is required");
-
-    // Role
-    if (!formData.jobProfile?.trim()) errors.push("Job Profile is required");
-    if (!formData.workingEnvironment?.trim())
-      errors.push("Working Environment is required");
-    if (!formData.stipendExpectations?.trim())
-      errors.push("Stipend Expectations is required");
-    if (
-      formData.stipendExpectations === "Other" &&
-      !formData.stipendOther?.trim()
-    ) {
-      errors.push("Please specify your stipend amount");
-    }
-
-    // Important Links
-    if (!formData.linkedin?.trim()) errors.push("LinkedIn link is required");
-    if (!formData.github?.trim()) errors.push("GitHub link is required");
-    if (!formData.otherLinks?.trim()) errors.push("Other Links is required");
 
     return errors;
   };
 
-  /**
-   * Handle form submission
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (currentStep < 7) {
-      setCurrentStep(currentStep + 1);
+  // Handle Next button click
+  const handleNext = () => {
+    const errors = validateCurrentStep();
+    
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
       return;
     }
 
-    // Final step - validate all fields
-    const errors = validateForm();
+    if (currentStep < 7) {
+      setCurrentStep((s) => s + 1);
+      toast.success(`Step ${currentStep} completed!`);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((s) => s - 1);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Safety check – submit only on step 7
+    if (currentStep !== 7) {
+      toast.error("Please complete all steps before submitting");
+      return;
+    }
+
+    // Validate current step (step 7)
+    const errors = validateCurrentStep();
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
@@ -250,86 +244,61 @@ const FreelancerProfile = () => {
 
     const userId = getUserId();
     if (!userId) {
-      toast.error("User ID not found. Please login again.");
+      toast.error("User not logged in. Please log in again.");
       navigate("/login");
       return;
     }
 
     setLoading(true);
     try {
-      // Check if profile already exists
-      let existingProfile = null;
-      try {
-        const checkResponse = await axios.get(
-          `http://localhost:5000/api/freelancer-profiles/user/${userId}`,
-          { withCredentials: true },
-        );
-        existingProfile = checkResponse.data;
-      } catch (checkError) {
-        // Profile doesn't exist yet, which is fine
-        if (checkError.response?.status !== 404) {
-          console.error("Error checking existing profile:", checkError);
+      const response = await axios.post(
+        "http://localhost:4000/api/freelancer-profiles",
+        {
+          user_id: Number(userId),
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          phone_number: formData.phoneNumber,
+          degree_type: formData.degreeType,
+          education_level: formData.educationLevel,
+          graduation_year: formData.graduationYear,
+          college: formData.college,
+          university: formData.university,
+          freelancer_type: formData.freelancerType,
+          freelancer_type_other: formData.freelancerTypeOther,
+          skills_description: formData.skillsDescription,
+          describe_best: formData.describeBest,
+          experience: formData.experience,
+          job_profile: formData.jobProfile,
+          working_environment: formData.workingEnvironment,
+          stipend_expectations: formData.stipendExpectations,
+          stipend_other: formData.stipendOther,
+          linkedin: formData.linkedin,
+          github: formData.github,
+          other_links: formData.otherLinks,
         }
-      }
+      );
 
-      const profileData = {
-        userId: parseInt(userId),
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        degreeType: formData.degreeType,
-        educationLevel: formData.educationLevel,
-        graduationYear: formData.graduationYear,
-        college: formData.college,
-        university: formData.university,
-        freelancerType: formData.freelancerType,
-        freelancerTypeOther: formData.freelancerTypeOther,
-        skillsDescription: formData.skillsDescription,
-        describeBest: formData.describeBest,
-        experience: formData.experience,
-        jobProfile: formData.jobProfile,
-        workingEnvironment: formData.workingEnvironment,
-        stipendExpectations: formData.stipendExpectations,
-        stipendOther: formData.stipendOther,
-        linkedin: formData.linkedin,
-        github: formData.github,
-        otherLinks: formData.otherLinks,
-      };
-
-      let response;
-      if (existingProfile) {
-        // Update existing profile
-        response = await axios.put(
-          `http://localhost:5000/api/freelancer-profiles/${existingProfile.id}`,
-          profileData,
-          { withCredentials: true },
-        );
-        toast.success("Profile updated successfully!");
-      } else {
-        // Create new profile
-        response = await axios.post(
-          "http://localhost:5000/api/freelancer-profiles",
-          profileData,
-          { withCredentials: true },
-        );
-        toast.success("Profile created successfully!");
-      }
-
-      // Redirect to home page after successful submission
+      console.log("Profile created:", response.data);
+      toast.success("Profile created successfully! Redirecting...");
+      
       setTimeout(() => {
         navigate("/");
       }, 1500);
-    } catch (error) {
-      console.error("Profile submission error:", error);
-      toast.error(
-        error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to save profile. Please try again.",
-      );
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          "Failed to save profile. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const gradient = {
+    background:
+      "linear-gradient(180deg, rgba(2,0,36,1) 16%, rgba(9,9,121,1) 100%)",
   };
 
   const gradientBlue = {
@@ -337,25 +306,8 @@ const FreelancerProfile = () => {
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
 
-  const gradientBlackToBlue = {
-    background:
-      "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
-  };
-
-  const handleNext = () => {
-    if (currentStep < 7) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
+    <div className="min-h-screen flex flex-col" style={gradient}>
       {/* Navigation */}
       <Navbar />
 
@@ -368,13 +320,19 @@ const FreelancerProfile = () => {
               {[1, 2, 3, 4, 5, 6, 7].map((step) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${currentStep >= step ? "bg-blue-500 text-white" : "bg-gray-700/50 text-gray-400"}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                      currentStep >= step
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-700/50 text-gray-400"
+                    }`}
                   >
                     {step}
                   </div>
                   {step < 7 && (
                     <div
-                      className={`w-8 h-1 ${currentStep > step ? "bg-blue-500" : "bg-gray-700/50"}`}
+                      className={`w-8 h-1 ${
+                        currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
+                      }`}
                     ></div>
                   )}
                 </div>
@@ -389,7 +347,7 @@ const FreelancerProfile = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Step 1: Personal Details */}
             {currentStep === 1 && (
               <div className="flex justify-center">
@@ -408,7 +366,7 @@ const FreelancerProfile = () => {
                             htmlFor="firstName"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            First Name
+                            First Name <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -425,7 +383,7 @@ const FreelancerProfile = () => {
                             htmlFor="lastName"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Last Name
+                            Last Name <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -442,7 +400,7 @@ const FreelancerProfile = () => {
                             htmlFor="email"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Email ID
+                            Email ID <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="email"
@@ -460,7 +418,7 @@ const FreelancerProfile = () => {
                             htmlFor="phoneNumber"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Phone Number
+                            Phone Number <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="tel"
@@ -497,7 +455,7 @@ const FreelancerProfile = () => {
                             htmlFor="degreeType"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Type of Degree
+                            Type of Degree <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -514,7 +472,7 @@ const FreelancerProfile = () => {
                             htmlFor="educationLevel"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Education Level
+                            Education Level <span className="text-red-500">*</span>
                           </label>
                           <select
                             id="educationLevel"
@@ -535,7 +493,7 @@ const FreelancerProfile = () => {
                               htmlFor="graduationYear"
                               className="block text-sm font-medium text-white mb-1"
                             >
-                              Year of Graduation
+                              Year of Graduation <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -553,7 +511,7 @@ const FreelancerProfile = () => {
                             htmlFor="college"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            College
+                            College <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -570,7 +528,7 @@ const FreelancerProfile = () => {
                             htmlFor="university"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            University
+                            University <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -607,7 +565,7 @@ const FreelancerProfile = () => {
                             htmlFor="freelancerType"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Select Your Type
+                            Select Your Type <span className="text-red-500">*</span>
                           </label>
                           <select
                             id="freelancerType"
@@ -619,12 +577,8 @@ const FreelancerProfile = () => {
                             <option value="">Select type</option>
                             <option value="Web developer">Web developer</option>
                             <option value="App developer">App developer</option>
-                            <option value="UI/UX designer">
-                              UI/UX designer
-                            </option>
-                            <option value="Script writing">
-                              Script writing
-                            </option>
+                            <option value="UI/UX designer">UI/UX designer</option>
+                            <option value="Script writing">Script writing</option>
                             <option value="Video editors">Video editors</option>
                             <option value="Other">Other</option>
                           </select>
@@ -635,7 +589,7 @@ const FreelancerProfile = () => {
                               htmlFor="freelancerTypeOther"
                               className="block text-sm font-medium text-white mb-1"
                             >
-                              Specify Other Type
+                              Specify Other Type <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -673,7 +627,7 @@ const FreelancerProfile = () => {
                             htmlFor="skillsDescription"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Explain your skills (200 words)
+                            Explain your skills (200 words) <span className="text-red-500">*</span>
                           </label>
                           <textarea
                             id="skillsDescription"
@@ -682,11 +636,11 @@ const FreelancerProfile = () => {
                             onChange={handleChange}
                             rows="4"
                             maxLength="200"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                             placeholder="Describe your skills and expertise..."
                           />
                           <p className="text-sm text-gray-300 mt-1">
-                            {formData.skillsDescription.length}/200 words
+                            {formData.skillsDescription.length}/200 characters
                           </p>
                         </div>
                         <div>
@@ -694,7 +648,7 @@ const FreelancerProfile = () => {
                             htmlFor="describeBest"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            What describes you best? (50 words)
+                            What describes you best? (50 words) <span className="text-red-500">*</span>
                           </label>
                           <textarea
                             id="describeBest"
@@ -703,11 +657,11 @@ const FreelancerProfile = () => {
                             onChange={handleChange}
                             rows="3"
                             maxLength="50"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                             placeholder="Brief description about yourself..."
                           />
                           <p className="text-sm text-gray-300 mt-1">
-                            {formData.describeBest.length}/50 words
+                            {formData.describeBest.length}/50 characters
                           </p>
                         </div>
                       </div>
@@ -734,7 +688,7 @@ const FreelancerProfile = () => {
                           htmlFor="experience"
                           className="block text-sm font-medium text-white mb-1"
                         >
-                          Describe your experience
+                          Describe your experience <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="experience"
@@ -742,7 +696,7 @@ const FreelancerProfile = () => {
                           value={formData.experience}
                           onChange={handleChange}
                           rows="4"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Share your professional experience, projects, and achievements..."
                         />
                       </div>
@@ -770,7 +724,7 @@ const FreelancerProfile = () => {
                             htmlFor="jobProfile"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Job Profile
+                            Job Profile <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -787,7 +741,7 @@ const FreelancerProfile = () => {
                             htmlFor="workingEnvironment"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Working Environment
+                            Working Environment <span className="text-red-500">*</span>
                           </label>
                           <select
                             id="workingEnvironment"
@@ -807,7 +761,7 @@ const FreelancerProfile = () => {
                             htmlFor="stipendExpectations"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Stipend Expectations
+                            Stipend Expectations <span className="text-red-500">*</span>
                           </label>
                           <select
                             id="stipendExpectations"
@@ -830,7 +784,7 @@ const FreelancerProfile = () => {
                               htmlFor="stipendOther"
                               className="block text-sm font-medium text-white mb-1"
                             >
-                              Specify Stipend Amount
+                              Specify Stipend Amount <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -868,7 +822,7 @@ const FreelancerProfile = () => {
                             htmlFor="linkedin"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            LinkedIn
+                            LinkedIn <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="url"
@@ -885,7 +839,7 @@ const FreelancerProfile = () => {
                             htmlFor="github"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            GitHub
+                            GitHub <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="url"
@@ -902,7 +856,7 @@ const FreelancerProfile = () => {
                             htmlFor="otherLinks"
                             className="block text-sm font-medium text-white mb-1"
                           >
-                            Any Other Important Links
+                            Any Other Important Links <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="url"
@@ -932,7 +886,9 @@ const FreelancerProfile = () => {
                   Back
                 </button>
               )}
-              <div className="flex-1"></div>
+
+              <div className="flex-1" />
+
               {currentStep < 7 ? (
                 <button
                   type="button"

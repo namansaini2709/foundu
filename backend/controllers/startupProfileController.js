@@ -40,18 +40,58 @@ exports.createProfile = (req, res) => {
     return res.status(400).json({ message: "user_id is required" });
   }
 
-  // 1️⃣ Check role
+  // 1️⃣ Check user role properly
   db.query(
-    "SELECT founder_id FROM users WHERE id = ?",
+    "SELECT user_type, founder_id FROM users WHERE id = ?",
     [user_id],
     (err, rows) => {
-      if (!rows.length || !rows[0].founder_id) {
-        return res.status(400).json({ message: "User is not a founder" });
+      if (err) {
+        console.error("User lookup error:", err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (!rows.length || rows[0].user_type !== "founder") {
+        return res.status(403).json({ message: "User is not a founder" });
       }
 
       const founder_id = rows[0].founder_id;
 
-      // 2️⃣ Insert profile
+      // 2️⃣ Insert startup profile
+      const values = [
+        user_id,
+        founder_id,
+        startup_name || null,
+        startup_logo_url || null,
+        founderType || null,
+        whyBuilding || null,
+        superpower || null,
+        superpowerOther || null,
+        JSON.stringify(weaknesses || []),
+        hoursPerWeek || null,
+        JSON.stringify(cofounderType || []),
+        problemSolving || null,
+        whoHasProblem || null,
+        problemImpact || null,
+        solutionBuilding || null,
+        monetization || null,
+        unfairAdvantage || null,
+        monthlyInvestment || null,
+        survivalWithoutRevenue || null,
+        biggestRisk || null,
+        currentNeed || null,
+        outcome30Days || null,
+        executionFailures || null,
+        JSON.stringify(trustFactors || []),
+        useVendors || null,
+        JSON.stringify(vendorCategories || []),
+        JSON.stringify(vendorPreference || []),
+        currentStage || null,
+        growthBlocker || null,
+        magicFix || null,
+        JSON.stringify(dashboards || []),
+        currentTools || null
+      ];
+
       db.query(
         `INSERT INTO startup_profiles (
           user_id, founder_id,
@@ -65,28 +105,17 @@ exports.createProfile = (req, res) => {
           use_vendors, vendor_categories, vendor_preference,
           current_stage, growth_blocker, magic_fix,
           dashboards, current_tools
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [
-          user_id, founder_id,
-          startup_name, startup_logo_url,
-          founderType, whyBuilding, superpower, superpowerOther,
-          JSON.stringify(weaknesses || []),
-          hoursPerWeek,
-          JSON.stringify(cofounderType || []),
-          problemSolving, whoHasProblem, problemImpact,
-          solutionBuilding, monetization, unfairAdvantage,
-          monthlyInvestment, survivalWithoutRevenue, biggestRisk,
-          currentNeed, outcome30Days, executionFailures,
-          JSON.stringify(trustFactors || []),
-          useVendors,
-          JSON.stringify(vendorCategories || []),
-          JSON.stringify(vendorPreference || []),
-          currentStage, growthBlocker, magicFix,
-          JSON.stringify(dashboards || []),
-          currentTools
-        ],
+        ) VALUES (${values.map(() => "?").join(",")})`,
+        values,
         (err) => {
-          if (err) return res.status(500).json({ error: err.message });
+          if (err) {
+            console.error("Startup profile insert error:", err);
+            return res.status(500).json({
+              error: err.message,
+              sqlMessage: err.sqlMessage,
+              code: err.code
+            });
+          }
 
           // 3️⃣ Mark profile complete
           db.query(

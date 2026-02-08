@@ -5,14 +5,8 @@ import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// Placeholder for getUserId - replace with actual import when utils/auth is available
 const getUserId = () => {
-  try {
-    const { getUserId: getUserIdFunc } = require("../utils/auth");
-    return getUserIdFunc();
-  } catch {
-    return localStorage.getItem("userId") || null;
-  }
+  return localStorage.getItem("user_id");
 };
 
 /**
@@ -32,6 +26,8 @@ const StartupProfile = () => {
   // Form state management
   const [formData, setFormData] = useState({
     // Step 1: Founder DNA
+    startupName: "",
+    startupLogoUrl: "",
     founderType: "",
     whyBuilding: "",
     superpower: "",
@@ -77,29 +73,37 @@ const StartupProfile = () => {
   // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
-    if (userId) {
-      fetchProfile(userId);
+    if (!userId) {
+      toast.error("User not logged in");
+      navigate("/login-signup");
+      return;
     }
-  }, []);
+    fetchProfile(userId);
+  }, [navigate]);
 
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/startup-profiles/user/${userId}`,
-        { withCredentials: true },
+        `http://localhost:4000/api/startup-profiles/user/${userId}`
       );
       const profile = response.data;
 
       // Map database fields to form fields
       setFormData({
+        startupName: profile.startup_name || "",
+        startupLogoUrl: profile.startup_logo_url || "",
         founderType: profile.founder_type || "",
         whyBuilding: profile.why_building || "",
         superpower: profile.superpower || "",
         superpowerOther: profile.superpower_other || "",
-        weaknesses: profile.weaknesses || [],
+        weaknesses: Array.isArray(profile.weaknesses) 
+          ? profile.weaknesses 
+          : (profile.weaknesses ? JSON.parse(profile.weaknesses) : []),
         hoursPerWeek: profile.hours_per_week || "",
-        cofounderType: profile.cofounder_type || [],
+        cofounderType: Array.isArray(profile.cofounder_type)
+          ? profile.cofounder_type
+          : (profile.cofounder_type ? JSON.parse(profile.cofounder_type) : []),
         problemSolving: profile.problem_solving || "",
         whoHasProblem: profile.who_has_problem || "",
         problemImpact: profile.problem_impact || "",
@@ -112,20 +116,30 @@ const StartupProfile = () => {
         currentNeed: profile.current_need || "",
         outcome30Days: profile.outcome_30_days || "",
         executionFailures: profile.execution_failures || "",
-        trustFactors: profile.trust_factors || [],
+        trustFactors: Array.isArray(profile.trust_factors)
+          ? profile.trust_factors
+          : (profile.trust_factors ? JSON.parse(profile.trust_factors) : []),
         useVendors: profile.use_vendors || "",
-        vendorCategories: profile.vendor_categories || [],
-        vendorPreference: profile.vendor_preference || [],
+        vendorCategories: Array.isArray(profile.vendor_categories)
+          ? profile.vendor_categories
+          : (profile.vendor_categories ? JSON.parse(profile.vendor_categories) : []),
+        vendorPreference: Array.isArray(profile.vendor_preference)
+          ? profile.vendor_preference
+          : (profile.vendor_preference ? JSON.parse(profile.vendor_preference) : []),
         currentStage: profile.current_stage || "",
         growthBlocker: profile.growth_blocker || "",
         magicFix: profile.magic_fix || "",
-        dashboards: profile.dashboards || [],
+        dashboards: Array.isArray(profile.dashboards)
+          ? profile.dashboards
+          : (profile.dashboards ? JSON.parse(profile.dashboards) : []),
         currentTools: profile.current_tools || "",
       });
-    } catch (error) {
+      toast.success("Profile loaded successfully");
+    } catch (err) {
       // Profile doesn't exist yet, which is fine
-      if (error.response?.status !== 404) {
-        console.error("Error fetching profile:", error);
+      if (err.response?.status !== 404) {
+        console.error("Error fetching profile:", err);
+        toast.error("Failed to load profile");
       }
     }
   };
@@ -154,72 +168,111 @@ const StartupProfile = () => {
   };
 
   /**
-   * Validate all form fields
+   * Validate fields for the current step only
    */
-  const validateForm = () => {
+  const validateCurrentStep = () => {
     const errors = [];
 
-    // Step 1: Founder DNA
-    if (!formData.founderType?.trim()) errors.push("Founder type is required");
-    if (!formData.whyBuilding?.trim())
-      errors.push("Why are you building a startup is required");
-    if (!formData.superpower?.trim()) errors.push("Superpower is required");
-    if (formData.superpower === "Other" && !formData.superpowerOther?.trim()) {
-      errors.push("Please specify your superpower");
+    switch (currentStep) {
+      case 1: // Founder DNA
+        if (!formData.startupName?.trim()) errors.push("Startup Name is required");
+        if (!formData.founderType?.trim()) errors.push("Founder type is required");
+        if (!formData.whyBuilding?.trim())
+          errors.push("Why are you building a startup is required");
+        if (!formData.superpower?.trim()) errors.push("Superpower is required");
+        if (formData.superpower === "Other" && !formData.superpowerOther?.trim()) {
+          errors.push("Please specify your superpower");
+        }
+        if (formData.weaknesses.length === 0)
+          errors.push("At least one weakness is required");
+        if (!formData.hoursPerWeek?.trim())
+          errors.push("Hours per week is required");
+        if (formData.cofounderType.length === 0)
+          errors.push("At least one co-founder type is required");
+        break;
+
+      case 2: // Startup DNA
+        if (!formData.problemSolving?.trim())
+          errors.push("Problem solving is required");
+        if (!formData.whoHasProblem?.trim())
+          errors.push("Who has the problem is required");
+        if (!formData.problemImpact?.trim())
+          errors.push("Problem impact is required");
+        if (!formData.solutionBuilding?.trim())
+          errors.push("Solution building is required");
+        if (!formData.monetization?.trim()) errors.push("Monetization is required");
+        if (!formData.unfairAdvantage?.trim())
+          errors.push("Unfair advantage is required");
+        break;
+
+      case 3: // Burn Reality
+        if (!formData.monthlyInvestment?.trim())
+          errors.push("Monthly investment is required");
+        if (!formData.survivalWithoutRevenue?.trim())
+          errors.push("Survival without revenue is required");
+        if (!formData.biggestRisk?.trim()) errors.push("Biggest risk is required");
+        break;
+
+      case 4: // Hiring & Execution
+        if (!formData.currentNeed?.trim()) errors.push("Current need is required");
+        if (!formData.outcome30Days?.trim())
+          errors.push("30-day outcome is required");
+        if (!formData.executionFailures?.trim())
+          errors.push("Execution failures is required");
+        if (formData.trustFactors.length === 0)
+          errors.push("At least one trust factor is required");
+        break;
+
+      case 5: // Vendor Intelligence
+        if (!formData.useVendors?.trim()) errors.push("Vendor usage is required");
+        break;
+
+      case 6: // AI Idea & Strategy Engine
+        if (!formData.currentStage?.trim())
+          errors.push("Current stage is required");
+        if (!formData.growthBlocker?.trim())
+          errors.push("Growth blocker is required");
+        if (!formData.magicFix?.trim()) errors.push("Magic fix is required");
+        break;
+
+      case 7: // Dashboard Intelligence
+        if (formData.dashboards.length === 0)
+          errors.push("At least one dashboard is required");
+        if (!formData.currentTools?.trim())
+          errors.push("Current tools is required");
+        break;
+
+      default:
+        break;
     }
-    if (formData.weaknesses.length === 0)
-      errors.push("At least one weakness is required");
-    if (!formData.hoursPerWeek?.trim())
-      errors.push("Hours per week is required");
-    if (formData.cofounderType.length === 0)
-      errors.push("At least one co-founder type is required");
-
-    // Step 2: Startup DNA
-    if (!formData.problemSolving?.trim())
-      errors.push("Problem solving is required");
-    if (!formData.whoHasProblem?.trim())
-      errors.push("Who has the problem is required");
-    if (!formData.problemImpact?.trim())
-      errors.push("Problem impact is required");
-    if (!formData.solutionBuilding?.trim())
-      errors.push("Solution building is required");
-    if (!formData.monetization?.trim()) errors.push("Monetization is required");
-    if (!formData.unfairAdvantage?.trim())
-      errors.push("Unfair advantage is required");
-
-    // Step 3: Burn Reality
-    if (!formData.monthlyInvestment?.trim())
-      errors.push("Monthly investment is required");
-    if (!formData.survivalWithoutRevenue?.trim())
-      errors.push("Survival without revenue is required");
-    if (!formData.biggestRisk?.trim()) errors.push("Biggest risk is required");
-
-    // Step 4: Hiring & Execution
-    if (!formData.currentNeed?.trim()) errors.push("Current need is required");
-    if (!formData.outcome30Days?.trim())
-      errors.push("30-day outcome is required");
-    if (!formData.executionFailures?.trim())
-      errors.push("Execution failures is required");
-    if (formData.trustFactors.length === 0)
-      errors.push("At least one trust factor is required");
-
-    // Step 5: Vendor Intelligence
-    if (!formData.useVendors?.trim()) errors.push("Vendor usage is required");
-
-    // Step 6: AI Idea & Strategy Engine
-    if (!formData.currentStage?.trim())
-      errors.push("Current stage is required");
-    if (!formData.growthBlocker?.trim())
-      errors.push("Growth blocker is required");
-    if (!formData.magicFix?.trim()) errors.push("Magic fix is required");
-
-    // Step 7: Dashboard Intelligence
-    if (formData.dashboards.length === 0)
-      errors.push("At least one dashboard is required");
-    if (!formData.currentTools?.trim())
-      errors.push("Current tools is required");
 
     return errors;
+  };
+
+  /**
+   * Handle Next button click
+   */
+  const handleNext = () => {
+    const errors = validateCurrentStep();
+
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
+      return;
+    }
+
+    if (currentStep < 7) {
+      setCurrentStep((s) => s + 1);
+      toast.success(`Step ${currentStep} completed!`);
+    }
+  };
+
+  /**
+   * Handle Back button
+   */
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((s) => s - 1);
+    }
   };
 
   /**
@@ -227,84 +280,81 @@ const StartupProfile = () => {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (currentStep < 7) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Final submission
-      const errors = validateForm();
-      if (errors.length > 0) {
-        errors.forEach((error) => toast.error(error));
-        return;
-      }
 
-      const userId = getUserId();
-      if (!userId) {
-        toast.error("User ID not found. Please login again.");
-        navigate("/login");
-        return;
-      }
-
-      setLoading(true);
-      try {
-        let existingProfile = null;
-        try {
-          const checkResponse = await axios.get(
-            `http://localhost:5000/api/startup-profiles/user/${userId}`,
-            { withCredentials: true },
-          );
-          existingProfile = checkResponse.data;
-        } catch (checkError) {
-          if (checkError.response?.status !== 404) {
-            console.error("Error checking existing profile:", checkError);
-          }
-        }
-
-        const profileData = {
-          userId: parseInt(userId),
-          ...formData,
-        };
-
-        if (existingProfile) {
-          await axios.put(
-            `http://localhost:5000/api/startup-profiles/${existingProfile.id}`,
-            profileData,
-            { withCredentials: true },
-          );
-          toast.success("Profile updated successfully!");
-        } else {
-          await axios.post(
-            "http://localhost:5000/api/startup-profiles",
-            profileData,
-            { withCredentials: true },
-          );
-          toast.success("Profile created successfully!");
-        }
-
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
-      } catch (error) {
-        console.error("Profile submission error:", error);
-        toast.error(
-          error.response?.data?.message ||
-            error.response?.data?.error ||
-            "Failed to save profile. Please try again.",
-        );
-      } finally {
-        setLoading(false);
-      }
+    // Safety check – submit only on step 7
+    if (currentStep !== 7) {
+      toast.error("Please complete all steps before submitting");
+      return;
     }
-  };
 
-  const handleNext = () => {
-    if (currentStep < 7) {
-      setCurrentStep(currentStep + 1);
+    // Validate current step (step 7)
+    const errors = validateCurrentStep();
+    if (errors.length > 0) {
+      errors.forEach((error) => toast.error(error));
+      return;
     }
-  };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    const userId = getUserId();
+    if (!userId) {
+      toast.error("User not logged in. Please log in again.");
+      navigate("/login-signup");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/api/startup-profiles",
+        {
+          user_id: Number(userId),
+          startup_name: formData.startupName,
+          startup_logo_url: formData.startupLogoUrl,
+          founderType: formData.founderType,
+          whyBuilding: formData.whyBuilding,
+          superpower: formData.superpower,
+          superpowerOther: formData.superpowerOther,
+          weaknesses: formData.weaknesses,
+          hoursPerWeek: formData.hoursPerWeek,
+          cofounderType: formData.cofounderType,
+          problemSolving: formData.problemSolving,
+          whoHasProblem: formData.whoHasProblem,
+          problemImpact: formData.problemImpact,
+          solutionBuilding: formData.solutionBuilding,
+          monetization: formData.monetization,
+          unfairAdvantage: formData.unfairAdvantage,
+          monthlyInvestment: formData.monthlyInvestment,
+          survivalWithoutRevenue: formData.survivalWithoutRevenue,
+          biggestRisk: formData.biggestRisk,
+          currentNeed: formData.currentNeed,
+          outcome30Days: formData.outcome30Days,
+          executionFailures: formData.executionFailures,
+          trustFactors: formData.trustFactors,
+          useVendors: formData.useVendors,
+          vendorCategories: formData.vendorCategories,
+          vendorPreference: formData.vendorPreference,
+          currentStage: formData.currentStage,
+          growthBlocker: formData.growthBlocker,
+          magicFix: formData.magicFix,
+          dashboards: formData.dashboards,
+          currentTools: formData.currentTools,
+        }
+      );
+
+      console.log("Profile created:", response.data);
+      toast.success("Profile created successfully! Redirecting...");
+
+      setTimeout(() => {
+        navigate("/startup-services");
+      }, 1500);
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to save profile. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -325,13 +375,19 @@ const StartupProfile = () => {
               {[1, 2, 3, 4, 5, 6, 7].map((step) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${currentStep >= step ? "bg-blue-500 text-white" : "bg-gray-700/50 text-gray-400"}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                      currentStep >= step
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-700/50 text-gray-400"
+                    }`}
                   >
                     {step}
                   </div>
                   {step < 7 && (
                     <div
-                      className={`w-8 h-1 ${currentStep > step ? "bg-blue-500" : "bg-gray-700/50"}`}
+                      className={`w-8 h-1 ${
+                        currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
+                      }`}
                     ></div>
                   )}
                 </div>
@@ -341,11 +397,11 @@ const StartupProfile = () => {
               Complete Your Startup Profile
             </h1>
             <p className="text-blue-200 text-sm text-center">
-              Step {currentStep} of 7
+              Step {currentStep} of 7 - Fill in your details to connect with the right talent
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Step 1: Founder DNA */}
             {currentStep === 1 && (
               <div className="flex justify-center">
@@ -361,8 +417,44 @@ const StartupProfile = () => {
                       </h2>
 
                       <div>
+                        <label
+                          htmlFor="startupName"
+                          className="block text-sm font-medium text-white mb-2"
+                        >
+                          Startup Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="startupName"
+                          name="startupName"
+                          value={formData.startupName}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                          placeholder="Enter your startup name"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="startupLogoUrl"
+                          className="block text-sm font-medium text-white mb-2"
+                        >
+                          Startup Logo URL
+                        </label>
+                        <input
+                          type="url"
+                          id="startupLogoUrl"
+                          name="startupLogoUrl"
+                          value={formData.startupLogoUrl}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                          placeholder="https://example.com/logo.png"
+                        />
+                      </div>
+
+                      <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          1. What best describes you right now?
+                          1. What best describes you right now? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -395,7 +487,7 @@ const StartupProfile = () => {
                           htmlFor="whyBuilding"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          2. Why are you building a startup? (Short answer)
+                          2. Why are you building a startup? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="whyBuilding"
@@ -403,14 +495,14 @@ const StartupProfile = () => {
                           value={formData.whyBuilding}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Explain your motivation..."
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          3. What is your superpower?
+                          3. What is your superpower? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -454,7 +546,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          4. What are you weak at? (Multi-select)
+                          4. What are you weak at? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -488,7 +580,7 @@ const StartupProfile = () => {
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           5. How many hours can you realistically commit per
-                          week?
+                          week? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {["<10", "10–30", "30–60", "60+"].map((option) => (
@@ -514,8 +606,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          6. What type of co-founder would you work best with?
-                          (Multi-select)
+                          6. What type of co-founder would you work best with? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -571,7 +662,7 @@ const StartupProfile = () => {
                           htmlFor="problemSolving"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          7. What problem are you solving? (Short answer)
+                          7. What problem are you solving? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="problemSolving"
@@ -579,7 +670,7 @@ const StartupProfile = () => {
                           value={formData.problemSolving}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe the problem..."
                         />
                       </div>
@@ -589,7 +680,7 @@ const StartupProfile = () => {
                           htmlFor="whoHasProblem"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          8. Who exactly has this problem? (Short answer)
+                          8. Who exactly has this problem? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="whoHasProblem"
@@ -597,14 +688,14 @@ const StartupProfile = () => {
                           value={formData.whoHasProblem}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe the target audience..."
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          9. What happens if this problem is not solved?
+                          9. What happens if this problem is not solved? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -637,7 +728,7 @@ const StartupProfile = () => {
                           htmlFor="solutionBuilding"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          10. What solution are you building? (Short answer)
+                          10. What solution are you building? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="solutionBuilding"
@@ -645,20 +736,20 @@ const StartupProfile = () => {
                           value={formData.solutionBuilding}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe your solution..."
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          11. How will you make money?
+                          11. How will you make money? <span className="text-red-500">*</span>
                         </label>
                         <select
                           name="monetization"
                           value={formData.monetization}
                           onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 cursor-pointer text-sm"
                         >
                           <option value="">Select monetization model</option>
                           <option value="Subscription">Subscription</option>
@@ -674,7 +765,7 @@ const StartupProfile = () => {
                           htmlFor="unfairAdvantage"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          12. What is your unfair advantage? (Short answer)
+                          12. What is your unfair advantage? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="unfairAdvantage"
@@ -682,7 +773,7 @@ const StartupProfile = () => {
                           value={formData.unfairAdvantage}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe your unfair advantage..."
                         />
                       </div>
@@ -708,7 +799,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          13. How much can you invest per month?
+                          13. How much can you invest per month? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {["₹0", "₹10k–50k", "₹50k–2L", "₹2L+"].map(
@@ -738,7 +829,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          14. How long can you survive without revenue?
+                          14. How long can you survive without revenue? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -771,7 +862,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          15. What is your biggest risk right now?
+                          15. What is your biggest risk right now? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -822,7 +913,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          16. What do you need right now?
+                          16. What do you need right now? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -857,8 +948,7 @@ const StartupProfile = () => {
                           htmlFor="outcome30Days"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          17. What outcome must be achieved in the next 30 days?
-                          (Short answer)
+                          17. What outcome must be achieved in the next 30 days? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="outcome30Days"
@@ -866,7 +956,7 @@ const StartupProfile = () => {
                           value={formData.outcome30Days}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe the required outcome..."
                         />
                       </div>
@@ -876,8 +966,7 @@ const StartupProfile = () => {
                           htmlFor="executionFailures"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          18. What usually goes wrong when you try to execute?
-                          (Short answer)
+                          18. What usually goes wrong when you try to execute? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="executionFailures"
@@ -885,7 +974,7 @@ const StartupProfile = () => {
                           value={formData.executionFailures}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe common execution issues..."
                         />
                       </div>
@@ -893,7 +982,7 @@ const StartupProfile = () => {
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           19. What would make you trust an AI-recommended person
-                          or vendor? (Multi-select)
+                          or vendor? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -943,7 +1032,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          20. Do you use vendors today?
+                          20. Do you use vendors today? <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {["Yes", "No"].map((option) => (
@@ -1068,13 +1157,13 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          23. What stage are you at?
+                          23. What stage are you at? <span className="text-red-500">*</span>
                         </label>
                         <select
                           name="currentStage"
                           value={formData.currentStage}
                           onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 cursor-pointer text-sm"
                         >
                           <option value="">Select stage</option>
                           <option value="Idea">Idea</option>
@@ -1089,7 +1178,7 @@ const StartupProfile = () => {
                           htmlFor="growthBlocker"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          24. What is blocking your growth today? (Short answer)
+                          24. What is blocking your growth today? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="growthBlocker"
@@ -1097,7 +1186,7 @@ const StartupProfile = () => {
                           value={formData.growthBlocker}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe growth blockers..."
                         />
                       </div>
@@ -1108,7 +1197,7 @@ const StartupProfile = () => {
                           className="block text-sm font-medium text-white mb-2"
                         >
                           25. If you could magically fix ONE thing today, what
-                          would it be? (Short answer)
+                          would it be? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="magicFix"
@@ -1116,7 +1205,7 @@ const StartupProfile = () => {
                           value={formData.magicFix}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="Describe your priority fix..."
                         />
                       </div>
@@ -1141,8 +1230,7 @@ const StartupProfile = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          26. Which dashboards would you use weekly?
-                          (Multi-select)
+                          26. Which dashboards would you use weekly? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -1177,7 +1265,7 @@ const StartupProfile = () => {
                           htmlFor="currentTools"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          27. What tools do you currently use? (Short answer)
+                          27. What tools do you currently use? <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="currentTools"
@@ -1185,7 +1273,7 @@ const StartupProfile = () => {
                           value={formData.currentTools}
                           onChange={handleChange}
                           rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
                           placeholder="List your current tools..."
                         />
                       </div>
@@ -1201,7 +1289,7 @@ const StartupProfile = () => {
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="px-8 py-3 rounded-lg font-semibold text-lg border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-200"
+                  className="px-8 py-3 rounded-lg font-semibold text-lg border-2 border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white transition-all duration-200"
                 >
                   Back
                 </button>
@@ -1221,7 +1309,7 @@ const StartupProfile = () => {
                   disabled={loading}
                   className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600"
                 >
-                  {loading ? "Saving..." : "Save and Next"}
+                  {loading ? "Saving..." : "Save Details"}
                 </button>
               )}
             </div>
