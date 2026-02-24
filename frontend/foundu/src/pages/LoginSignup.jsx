@@ -76,7 +76,7 @@ function LoginSignup() {
         const res = await axios.post('http://localhost:4000/api/login', {
           email,
           password
-        })
+        }, { withCredentials: true })
 
         // Store user_id and user_type in localStorage
         localStorage.setItem('user_id', res.data.user.id)
@@ -97,12 +97,12 @@ function LoginSignup() {
           email,
           password,
           user_type: validUserType
-        })
+        }, { withCredentials: true })
 
         const loginRes = await axios.post('http://localhost:4000/api/login', {
           email,
           password
-        })
+        }, { withCredentials: true })
 
         // Store user_id and user_type in localStorage
         localStorage.setItem('user_id', loginRes.data.user.id)

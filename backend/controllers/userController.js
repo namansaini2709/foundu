@@ -125,19 +125,29 @@ exports.login = async (req, res) => {
     user_type: user.user_type
   };
 
-  res.json({
-    success: true,
-    message: "Logged in",
-    user: {
-      id: user.id,
-      full_name: user.full_name,
-      email: user.email,
-      user_type: user.user_type,
-      is_profile_complete: user.is_profile_complete,
-      freelancer_id: user.freelancer_id,
-      founder_id: user.founder_id,
-      cofounder_id: user.cofounder_id
+  // Force session to save before sending response
+  req.session.save((err) => {
+    if (err) {
+      console.error("Session save error:", err);
+      return res.status(500).json({ message: "Session error" });
     }
+    console.log("Session saved for user:", user.email);
+    console.log("Session ID after login:", req.sessionID);
+    
+    res.json({
+      success: true,
+      message: "Logged in",
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        user_type: user.user_type,
+        is_profile_complete: user.is_profile_complete,
+        freelancer_id: user.freelancer_id,
+        founder_id: user.founder_id,
+        cofounder_id: user.cofounder_id
+      }
+    });
   });
 };
 

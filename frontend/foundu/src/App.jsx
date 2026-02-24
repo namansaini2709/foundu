@@ -27,6 +27,7 @@ import LandingPage from "./pages/LandingPage";
 import FreelancerBadges from './pages/FreelancerBadges'
 import CoFounderBadges from './pages/CoFounderBadges'
 import FounderBadges from './pages/FounderBadges'
+import Chatbox from "./pages/Chatbox";
 
 
 function App() {
@@ -69,7 +70,7 @@ function App() {
         <Route path="/freelancer-badges" element={<FreelancerBadges />} />
         <Route path="/cofounder-badges" element={<CoFounderBadges />} />
         <Route path="/founder-badges" element={<FounderBadges />} />
-
+        <Route path="/chatbox" element={<Chatbox />} />
       </Routes>
     </Router>
   );

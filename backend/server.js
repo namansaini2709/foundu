@@ -12,9 +12,9 @@ const app = express();
 ========================= */
 app.use(
   cors({
-    origin: true,
-    credentials: true
-  })
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }),
 );
 
 app.use(express.json());
@@ -23,12 +23,23 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || "foundu_secret",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Force session to be saved
+    name: "foundu_sid", // Custom name to avoid conflicts
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  })
+      maxAge: 24 * 60 * 60 * 1000, 
+      secure: false, // Must be false for localhost HTTP
+      sameSite: 'lax' 
+    },
+  }),
 );
+
+// DEBUG: Log all requests
+app.use((req, res, next) => {
+  console.log(`\n[REQUEST] ${req.method} ${req.url}`);
+  console.log("Headers:", req.headers);
+  console.log("Session:", req.session);
+  next();
+});
 
 /* =========================
    ROUTES (IMPORT)
@@ -42,6 +53,7 @@ const jobRoutes = require("./routes/jobRoutes");
 const usersSocialsRoutes = require("./routes/usersSocialsRoutes");
 const badgeRoutes = require("./routes/badgeRoutes");
 const jobApplicantsRoutes = require("./routes/jobApplicantsRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -55,7 +67,7 @@ console.log("ROUTES TYPE CHECK 👉", {
   jobRoutes: typeof jobRoutes,
   usersSocialsRoutes: typeof usersSocialsRoutes,
   badgeRoutes: typeof badgeRoutes,
-  jobApplicantsRoutes: typeof jobApplicantsRoutes
+  jobApplicantsRoutes: typeof jobApplicantsRoutes,
 });
 
 /* =========================
@@ -72,6 +84,7 @@ app.use("/api", jobRoutes);
 app.use("/api", usersSocialsRoutes);
 app.use("/api", badgeRoutes);
 app.use("/api", jobApplicantsRoutes);
+app.use("/api/chat", chatRoutes);
 
 /* =========================
    HEALTH CHECK
