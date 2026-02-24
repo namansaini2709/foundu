@@ -1,4 +1,5 @@
-        import { useState } from "react";
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -17,7 +18,7 @@ const CoFounderJobs = () => {
   const aiMatchedJobs = [
     {
       id: 1,
-      logo: "🚀",
+      logo: "TV",
       startupName: "TechVenture",
       aiMatch: 95,
       about:
@@ -26,7 +27,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 2,
-      logo: "💡",
+      logo: "IL",
       startupName: "InnovateLab",
       aiMatch: 88,
       about:
@@ -35,7 +36,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 3,
-      logo: "🌟",
+      logo: "DF",
       startupName: "DataFlow",
       aiMatch: 92,
       about:
@@ -44,7 +45,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 4,
-      logo: "⚡",
+      logo: "GT",
       startupName: "GreenTech Solutions",
       aiMatch: 85,
       about:
@@ -53,7 +54,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 5,
-      logo: "🎯",
+      logo: "FP",
       startupName: "FinTech Pro",
       aiMatch: 90,
       about:
@@ -66,7 +67,7 @@ const CoFounderJobs = () => {
   const regularJobs = [
     {
       id: 6,
-      logo: "🔷",
+      logo: "CS",
       startupName: "CloudSync",
       about:
         "Enterprise cloud solutions provider helping businesses migrate to the cloud seamlessly. We offer comprehensive cloud consulting and implementation services.",
@@ -74,7 +75,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 7,
-      logo: "🔶",
+      logo: "MH",
       startupName: "MarketPlace Hub",
       about:
         "Creating the largest B2B marketplace for small businesses. Our platform connects suppliers with buyers, making commerce easier and more efficient.",
@@ -82,7 +83,7 @@ const CoFounderJobs = () => {
     },
     {
       id: 8,
-      logo: "🔴",
+      logo: "EI",
       startupName: "EduTech Innovations",
       about:
         "Transforming education through technology. We build learning platforms that make education accessible, engaging, and effective for students worldwide.",
@@ -90,16 +91,16 @@ const CoFounderJobs = () => {
     },
     {
       id: 9,
-      logo: "🟢",
+      logo: "HC",
       startupName: "HealthConnect",
-      aiMatch: 87,
+      aiMatch: 87, // Kept this if it was here, though regular jobs usually don't show match so prominently in the list
       about:
         "Connecting healthcare providers with patients through innovative digital solutions. We streamline healthcare delivery and improve patient outcomes.",
       position: "CTO, CMO",
     },
     {
       id: 10,
-      logo: "🟡",
+      logo: "RM",
       startupName: "RetailMax",
       about:
         "Empowering retailers with AI-driven inventory management and customer analytics. We help retail businesses optimize operations and increase sales.",

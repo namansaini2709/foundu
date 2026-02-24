@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Briefcase, DollarSign, Clock, MapPin } from "lucide-react";
 import Navbar from "../components/Navbar";
@@ -17,6 +17,8 @@ function FreelancerJobs() {
   const [selectedStipend, setSelectedStipend] = useState("");
   const [selectedExperience, setSelectedExperience] = useState("");
   const [selectedJobType, setSelectedJobType] = useState("");
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // AI Matched Jobs (dummy data)
   const aiMatchedJobs = [
@@ -62,164 +64,55 @@ function FreelancerJobs() {
     },
   ];
 
-  // Available Jobs (dummy data)
-  const availableJobs = [
-    {
-      id: 6,
-      logo: "FS",
-      name: "Full Stack Developer",
-      info: "Build end-to-end web solutions with modern tech stack",
-      stipend: "$4,000",
-      match: 82,
-    },
-    {
-      id: 7,
-      logo: "VE",
-      name: "Video Editor",
-      info: "Edit engaging video content for social media and marketing",
-      stipend: "$2,200",
-      match: 75,
-    },
-    {
-      id: 8,
-      logo: "CW",
-      name: "Content Writer",
-      info: "Create compelling blog posts and marketing copy",
-      stipend: "$1,800",
-      match: 78,
-    },
-    {
-      id: 9,
-      logo: "DM",
-      name: "Digital Marketing Specialist",
-      info: "Manage social media campaigns and SEO strategies",
-      stipend: "$3,000",
-      match: 85,
-    },
-    {
-      id: 10,
-      logo: "CS",
-      name: "Cybersecurity Expert",
-      info: "Secure applications and infrastructure for growing companies",
-      stipend: "$5,000",
-      match: 80,
-    },
-    {
-      id: 11,
-      logo: "CA",
-      name: "Cloud Architect",
-      info: "Design scalable cloud infrastructure solutions",
-      stipend: "$4,800",
-      match: 83,
-    },
-    {
-      id: 12,
-      logo: "PM",
-      name: "Product Manager",
-      info: "Lead product development and strategy initiatives",
-      stipend: "$4,500",
-      match: 77,
-    },
-    {
-      id: 13,
-      logo: "QA",
-      name: "QA Tester",
-      info: "Ensure software quality through comprehensive testing",
-      stipend: "$2,000",
-      match: 74,
-    },
-  ];
-Navbar
-  // Navbar Component
-  // const Navbar = () => (
+  // Fetch available jobs from API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        // Fetch all jobs
+        const jobsResponse = await fetch("http://localhost:4000/api/jobs");
+        const jobsData = await jobsResponse.json();
+        
+        // Debug: Log the first job to see the structure
+        if (jobsData.length > 0) {
+          console.log("First job from API:", jobsData[0]);
+        }
 
-  // Footer Component
-  // const Footer = () => (
-  //   <footer className="relative py-16 px-4" style={gradientBlackToBlue}>
-  //     <div className="max-w-7xl mx-auto">
-  //       <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-12 mb-8">
-  //         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-  //           <div className="md:col-span-1">
-  //             <div className="flex items-center mb-4">
-  //               <span className="text-3xl font-bold text-white">F</span>
-  //               <span className="text-white text-2xl font-bold ml-2">OUNDU</span>
-  //             </div>
-  //             <p className="text-gray-300 text-sm leading-relaxed mb-4">
-  //               The central platform for startups to discover, connect, and collaborate with skilled freelancers and co-founders. AI-powered matching, instant connections.
-  //             </p>
-  //             <div className="flex gap-4">
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  //                 </svg>
-  //               </a>
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-  //                 </svg>
-  //               </a>
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-  //                 </svg>
-  //               </a>
-  //             </div>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">Contact Us</h3>
-  //             <ul className="space-y-3">
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  //                 </svg>
-  //                 foundu@example.com
-  //               </li>
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-  //                 </svg>
-  //                 +1 (555) 123-4567
-  //               </li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">Resources</h3>
-  //             <ul className="space-y-2">
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">About Us</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Our Team</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">FAQ</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Contact Us</a></li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">For Startups</h3>
-  //             <ul className="space-y-2">
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Browse Talent</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Create Profile</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Post Gig</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Explore Community</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Partner With Us</a></li>
-  //             </ul>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <div className="text-center">
-  //         <div className="text-6xl md:text-8xl font-bold text-white/10 mb-6">FOUNDU</div>
-  //         <div className="flex justify-center gap-8 mb-6">
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Privacy Policy</a>
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Terms of Service</a>
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Cookie Policy</a>
-  //         </div>
-  //         <div className="text-white/60 text-sm">
-  //           © 2025 Foundu, All rights reserved.
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </footer>
-  // )
+        // Fetch all startup profiles
+        const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+        const profilesData = await profilesResponse.json();
+
+        // Create a map of founder_id to startup logo
+        const founderLogoMap = {};
+        profilesData.forEach((profile) => {
+          founderLogoMap[profile.userId] = profile.startup_logo_url;
+        });
+
+        // Filter only freelancer jobs and map with startup logos
+        const jobsWithLogos = jobsData
+          .filter((job) => job.job_type === "freelancer")
+          .map((job) => ({
+            id: job.job_id, // Use job_id from API response
+            name: job.job_title,
+            info: job.full_job_description,
+            stipend: job.budget_range,
+            founderId: job.founder_id,
+            logoUrl: founderLogoMap[job.founder_id] || null,
+          }));
+
+        setAvailableJobs(jobsWithLogos);
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   // Job Card Component
-  const JobCard = ({ job, showMatch = true }) => (
+  const JobCard = ({ job, showMatch = true, isApiJob = false }) => (
     <div className="bg-gray-900/50 backdrop-blur-sm border-2 border-blue-700/50 rounded-2xl p-5 hover:border-blue-400 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-400/20 flex flex-col w-full h-full relative overflow-hidden group">
       {/* Background Gradient Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -228,9 +121,43 @@ Navbar
       <div className="flex items-start justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3 flex-1">
           {/* Logo - Top Left */}
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-            <span className="text-lg font-bold text-blue-200">{job.logo}</span>
-          </div>
+          {isApiJob && job.logoUrl ? (
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0 overflow-hidden">
+              <img
+                src={job.logoUrl}
+                alt={job.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to initials if image fails to load
+                  e.target.style.display = "none";
+                  e.target.parentElement.innerHTML = `<span class="text-lg font-bold text-blue-200">${job.name
+                    .split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .substring(0, 2)
+                    .toUpperCase()}</span>`;
+                  e.target.parentElement.classList.add(
+                    "bg-gradient-to-br",
+                    "from-blue-500/40",
+                    "to-blue-600/40"
+                  );
+                }}
+              />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <span className="text-lg font-bold text-blue-200">
+                {isApiJob
+                  ? job.name
+                      .split(" ")
+                      .map((word) => word[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()
+                  : job.logo}
+              </span>
+            </div>
+          )}
 
           {/* Job Name - Next to Logo */}
           <h3 className="text-base font-bold text-white group-hover:text-blue-300 transition-colors duration-300 leading-tight">
@@ -259,7 +186,7 @@ Navbar
 
       {/* Apply Now Button */}
       <button
-        onClick={() => navigate(`/job-description?id=${job.id}`)}
+        onClick={() => navigate(`/job-description?job_id=${job.id}`)}
         className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 mt-auto relative z-10 shadow-md hover:shadow-lg hover:shadow-blue-500/50"
       >
         Apply Now
@@ -290,7 +217,7 @@ Navbar
                   className="w-full"
                   style={{ aspectRatio: "1 / 1" }}
                 >
-                  <JobCard job={job} showMatch={true} />
+                  <JobCard job={job} showMatch={true} isApiJob={false} />
                 </div>
               ))}
             </div>
@@ -398,18 +325,29 @@ Navbar
             <span className="text-blue-300">Jobs</span>
           </h2>
 
-          {/* Available Jobs Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {availableJobs.map((job) => (
-              <div
-                key={job.id}
-                className="w-full"
-                style={{ aspectRatio: "1 / 1" }}
-              >
-                <JobCard job={job} showMatch={false} />
-              </div>
-            ))}
-          </div>
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+            </div>
+          ) : availableJobs.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No jobs available at the moment.</p>
+            </div>
+          ) : (
+            /* Available Jobs Grid */
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {availableJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="w-full"
+                  style={{ aspectRatio: "1 / 1" }}
+                >
+                  <JobCard job={job} showMatch={false} isApiJob={true} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
       <Footer />

@@ -40,11 +40,15 @@ const initial = {
   freelancer: {
     workType: "Fixed task",
     duration: "1–4 weeks",
-    budget: "$500–$2,000",
+    budget: "",
     urgency: "Flexible",
+    jobLevel: "",
+    jobType: "",
+    requirements: [""],
     jobTitle: "",
     jobDescription: "",
   },
+
   cofounder: {
     roleType: "Technical (CTO / Engineer)",
     compensation: "Equity only",
@@ -60,11 +64,10 @@ function Chip({ label, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`px-3 py-1 rounded-full text-sm border transition-all mr-2 mb-2 ${
-        active
+      className={`px-3 py-1 rounded-full text-sm border transition-all mr-2 mb-2 ${active
           ? "bg-blue-500 text-white border-blue-500"
           : "bg-gray-800 text-gray-200 border-gray-700"
-      }`}
+        }`}
     >
       {label}
     </button>
@@ -76,13 +79,35 @@ export default function AddJobs() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(() => {
-    try {
-      const raw = localStorage.getItem("addJobForm");
-      return raw ? JSON.parse(raw) : initial;
-    } catch (e) {
-      return initial;
-    }
-  });
+  try {
+    const raw = localStorage.getItem("addJobForm");
+    const parsed = raw ? JSON.parse(raw) : {};
+
+    return {
+      ...initial,
+      ...parsed,
+      common: {
+        ...initial.common,
+        ...(parsed.common || {}),
+      },
+      freelancer: {
+        ...initial.freelancer,
+        ...(parsed.freelancer || {}),
+        requirements: Array.isArray(parsed?.freelancer?.requirements)
+          ? parsed.freelancer.requirements
+          : initial.freelancer.requirements,
+      },
+      cofounder: {
+        ...initial.cofounder,
+        ...(parsed.cofounder || {}),
+      },
+    };
+  } catch (e) {
+    return initial;
+  }
+});
+
+
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
@@ -127,15 +152,30 @@ export default function AddJobs() {
     if (hiringType === "freelancer" || hiringType === "both") {
       if (common.roleCategories.length === 0)
         errors.push("Please select at least one role category for freelancer");
-      if (!freelancer.workType) errors.push("Please select work type");
-      if (!freelancer.duration) errors.push("Please select duration");
-      if (!freelancer.budget) errors.push("Please select budget range");
-      if (!freelancer.urgency) errors.push("Please select urgency");
+      if (!freelancer.workType)
+        errors.push("Please select work type");
+      if (!freelancer.duration)
+        errors.push("Please select duration");
+      if (!freelancer.budget?.trim())
+        errors.push("Please enter a budget");
+      if (!freelancer.urgency)
+        errors.push("Please select urgency");
+      // ✅ NEW VALIDATIONS
+      if (!freelancer.jobLevel)
+        errors.push("Please select job level");
+      if (!freelancer.jobType)
+        errors.push("Please select job type");
+      if (
+        !freelancer.requirements ||
+        freelancer.requirements.filter((r) => r.trim() !== "").length === 0
+      )
+        errors.push("Please add at least one job requirement");
       if (!freelancer.jobTitle?.trim())
         errors.push("Please provide a job title for freelancer position");
       if (!freelancer.jobDescription?.trim())
         errors.push("Please provide a job description for freelancer position");
     }
+
 
     if (hiringType === "cofounder" || hiringType === "both") {
       if (!cofounder.roleType) errors.push("Please select role type for cofounder");
@@ -181,11 +221,19 @@ export default function AddJobs() {
           duration: freelancer.duration,
           budget_range: freelancer.budget,
           urgency: freelancer.urgency,
+          job_level: freelancer.jobLevel,
+          job_type: freelancer.jobType,
+          job_requirements: freelancer.requirements.filter(
+            (r) => r.trim() !== ""
+          ),
+
           job_title: freelancer.jobTitle,
           full_job_description: freelancer.jobDescription,
         });
+
         toast.success("Freelancer job posted successfully!");
       }
+
 
       if (hiringType === "cofounder" || hiringType === "both") {
         await axios.post("http://localhost:4000/api/jobs/cofounder", {
@@ -219,10 +267,19 @@ export default function AddJobs() {
   }
 
   const handleNext = () => {
+    if (currentStep === 2) {
+      const errors = validateForm();
+      if (errors.length > 0) {
+        errors.forEach((e) => toast.error(e));
+        return;
+      }
+    }
+
     if (currentStep < 3) {
       setCurrentStep((s) => s + 1);
     }
   };
+
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -265,11 +322,10 @@ export default function AddJobs() {
                 onClick={() =>
                   setFormData((s) => ({ ...s, hiringType: c.key }))
                 }
-                className={`p-5 text-left rounded-xl border transition-colors ${
-                  formData.hiringType === c.key
+                className={`p-5 text-left rounded-xl border transition-colors ${formData.hiringType === c.key
                     ? "bg-blue-500 border-blue-500 text-white"
                     : "bg-gray-800 border-gray-700 text-gray-200 hover:border-blue-400"
-                }`}
+                  }`}
               >
                 <div className="font-semibold text-lg">{c.title}</div>
                 <div className="text-sm text-gray-300">{c.subtitle}</div>
@@ -326,6 +382,8 @@ export default function AddJobs() {
                 <h3 className="font-semibold mb-3 text-lg">
                   Freelancer Job Details
                 </h3>
+
+                {/* Role Category */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">
                     Role Category <span className="text-red-500">*</span>
@@ -342,6 +400,7 @@ export default function AddJobs() {
                   </div>
                 </div>
 
+                {/* Work Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Work Type <span className="text-red-500">*</span>
@@ -355,16 +414,14 @@ export default function AddJobs() {
                     ].map((w) => (
                       <label
                         key={w}
-                        className={`px-3 py-2 rounded-md border cursor-pointer transition-colors text-center ${
-                          formData.freelancer.workType === w
+                        className={`px-3 py-2 rounded-md border cursor-pointer transition-colors text-center ${formData.freelancer.workType === w
                             ? "bg-blue-500 border-blue-500"
                             : "bg-gray-800 border-gray-700 hover:border-blue-400"
-                        }`}
+                          }`}
                       >
                         <input
                           className="hidden"
                           type="radio"
-                          name="workType"
                           checked={formData.freelancer.workType === w}
                           onChange={() =>
                             setFormData((fd) => ({
@@ -379,6 +436,7 @@ export default function AddJobs() {
                   </div>
                 </div>
 
+                {/* Duration, Budget, Urgency */}
                 <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-sm mb-2 font-medium">
@@ -389,57 +447,38 @@ export default function AddJobs() {
                       onChange={(e) =>
                         setFormData((fd) => ({
                           ...fd,
-                          freelancer: {
-                            ...fd.freelancer,
-                            duration: e.target.value,
-                          },
+                          freelancer: { ...fd.freelancer, duration: e.target.value },
                         }))
                       }
-                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none text-white"
+                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
                     >
-                      {[
-                        "< 1 week",
-                        "1–4 weeks",
-                        "1–3 months",
-                        "3+ months",
-                        "Ongoing",
-                      ].map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
+                      {["< 1 week", "1–4 weeks", "1–3 months", "3+ months", "Ongoing"].map(
+                        (d) => (
+                          <option key={d}>{d}</option>
+                        )
+                      )}
                     </select>
                   </div>
+
+                  {/* Budget (INPUT instead of dropdown) */}
                   <div>
                     <label className="block text-sm mb-2 font-medium">
-                      Budget Range <span className="text-red-500">*</span>
+                      Budget <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       value={formData.freelancer.budget}
                       onChange={(e) =>
                         setFormData((fd) => ({
                           ...fd,
-                          freelancer: {
-                            ...fd.freelancer,
-                            budget: e.target.value,
-                          },
+                          freelancer: { ...fd.freelancer, budget: e.target.value },
                         }))
                       }
-                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none text-white"
-                    >
-                      {[
-                        "<$500",
-                        "$500–$2,000",
-                        "$2,000–$10,000",
-                        "$10,000+",
-                        "Not decided",
-                      ].map((b) => (
-                        <option key={b} value={b}>
-                          {b}
-                        </option>
-                      ))}
-                    </select>
+                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                      placeholder="e.g. $2000, ₹50,000"
+                    />
                   </div>
+
                   <div>
                     <label className="block text-sm mb-2 font-medium">
                       Urgency <span className="text-red-500">*</span>
@@ -449,27 +488,65 @@ export default function AddJobs() {
                       onChange={(e) =>
                         setFormData((fd) => ({
                           ...fd,
-                          freelancer: {
-                            ...fd.freelancer,
-                            urgency: e.target.value,
-                          },
+                          freelancer: { ...fd.freelancer, urgency: e.target.value },
                         }))
                       }
-                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none text-white"
+                      className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
                     >
-                      {[
-                        "ASAP (within 7 days)",
-                        "Within 1 month",
-                        "Flexible",
-                      ].map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
+                      {["ASAP (within 7 days)", "Within 1 month", "Flexible"].map(
+                        (u) => (
+                          <option key={u}>{u}</option>
+                        )
+                      )}
                     </select>
                   </div>
                 </div>
 
+                {/* Job Level */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.freelancer.jobLevel}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        freelancer: { ...fd.freelancer, jobLevel: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
+                    <option value="">Select job level</option>
+                    {["Low level", "Medium level", "High level"].map((l) => (
+                      <option key={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Job Type */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.freelancer.jobType}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        freelancer: { ...fd.freelancer, jobType: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
+                    <option value="">Select job type</option>
+                    {["Work from home", "Hybrid", "In office"].map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Job Title */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Job Title <span className="text-red-500">*</span>
@@ -480,17 +557,15 @@ export default function AddJobs() {
                     onChange={(e) =>
                       setFormData((fd) => ({
                         ...fd,
-                        freelancer: {
-                          ...fd.freelancer,
-                          jobTitle: e.target.value,
-                        },
+                        freelancer: { ...fd.freelancer, jobTitle: e.target.value },
                       }))
                     }
-                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400"
-                    placeholder="e.g., Full Stack Developer, UI/UX Designer"
+                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 text-white"
+                    placeholder="e.g. Senior Full Stack Developer"
                   />
                 </div>
 
+                {/* Job Description - MOVED HERE */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Job Description <span className="text-red-500">*</span>
@@ -507,9 +582,50 @@ export default function AddJobs() {
                       }))
                     }
                     rows="5"
-                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none resize-none text-white placeholder-gray-400"
-                    placeholder="Describe the job requirements, responsibilities, and qualifications..."
+                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 text-white resize-none"
+                    placeholder="Describe responsibilities, expectations, tech stack, deliverables..."
                   />
+                </div>
+
+                {/* Job Requirements */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Requirements <span className="text-red-500">*</span>
+                  </label>
+
+                  {formData.freelancer.requirements.map((req, idx) => (
+                    <input
+                      key={idx}
+                      type="text"
+                      value={req}
+                      onChange={(e) => {
+                        const updated = [...formData.freelancer.requirements];
+                        updated[idx] = e.target.value;
+                        setFormData((fd) => ({
+                          ...fd,
+                          freelancer: { ...fd.freelancer, requirements: updated },
+                        }));
+                      }}
+                      className="w-full bg-gray-800 p-2 mb-2 rounded-md border border-gray-700 text-white"
+                      placeholder={`Requirement ${idx + 1}`}
+                    />
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        freelancer: {
+                          ...fd.freelancer,
+                          requirements: [...fd.freelancer.requirements, ""],
+                        },
+                      }))
+                    }
+                    className="text-blue-400 text-sm mt-1"
+                  >
+                    + Add requirement
+                  </button>
                 </div>
               </div>
             )}
@@ -517,124 +633,97 @@ export default function AddJobs() {
             {(hiringType === "cofounder" || hiringType === "both") && (
               <div className="mb-6 p-4 rounded-lg border border-purple-500/30 bg-gray-800">
                 <h3 className="font-semibold mb-3 text-lg">
-                  Cofounder Requirements
+                  Cofounder Position Details
                 </h3>
+
+                {/* Role Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Role Type <span className="text-red-500">*</span>
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <select
+                    value={formData.cofounder.roleType}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: { ...fd.cofounder, roleType: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
                     {[
                       "Technical (CTO / Engineer)",
+                      "Business / Operations (COO)",
+                      "Marketing / Growth",
+                      "Sales / BD",
                       "Product / Design",
-                      "Growth / Marketing",
-                      "Business / Sales",
-                      "Operations / Finance",
-                      "Generalist",
+                      "Finance / Legal",
                     ].map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        className={`px-3 py-2 rounded-md border transition-colors ${
-                          formData.cofounder.roleType === r
-                            ? "bg-blue-500 border-blue-500"
-                            : "bg-gray-800 border-gray-700 hover:border-blue-400"
-                        }`}
-                        onClick={() =>
-                          setFormData((fd) => ({
-                            ...fd,
-                            cofounder: { ...fd.cofounder, roleType: r },
-                          }))
-                        }
-                      >
-                        {r}
-                      </button>
+                      <option key={r}>{r}</option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
-                <div className="mb-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm mb-2 font-medium">
-                      Compensation <span className="text-red-500">*</span>
-                    </label>
+                {/* Compensation */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Compensation <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.cofounder.compensation}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: { ...fd.cofounder, compensation: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
                     {[
                       "Equity only",
                       "Equity + stipend",
-                      "Salary later (after funding)",
-                      "Not decided",
+                      "Equity + small salary",
+                      "Negotiable",
                     ].map((c) => (
-                      <label
-                        key={c}
-                        className={`block px-3 py-2 rounded-md border mb-2 cursor-pointer transition-colors ${
-                          formData.cofounder.compensation === c
-                            ? "bg-blue-500 border-blue-500"
-                            : "bg-gray-800 border-gray-700 hover:border-blue-400"
-                        }`}
-                      >
-                        <input
-                          className="hidden"
-                          type="radio"
-                          name="comp"
-                          checked={formData.cofounder.compensation === c}
-                          onChange={() =>
-                            setFormData((fd) => ({
-                              ...fd,
-                              cofounder: { ...fd.cofounder, compensation: c },
-                            }))
-                          }
-                        />
-                        {c}
-                      </label>
+                      <option key={c}>{c}</option>
                     ))}
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-2 font-medium">
-                      Commitment <span className="text-red-500">*</span>
-                    </label>
-                    {[
-                      "Full-time",
-                      "Part-time (10–20 hrs/week)",
-                      "Advisor / Mentor",
-                    ].map((c) => (
-                      <label
-                        key={c}
-                        className={`block px-3 py-2 rounded-md border mb-2 cursor-pointer transition-colors ${
-                          formData.cofounder.commitment === c
-                            ? "bg-blue-500 border-blue-500"
-                            : "bg-gray-800 border-gray-700 hover:border-blue-400"
-                        }`}
-                      >
-                        <input
-                          className="hidden"
-                          type="radio"
-                          name="commit"
-                          checked={formData.cofounder.commitment === c}
-                          onChange={() =>
-                            setFormData((fd) => ({
-                              ...fd,
-                              cofounder: { ...fd.cofounder, commitment: c },
-                            }))
-                          }
-                        />
-                        {c}
-                      </label>
-                    ))}
-                  </div>
+                  </select>
                 </div>
 
+                {/* Commitment */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Commitment <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.cofounder.commitment}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: { ...fd.cofounder, commitment: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
+                    {["Full-time", "Part-time initially", "Flexible"].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Priority Factors */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Priority Factors <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap">
                     {[
-                      "Vision / mindset alignment",
-                      "Technical skill depth",
-                      "Past startup experience",
-                      "Network & connections",
-                      "Execution speed",
-                      "Culture fit",
+                      "Technical skills",
+                      "Domain expertise",
+                      "Network / connections",
+                      "Fundraising ability",
+                      "Sales / GTM skills",
+                      "Cultural fit",
                     ].map((p) => (
                       <Chip
                         key={p}
@@ -646,6 +735,7 @@ export default function AddJobs() {
                   </div>
                 </div>
 
+                {/* Job Title */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Job Title <span className="text-red-500">*</span>
@@ -656,17 +746,15 @@ export default function AddJobs() {
                     onChange={(e) =>
                       setFormData((fd) => ({
                         ...fd,
-                        cofounder: {
-                          ...fd.cofounder,
-                          jobTitle: e.target.value,
-                        },
+                        cofounder: { ...fd.cofounder, jobTitle: e.target.value },
                       }))
                     }
-                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400"
-                    placeholder="e.g., Technical Co-founder, CTO, Head of Growth"
+                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 text-white"
+                    placeholder="e.g. Co-Founder & CTO"
                   />
                 </div>
 
+                {/* Job Description */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Job Description <span className="text-red-500">*</span>
@@ -683,14 +771,15 @@ export default function AddJobs() {
                       }))
                     }
                     rows="5"
-                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 focus:border-blue-500 focus:outline-none resize-none text-white placeholder-gray-400"
-                    placeholder="Describe what you're looking for in a co-founder, the vision, and expectations..."
+                    className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 text-white resize-none"
+                    placeholder="Describe the vision, responsibilities, equity split, company stage..."
                   />
                 </div>
               </div>
             )}
           </section>
         )}
+
 
         {/* Step 4: Review & Submit */}
         {currentStep >= 3 && (
@@ -716,16 +805,24 @@ export default function AddJobs() {
                       {formData.common.roleCategories.join(", ") || "—"}
                     </div>
                     <div>
-                      <strong>Work Type:</strong> {formData.freelancer.workType}
+                      <strong>Work Type:</strong> {formData.freelancer.workType || "—"}
                     </div>
                     <div>
-                      <strong>Duration:</strong> {formData.freelancer.duration}
+                      <strong>Duration:</strong> {formData.freelancer.duration || "—"}
                     </div>
                     <div>
-                      <strong>Budget:</strong> {formData.freelancer.budget}
+                      <strong>Budget:</strong> {formData.freelancer.budget || "—"}
                     </div>
                     <div>
-                      <strong>Urgency:</strong> {formData.freelancer.urgency}
+                      <strong>Urgency:</strong> {formData.freelancer.urgency || "—"}
+                    </div>
+                    <div>
+                      <strong>Job Level:</strong>{" "}
+                      {formData.freelancer.jobLevel || "—"}
+                    </div>
+                    <div>
+                      <strong>Job Type:</strong>{" "}
+                      {formData.freelancer.jobType || "—"}
                     </div>
                     <div>
                       <strong>Job Title:</strong>{" "}
@@ -734,6 +831,21 @@ export default function AddJobs() {
                     <div>
                       <strong>Description:</strong>{" "}
                       {formData.freelancer.jobDescription || "—"}
+                    </div>
+                    <div>
+                      <strong>Requirements:</strong>
+                      {formData.freelancer.requirements &&
+                        formData.freelancer.requirements.length > 0 ? (
+                        <ul className="list-disc list-inside mt-1">
+                          {formData.freelancer.requirements
+                            .filter((r) => r.trim() !== "")
+                            .map((req, idx) => (
+                              <li key={idx}>{req}</li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <span> —</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -746,15 +858,16 @@ export default function AddJobs() {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div>
-                      <strong>Role Type:</strong> {formData.cofounder.roleType}
+                      <strong>Role Type:</strong>{" "}
+                      {formData.cofounder.roleType || "—"}
                     </div>
                     <div>
                       <strong>Compensation:</strong>{" "}
-                      {formData.cofounder.compensation}
+                      {formData.cofounder.compensation || "—"}
                     </div>
                     <div>
                       <strong>Commitment:</strong>{" "}
-                      {formData.cofounder.commitment}
+                      {formData.cofounder.commitment || "—"}
                     </div>
                     <div>
                       <strong>Priorities:</strong>{" "}
@@ -775,6 +888,7 @@ export default function AddJobs() {
           </section>
         )}
 
+
         {/* Navigation Buttons */}
         <div className="flex items-center justify-between gap-4 mt-6">
           <div>
@@ -789,15 +903,6 @@ export default function AddJobs() {
           </div>
 
           <div className="flex gap-3">
-            <button
-              onClick={() => {
-                localStorage.setItem("addJobForm", JSON.stringify(formData));
-                toast.success("Progress saved!");
-              }}
-              className="px-6 py-2 rounded-md bg-gray-700 border border-gray-600 hover:bg-gray-600 transition-colors"
-            >
-              Save for later
-            </button>
             {currentStep < 3 ? (
               <button
                 onClick={handleNext}

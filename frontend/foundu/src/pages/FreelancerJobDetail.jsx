@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   DollarSign,
   Clock,
@@ -6,6 +8,8 @@ import {
   Briefcase,
   CheckCircle,
   ArrowLeft,
+  Zap,
+  Calendar,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -19,198 +23,322 @@ const gradientBlackToBlue = {
 function FreelancerJobDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const jobId = searchParams.get("id");
+  const jobId = searchParams.get("job_id");
 
-  // Dummy job data (in real app, this would come from API/state)
-  const jobDetails = {
-    1: {
-      logo: "FD",
-      name: "Frontend Developer",
-      stipend: "$3,500",
-      level: "Mid Level",
-      type: "Remote",
-      match: 95,
-      details:
-        "We are seeking a talented Frontend Developer to join our dynamic team. You will be responsible for building responsive web applications using React and Next.js, working closely with our design team to create beautiful user interfaces, and ensuring optimal performance across all devices.",
-      requirements: [
-        "3+ years of experience in React and Next.js",
-        "Strong knowledge of JavaScript, HTML, and CSS",
-        "Experience with TypeScript",
-        "Familiarity with Git version control",
-        "Understanding of RESTful APIs",
-        "Experience with responsive design",
-        "Strong problem-solving skills",
-        "Good communication skills",
-      ],
-    },
-    2: {
-      logo: "UX",
-      name: "UI/UX Designer",
-      stipend: "$2,800",
-      level: "Mid Level",
-      type: "Contract",
-      match: 88,
-      details:
-        "Join our creative team as a UI/UX Designer and help create stunning user interfaces for mobile and web platforms. You will work on innovative design projects, collaborate with developers, and contribute to our product design strategy.",
-      requirements: [
-        "4+ years of UI/UX design experience",
-        "Proficiency in Figma, Adobe XD, or Sketch",
-        "Strong portfolio showcasing mobile and web designs",
-        "Understanding of user research and testing",
-        "Knowledge of design systems and components",
-        "Experience with prototyping tools",
-        "Strong visual design skills",
-        "Ability to work in a fast-paced environment",
-      ],
-    },
-    3: {
-      logo: "MA",
-      name: "Mobile App Developer",
-      stipend: "$4,200",
-      level: "Senior Level",
-      type: "Remote",
-      match: 92,
-      details:
-        "We are looking for an experienced Mobile App Developer to develop cross-platform mobile apps using React Native. You will be working on cutting-edge mobile applications that serve thousands of users daily.",
-      requirements: [
-        "5+ years of mobile development experience",
-        "Expert knowledge of React Native",
-        "Experience with iOS and Android development",
-        "Knowledge of native modules integration",
-        "Understanding of app store deployment",
-        "Experience with state management (Redux, MobX)",
-        "Strong debugging and testing skills",
-        "Experience with CI/CD pipelines",
-      ],
-    },
-    4: {
-      logo: "AI",
-      name: "AI/ML Engineer",
-      stipend: "$5,500",
-      level: "Senior Level",
-      type: "Full-time",
-      match: 87,
-      details:
-        "Join our AI team to design and implement machine learning models for startups. You will work on challenging problems, develop ML solutions, and help shape the future of AI-powered products.",
-      requirements: [
-        "Master's degree in Computer Science or related field",
-        "5+ years of ML/AI experience",
-        "Proficiency in Python and ML frameworks (TensorFlow, PyTorch)",
-        "Experience with NLP and computer vision",
-        "Strong mathematical and statistical background",
-        "Experience with cloud ML platforms (AWS, GCP)",
-        "Published research papers (preferred)",
-        "Strong problem-solving abilities",
-      ],
-    },
-    5: {
-      logo: "DA",
-      name: "Data Analyst",
-      stipend: "$2,500",
-      level: "Mid Level",
-      type: "Part-time",
-      match: 90,
-      details:
-        "We need a skilled Data Analyst to analyze business data and create insightful visualizations. You will help drive data-driven decisions and provide actionable insights to stakeholders.",
-      requirements: [
-        "3+ years of data analysis experience",
-        "Proficiency in SQL and Python",
-        "Experience with data visualization tools (Tableau, Power BI)",
-        "Strong Excel and spreadsheet skills",
-        "Understanding of statistical analysis",
-        "Experience with data cleaning and preprocessing",
-        "Strong analytical thinking",
-        "Excellent communication skills",
-      ],
-    },
+  const [jobData, setJobData] = useState(null);
+  const [startupData, setStartupData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+
+  // Get user data from localStorage
+  const getUserData = () => {
+    try {
+      // Try multiple possible localStorage keys
+      const possibleKeys = ["user", "userData", "currentUser", "authUser"];
+      
+      for (const key of possibleKeys) {
+        const userDataString = localStorage.getItem(key);
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            
+            // Extract user_id and user_type from various possible structures
+            const userId = userData.user_id || userData.id || userData.userId;
+            const userType = userData.user_type || userData.userType || userData.applicant_type || userData.type;
+            
+            if (userId && userType) {
+              console.log("✅ Found user data:", { userId, userType, key });
+              return {
+                user_id: userId,
+                user_type: userType,
+              };
+            }
+          } catch (parseError) {
+            console.error(`Failed to parse ${key}:`, parseError);
+          }
+        }
+      }
+      
+      // Also check for direct values without JSON parsing
+      const directUserId = localStorage.getItem("user_id");
+      const directUserType = localStorage.getItem("user_type");
+      
+      if (directUserId && directUserType) {
+        console.log("✅ Found direct user data:", { directUserId, directUserType });
+        return {
+          user_id: directUserId,
+          user_type: directUserType,
+        };
+      }
+      
+      console.error("❌ No user data found in localStorage");
+      console.log("Available localStorage keys:", Object.keys(localStorage));
+      return null;
+    } catch (error) {
+      console.error("Error getting user data:", error);
+      return null;
+    }
   };
 
-  const job = jobDetails[jobId] || jobDetails[1];
+  // Check if user has already applied
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      const userData = getUserData();
+      if (!userData || !jobId) return;
 
-  // Footer Component
-  // const Footer = () => (
-  //   <footer className="relative py-16 px-4" style={gradientBlackToBlue}>
-  //     <div className="max-w-7xl mx-auto">
-  //       <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-12 mb-8">
-  //         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-  //           <div className="md:col-span-1">
-  //             <div className="flex items-center mb-4">
-  //               <span className="text-3xl font-bold text-white">F</span>
-  //               <span className="text-white text-2xl font-bold ml-2">OUNDU</span>
-  //             </div>
-  //             <p className="text-gray-300 text-sm leading-relaxed mb-4">
-  //               The central platform for startups to discover, connect, and collaborate with skilled freelancers and co-founders. AI-powered matching, instant connections.
-  //             </p>
-  //             <div className="flex gap-4">
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  //                 </svg>
-  //               </a>
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-  //                 </svg>
-  //               </a>
-  //               <a href="#" className="text-white/80 hover:text-white transition-colors">
-  //                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-  //                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-  //                 </svg>
-  //               </a>
-  //             </div>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">Contact Us</h3>
-  //             <ul className="space-y-3">
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  //                 </svg>
-  //                 foundu@example.com
-  //               </li>
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-  //                 </svg>
-  //                 +1 (555) 123-4567
-  //               </li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">Resources</h3>
-  //             <ul className="space-y-2">
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">About Us</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Our Team</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">FAQ</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Contact Us</a></li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">For Startups</h3>
-  //             <ul className="space-y-2">
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Browse Talent</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Create Profile</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Post Gig</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Explore Community</a></li>
-  //               <li><a href="#" className="text-white/80 hover:text-white transition-colors text-sm">Partner With Us</a></li>
-  //             </ul>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <div className="text-center">
-  //         <div className="text-6xl md:text-8xl font-bold text-white/10 mb-6">FOUNDU</div>
-  //         <div className="flex justify-center gap-8 mb-6">
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Privacy Policy</a>
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Terms of Service</a>
-  //           <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Cookie Policy</a>
-  //         </div>
-  //         <div className="text-white/60 text-sm">
-  //           © 2025 Foundu, All rights reserved.
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </footer>
-  // )
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/jobs/${jobId}/applicants/${userData.user_id}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          setHasApplied(true);
+          setApplicationStatus(data.status);
+          console.log("User has already applied. Status:", data.status);
+        }
+      } catch (error) {
+        // User hasn't applied yet or error occurred
+        console.log("No existing application found");
+      }
+    };
+
+    if (jobId) {
+      checkApplicationStatus();
+    }
+  }, [jobId]);
+
+  // Handle Apply Now button click
+  const handleApplyNow = async () => {
+    console.log("=== APPLY NOW CLICKED ===");
+    
+    const userData = getUserData();
+    console.log("User data retrieved:", userData);
+
+    // Check if user is logged in
+    if (!userData || !userData.user_id) {
+      toast.error("Please login to apply for this job");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+      return;
+    }
+
+    // Check if user is freelancer or cofounder
+    if (!["freelancer", "cofounder"].includes(userData.user_type.toLowerCase())) {
+      toast.error("Only freelancers or cofounders can apply for jobs");
+      return;
+    }
+
+    // Prevent multiple applications
+    if (hasApplied) {
+      toast.warning("You have already applied for this job");
+      return;
+    }
+
+    setApplying(true);
+
+    try {
+      console.log("Sending application request with:", {
+        job_id: parseInt(jobId),
+        user_id: parseInt(userData.user_id),
+      });
+
+      const response = await fetch("http://localhost:4000/api/jobs/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          job_id: parseInt(jobId),
+          user_id: parseInt(userData.user_id),
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Application response:", data);
+
+      if (response.ok && data.success) {
+        setHasApplied(true);
+        setApplicationStatus("pending");
+        
+        toast.success("Application submitted successfully! 🎉");
+        
+        // Redirect to appropriate dashboard after 2 seconds
+        setTimeout(() => {
+          const dashboardRoute = userData.user_type.toLowerCase() === "freelancer" 
+            ? "/freelancer-dashboard" 
+            : "/cofounder-dashboard";
+          
+          console.log("Redirecting to:", dashboardRoute);
+          navigate(dashboardRoute);
+        }, 2000);
+      } else {
+        toast.error(data.message || "Failed to submit application");
+      }
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      toast.error("An error occurred while submitting your application. Please try again.");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  // Fetch job details and startup profile
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      if (!jobId) {
+        navigate("/freelancer-jobs");
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // Fetch specific job by ID
+        const jobResponse = await fetch(`http://localhost:4000/api/jobs/${jobId}`);
+
+        if (!jobResponse.ok) {
+          console.error(`Failed to fetch job. Status: ${jobResponse.status}`);
+          toast.error("Failed to load job details");
+          navigate("/freelancer-jobs");
+          return;
+        }
+
+        const job = await jobResponse.json();
+
+        console.log("=== JOB DATA ===");
+        console.log("Full job object:", job);
+        console.log("founder_id:", job.founder_id);
+
+        if (!job) {
+          navigate("/freelancer-jobs");
+          return;
+        }
+
+        setJobData(job);
+
+        // Fetch startup profile using founder_id
+        if (job.founder_id) {
+          const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+          const profiles = await profilesResponse.json();
+
+          console.log("=== STARTUP PROFILES ===");
+          console.log("Total profiles:", profiles.length);
+          console.log("All profiles:", profiles);
+          console.log("Looking for founder_id:", job.founder_id);
+
+          // Check all possible field variations
+          const startupProfile = profiles.find((profile) => {
+            console.log("Checking profile:", {
+              user_id: profile.user_id,
+              founder_id: profile.founder_id,
+              job_founder_id: job.founder_id,
+              matches: Number(profile.founder_id) === Number(job.founder_id)
+            });
+
+            return Number(profile.founder_id) === Number(job.founder_id);
+          });
+
+
+          console.log("=== MATCHED PROFILE ===");
+          console.log("Found startup profile:", startupProfile);
+
+          if (startupProfile) {
+            console.log("Startup logo URL:", startupProfile.startup_logo_url);
+            console.log("Problem solving:", startupProfile.problem_solving);
+            setStartupData(startupProfile);
+          } else {
+            console.error("No matching profile found for founder_id:", job.founder_id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching job details:", error);
+        toast.error("Failed to load job details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobDetails();
+  }, [jobId, navigate]);
+
+  // Get button text and style based on application status
+  const getApplyButtonConfig = () => {
+    if (applying) {
+      return {
+        text: "Applying...",
+        disabled: true,
+        className: "bg-gray-500 cursor-not-allowed"
+      };
+    }
+    
+    if (hasApplied) {
+      const statusText = {
+        pending: "Application Pending",
+        accepted: "Application Accepted ✓",
+        rejected: "Application Rejected"
+      };
+      
+      const statusClass = {
+        pending: "bg-yellow-600 hover:bg-yellow-700",
+        accepted: "bg-green-600 hover:bg-green-700",
+        rejected: "bg-red-600 hover:bg-red-700"
+      };
+      
+      return {
+        text: statusText[applicationStatus] || "Already Applied",
+        disabled: true,
+        className: statusClass[applicationStatus] || "bg-gray-600 cursor-not-allowed"
+      };
+    }
+    
+    return {
+      text: "Apply Now",
+      disabled: false,
+      className: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen" style={gradientBlackToBlue}>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!jobData) {
+    return (
+      <div className="min-h-screen" style={gradientBlackToBlue}>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <p className="text-gray-400 text-xl mb-4">Job not found</p>
+            <button
+              onClick={() => navigate("/freelancer-jobs")}
+              className="text-blue-400 hover:text-blue-300"
+            >
+              Back to Jobs
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  console.log("=== RENDERING ===");
+  console.log("startupData:", startupData);
+  console.log("startup_logo_url:", startupData?.startup_logo_url);
+
+  const buttonConfig = getApplyButtonConfig();
 
   return (
     <div className="min-h-screen" style={gradientBlackToBlue}>
@@ -237,63 +365,144 @@ function FreelancerJobDetail() {
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-8 md:p-12 shadow-2xl relative">
             {/* Header Section */}
             <div className="flex items-start gap-6 mb-8 pb-8 border-b border-white/20">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0">
-                <span className="text-3xl font-bold text-blue-200">
-                  {job.logo}
-                </span>
-              </div>
+              {/* Startup Logo */}
+              {startupData?.startup_logo_url ? (
+                <div className="w-20 h-20 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0 overflow-hidden bg-white">
+                  <img
+                    src={startupData.startup_logo_url}
+                    alt={jobData.job_title}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error("Image failed to load:", startupData.startup_logo_url);
+
+                      // hide broken image
+                      e.currentTarget.style.display = "none";
+
+                      // SAFETY: parentElement may be null after re-render
+                      const parent = e.currentTarget.parentElement;
+                      if (!parent) return;
+
+                      parent.classList.remove("bg-white");
+                      parent.classList.add(
+                        "bg-gradient-to-br",
+                        "from-blue-500/40",
+                        "to-blue-600/40"
+                      );
+
+                      parent.innerHTML = `<span class="text-3xl font-bold text-blue-200">
+    ${jobData.job_title
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")
+                          .substring(0, 2)
+                          .toUpperCase()}
+  </span>`;
+                    }}
+
+                  />
+                </div>
+              ) : (
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0">
+                  <span className="text-3xl font-bold text-blue-200">
+                    {jobData.job_title
+                      .split(" ")
+                      .map((word) => word[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </span>
+                </div>
+              )}
 
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                  {job.name}
+                  {jobData.job_title}
                 </h1>
 
                 {/* Job Details Row */}
                 <div className="flex flex-wrap gap-6 items-center">
+                  {/* Budget Range */}
                   <div className="flex items-center gap-2 text-blue-300">
-                    <DollarSign className="w-5 h-5" />
-                    <span className="font-semibold text-lg">{job.stipend}</span>
-                    <span className="text-gray-400 text-sm">/month</span>
+                    {/* <DollarSign className="w-5 h-5" /> */}
+                    <span className="font-semibold text-lg">
+                      {jobData.budget_range || "Not specified"}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-blue-300">
-                    <Briefcase className="w-5 h-5" />
-                    <span className="font-medium">{job.level}</span>
+                  {/* Urgency */}
+                  {jobData.urgency && (
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <Zap className="w-5 h-5" />
+                      <span className="font-medium capitalize">
+                        {jobData.urgency}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Duration */}
+                  {jobData.duration && (
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-medium">{jobData.duration}</span>
+                    </div>
+                  )}
+
+
+                  {/* Work Type */}
+                   <div className="flex items-center gap-2 text-blue-300">
+                    <MapPin  className="w-5 h-5" />
+                    <span className="font-medium">{jobData.job_location_type}</span>
                   </div>
 
+                  {/* Job Level - Placeholder */}
                   <div className="flex items-center gap-2 text-blue-300">
                     <Briefcase className="w-5 h-5" />
-                    <span className="font-medium">{job.type}</span>
+                    <span className="font-medium">{jobData.job_level}</span>
                   </div>
+
+                  {/* Working Type - Placeholder */}
+                   {jobData.work_type && (
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <Calendar className="w-5 h-5" />
+                      <span className="font-medium capitalize">
+                        {jobData.work_type}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Apply Now Button */}
             <div className="absolute top-6 right-4">
-              <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2">
+              <button 
+                onClick={handleApplyNow}
+                disabled={buttonConfig.disabled}
+                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${
+                  buttonConfig.disabled ? 'opacity-80' : ''
+                }`}
+              >
                 <Briefcase className="w-5 h-5" />
-                Apply Now
+                {buttonConfig.text}
               </button>
             </div>
 
-            {/* Startup Details Section */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
-                Startup Details
-              </h2>
-              <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <p className="text-gray-300 leading-relaxed text-base">
-                  TechNova Solutions is a cutting-edge startup focused on
-                  innovative software solutions. Founded in 2020, we're a team
-                  of passionate developers and designers building the future of
-                  digital experiences. Located in San Francisco, CA, we offer a
-                  dynamic work environment with opportunities for growth and
-                  creativity.
-                </p>
+            {/* About Startup Section */}
+            {startupData && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
+                  About Startup
+                </h2>
+                <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
+                  <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
+                    {startupData.problem_solving ||
+                      startupData.startup_details ||
+                      "No startup details available at the moment."}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Job Description Section */}
             <div className="mb-8">
@@ -302,8 +511,9 @@ function FreelancerJobDetail() {
                 Job Description
               </h2>
               <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <p className="text-gray-300 leading-relaxed text-base">
-                  {job.details}
+                <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
+                  {jobData.full_job_description ||
+                    "No job description available."}
                 </p>
               </div>
             </div>
@@ -314,19 +524,43 @@ function FreelancerJobDetail() {
                 <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
                 Requirements
               </h2>
+
               <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <ul className="space-y-3">
-                  {job.requirements.map((requirement, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300 leading-relaxed">
-                        {requirement}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                {(() => {
+                  let requirements = [];
+
+                  try {
+                    if (jobData.job_requirements) {
+                      requirements = JSON.parse(jobData.job_requirements);
+                    }
+                  } catch (err) {
+                    console.error("Failed to parse job_requirements:", err);
+                  }
+
+                  if (!requirements || requirements.length === 0) {
+                    return (
+                      <p className="text-gray-400">
+                        No requirements specified for this job.
+                      </p>
+                    );
+                  }
+
+                  return (
+                    <ul className="space-y-3">
+                      {requirements.map((requirement, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-300 leading-relaxed">
+                            {requirement}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                })()}
               </div>
             </div>
+
           </div>
         </div>
       </section>

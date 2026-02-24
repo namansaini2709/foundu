@@ -12,8 +12,14 @@ exports.createFreelancerJob = (req, res) => {
     duration,
     budget_range,
     urgency,
+
+    // 🔹 NEW FIELDS
+    job_level,
+    job_type,              // ✅ This comes from frontend as "job_type"
+    job_requirements,
+
     job_title,
-    full_job_description
+    full_job_description,
   } = req.body;
 
   if (!user_id) {
@@ -48,7 +54,9 @@ exports.createFreelancerJob = (req, res) => {
 
           // 3️⃣ Get next freelancer_job_id
           db.query(
-            "SELECT COALESCE(MAX(freelancer_job_id), 0) + 1 AS next_id FROM foundu_jobs WHERE job_type = 'freelancer'",
+            `SELECT COALESCE(MAX(freelancer_job_id), 0) + 1 AS next_id
+             FROM foundu_jobs
+             WHERE job_type = 'freelancer'`,
             (err, idRows) => {
               if (err) return res.status(500).json({ error: err.message });
 
@@ -68,9 +76,14 @@ exports.createFreelancerJob = (req, res) => {
                   duration,
                   budget_range,
                   urgency,
+
+                  job_level,
+                  job_location_type,
+                  job_requirements,
+
                   job_title,
                   full_job_description
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                   user_id,
                   founder_id,
@@ -83,8 +96,15 @@ exports.createFreelancerJob = (req, res) => {
                   duration || null,
                   budget_range || null,
                   urgency || null,
-                  job_title,
-                  full_job_description
+
+                  job_level || null,
+                  job_type || null,          // ✅ FIXED: Now correctly maps job_type to job_location_type column
+                  job_requirements
+                    ? JSON.stringify(job_requirements)
+                    : null,
+
+                  job_title || null,
+                  full_job_description || null,
                 ],
                 (err) => {
                   if (err) {
@@ -95,7 +115,7 @@ exports.createFreelancerJob = (req, res) => {
                   res.json({
                     success: true,
                     message: "Freelancer job posted successfully",
-                    freelancer_job_id
+                    freelancer_job_id,
                   });
                 }
               );
@@ -106,6 +126,7 @@ exports.createFreelancerJob = (req, res) => {
     }
   );
 };
+
 /* ===============================
    POST COFOUNDER JOB
 ================================ */
@@ -184,8 +205,8 @@ exports.createCofounderJob = (req, res) => {
                   compensation || null,
                   commitment || null,
                   JSON.stringify(priority_factors || []),
-                  job_title,
-                  full_job_description
+                  job_title || null,
+                  full_job_description || null
                 ],
                 (err) => {
                   if (err) {
@@ -230,6 +251,8 @@ exports.getJobById = (req, res) => {
     "SELECT * FROM foundu_jobs WHERE job_id = ?",
     [req.params.id],
     (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
       if (!rows.length)
         return res.status(404).json({ message: "Job not found" });
 
@@ -246,6 +269,8 @@ exports.deleteJobById = (req, res) => {
     "DELETE FROM foundu_jobs WHERE job_id = ?",
     [req.params.id],
     (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
       if (!result.affectedRows)
         return res.status(404).json({ message: "Job not found" });
 
