@@ -24,13 +24,18 @@ import CPolicy from "./pages/CPolicy";
 import AddJobs from "./pages/AddJobs";
 import ScrollToTop from "./components/ScrollToTop";
 import LandingPage from "./pages/LandingPage";
-import FreelancerBadges from './pages/FreelancerBadges'
-import CoFounderBadges from './pages/CoFounderBadges'
-import FounderBadges from './pages/FounderBadges'
+import FreelancerBadges from "./pages/FreelancerBadges";
+import CoFounderBadges from "./pages/CoFounderBadges";
+import FounderBadges from "./pages/FounderBadges";
 import Chatbox from "./pages/Chatbox";
-
+import JobApplicationsDashboard from "./pages/viewJobposting";
+import SmartChatbot from "./pages/SmartChatbot";
 
 function App() {
+  const userRole   = localStorage.getItem("user_type") || null;
+  const userId     = localStorage.getItem("user_id")   || null;
+  const isLoggedIn = !!userId;
+
   return (
     <Router>
       <ScrollToTop />
@@ -71,7 +76,13 @@ function App() {
         <Route path="/cofounder-badges" element={<CoFounderBadges />} />
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
+        <Route path="/jobposting" element={<JobApplicationsDashboard />} />
       </Routes>
+
+      {/* ✅ SMART AI CHATBOT — global, appears on all authenticated pages */}
+      {isLoggedIn && (
+        <SmartChatbot userRole={userRole} userId={userId} />
+      )}
     </Router>
   );
 }

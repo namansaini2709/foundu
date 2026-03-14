@@ -75,7 +75,9 @@ exports.getAllApplicants = (req, res) => {
       us.profile_picture_url,
 
       fp.*,
-      cp.*
+      cp.*,
+      ja.user_id,
+      COALESCE(fp.linkedin, cp.linkedin) AS linkedin
 
     FROM job_applicants ja
 
