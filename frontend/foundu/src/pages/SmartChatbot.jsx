@@ -1,0 +1,771 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import "./SmartChatbot.css";
+
+/* ================================================================
+   CONVERSATION FLOWS — per role, 5 questions each
+   ================================================================ */
+const FLOWS = {
+  founder: {
+    greeting:
+      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best talent for your startup using credibility scores, badge verification, and AI-powered matching. What are you looking for?",
+    questions: [
+      {
+        key: "type",
+        text: "What type of talent do you need?",
+        options: ["🧑‍💻 Freelancer", "🤝 Co-Founder", "Show me both"],
+      },
+      {
+        key: "domain",
+        text: "What domain is your job in?",
+        options: ["💻 Tech", "🎨 Design", "📣 Marketing", "💰 Finance", "⚖️ Legal", "🌐 Other"],
+      },
+      {
+        key: "experience",
+        text: "What experience level do you prefer?",
+        options: ["🌱 Fresher", "⚡ Mid-Level", "🔥 Senior", "🎯 Any Level"],
+      },
+      {
+        key: "priority",
+        text: "What matters most to you?",
+        options: ["⭐ Highest Rating", "🏅 Best Credibility", "🎯 Exact Skill Match", "🔍 Discover Hidden Talent"],
+      },
+      {
+        key: "includeNonApplicants",
+        text: "Should I include people who haven't applied yet?",
+        options: ["✅ Yes! Show hidden talent", "📋 Applicants only"],
+      },
+    ],
+  },
+
+  freelancer: {
+    greeting:
+      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best opportunities matching your skills, or show you which founders are actively looking for someone like you. What would you like?",
+    questions: [
+      {
+        key: "goal",
+        text: "What are you looking for?",
+        options: ["🔍 Find Matching Jobs", "💡 Who might want me?", "📊 My Application Status"],
+      },
+      {
+        key: "domain",
+        text: "What's your preferred domain?",
+        options: ["💻 Tech", "🎨 Design", "📣 Marketing", "💰 Finance", "🌐 Other"],
+      },
+      {
+        key: "workType",
+        text: "What work type do you prefer?",
+        options: ["🏠 Remote", "🏢 Onsite", "🔄 Hybrid", "🎯 Any"],
+      },
+      {
+        key: "budget",
+        text: "What budget range works for you?",
+        options: ["💸 Under ₹10K", "💰 ₹10K–₹50K", "🤑 ₹50K+", "🤝 Open to discuss"],
+      },
+      {
+        key: "priority",
+        text: "What matters most in a job?",
+        options: ["💰 Highest Paying", "🌟 Best Reputation Founder", "⏱️ Short Duration", "📈 Long Term Growth"],
+      },
+    ],
+  },
+
+  cofounder: {
+    greeting:
+      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best co-founder roles matching your profile, or discover which founders might be looking for someone exactly like you. Let's go!",
+    questions: [
+      {
+        key: "goal",
+        text: "What are you looking for?",
+        options: ["🏢 Find Co-Founder Roles", "💡 Who might want me?", "🌱 Explore Startups"],
+      },
+      {
+        key: "stage",
+        text: "What startup stage interests you?",
+        options: ["💡 Idea Stage", "🛠️ MVP Stage", "📈 Early Revenue", "🚀 Growth Stage"],
+      },
+      {
+        key: "domain",
+        text: "What domain are you focused on?",
+        options: ["💻 Tech", "🎯 Product", "📣 Marketing", "💰 Finance", "🌐 Other"],
+      },
+      {
+        key: "equity",
+        text: "What equity range works for you?",
+        options: ["Below 5%", "5–15%", "15%+", "🤝 Open to discuss"],
+      },
+      {
+        key: "founderQuality",
+        text: "What matters most in a founder?",
+        options: ["🏆 Strong Track Record", "✅ Verified Identity", "🧠 Domain Expert", "🤝 Cultural Fit"],
+      },
+    ],
+  },
+};
+
+/* ================================================================
+   MOCK SUGGESTION DATA — used until backend is connected
+   ================================================================ */
+const MOCK_SUGGESTIONS = {
+  founder: [
+    {
+      id: 1,
+      name: "Rahul Sharma",
+      role: "Full Stack Developer",
+      avatarColor: "linear-gradient(135deg,#7c3aed,#06b6d4)",
+      initials: "RS",
+      matchScore: 94,
+      avgRating: 4.8,
+      credibility: "88-92",
+      blueTick: true,
+      greenTick: true,
+      goldenTick: true,
+      skills: ["React", "Node.js", "MongoDB"],
+      isApplicant: true,
+      explainPoints: [
+        "Domain match: Tech/SaaS — exact match to your job",
+        "4.8★ rating across 6 completed projects",
+        "🏅 Credibility 88-92 | ✅ Blue + 🟢 Green + 🏆 Golden tick verified",
+      ],
+    },
+    {
+      id: 2,
+      name: "Sneha Patel",
+      role: "React Native Developer",
+      avatarColor: "linear-gradient(135deg,#ec4899,#8b5cf6)",
+      initials: "SP",
+      matchScore: 88,
+      avgRating: 4.6,
+      credibility: "82-88",
+      blueTick: true,
+      greenTick: true,
+      goldenTick: false,
+      skills: ["React Native", "Firebase", "UI/UX"],
+      isApplicant: false,
+      explainPoints: [
+        "Hidden talent — hasn't applied yet but profile matches 88%",
+        "Strong mobile dev background aligns with your requirements",
+        "🏅 Credibility 82-88 | ✅ Blue + 🟢 Green tick verified",
+      ],
+    },
+    {
+      id: 3,
+      name: "Arjun Mehta",
+      role: "Backend Engineer",
+      avatarColor: "linear-gradient(135deg,#f59e0b,#ef4444)",
+      initials: "AM",
+      matchScore: 81,
+      avgRating: 4.4,
+      credibility: "75-82",
+      blueTick: true,
+      greenTick: false,
+      goldenTick: false,
+      skills: ["Node.js", "PostgreSQL", "Docker"],
+      isApplicant: true,
+      explainPoints: [
+        "Backend expertise directly matches your job requirements",
+        "4.4★ rating with 3 completed projects in similar domain",
+        "🏅 Credibility 75-82 | ✅ Blue tick verified",
+      ],
+    },
+  ],
+  freelancer: [
+    {
+      id: 4,
+      name: "TechVision Startup",
+      role: "Hiring: Full Stack Developer",
+      avatarColor: "linear-gradient(135deg,#0ea5e9,#6366f1)",
+      initials: "TV",
+      matchScore: 91,
+      avgRating: 4.9,
+      credibility: "90-95",
+      blueTick: true,
+      greenTick: true,
+      goldenTick: true,
+      skills: ["React", "Node.js", "AWS"],
+      isApplicant: false,
+      explainPoints: [
+        "Your Tech/React skills match this job's requirements 91%",
+        "Remote role — matches your work preference",
+        "Budget ₹40K–₹60K — aligns with your expectations",
+      ],
+    },
+    {
+      id: 5,
+      name: "FinEdge Solutions",
+      role: "Hiring: Frontend Developer",
+      avatarColor: "linear-gradient(135deg,#22c55e,#0ea5e9)",
+      initials: "FE",
+      matchScore: 85,
+      avgRating: 4.5,
+      credibility: "80-87",
+      blueTick: true,
+      greenTick: true,
+      goldenTick: false,
+      skills: ["React", "TypeScript", "FinTech"],
+      isApplicant: false,
+      explainPoints: [
+        "Domain match: FinTech — aligns with your past projects",
+        "Hybrid work option available",
+        "Reputable founder with ✅ Blue tick + 🟢 Green tick",
+      ],
+    },
+  ],
+  cofounder: [
+    {
+      id: 6,
+      name: "EduSpark",
+      role: "Co-Founder: Tech Lead Role",
+      avatarColor: "linear-gradient(135deg,#a855f7,#ec4899)",
+      initials: "ES",
+      matchScore: 93,
+      avgRating: 4.8,
+      credibility: "87-93",
+      blueTick: true,
+      greenTick: true,
+      goldenTick: true,
+      skills: ["EdTech", "MVP Stage", "Equity: 15%"],
+      isApplicant: false,
+      explainPoints: [
+        "Startup stage (MVP) matches your preference",
+        "15% equity — within your preferred range",
+        "Founder has ✅ Blue + 🟢 Green + 🏆 Golden tick verified",
+      ],
+    },
+    {
+      id: 7,
+      name: "GreenPath Ventures",
+      role: "Co-Founder: Product Strategist",
+      avatarColor: "linear-gradient(135deg,#22c55e,#06b6d4)",
+      initials: "GP",
+      matchScore: 86,
+      avgRating: 4.6,
+      credibility: "79-85",
+      blueTick: true,
+      greenTick: false,
+      goldenTick: false,
+      skills: ["GreenTech", "Early Revenue", "Equity: 10%"],
+      isApplicant: false,
+      explainPoints: [
+        "Domain match: GreenTech product aligns with your expertise",
+        "Early revenue stage — lower risk, good traction",
+        "10% equity — within preferred range",
+      ],
+    },
+  ],
+};
+
+/* ================================================================
+   HELPER UTILITIES
+   ================================================================ */
+const getScoreClass = (score) => {
+  if (score >= 85) return "sc-score-high";
+  if (score >= 70) return "sc-score-mid";
+  return "sc-score-low";
+};
+
+const getScoreLabel = (score) => {
+  if (score >= 90) return `🔥 ${score}% Top Pick`;
+  if (score >= 80) return `✅ ${score}% Strong`;
+  return `👍 ${score}% Good Fit`;
+};
+
+const avatarGradients = [
+  "linear-gradient(135deg,#1d4ed8,#0284c7)",
+  "linear-gradient(135deg,#2563eb,#0891b2)",
+  "linear-gradient(135deg,#1e40af,#0369a1)",
+  "linear-gradient(135deg,#3b82f6,#06b6d4)",
+  "linear-gradient(135deg,#1d4ed8,#4338ca)",
+];
+
+/* ================================================================
+   SUB-COMPONENTS
+   ================================================================ */
+
+/* Typing indicator */
+function TypingIndicator() {
+  return (
+    <div className="sc-typing">
+      <div className="sc-msg-bot-avatar" style={{ width: 28, height: 28, fontSize: 13 }}>✨</div>
+      <div className="sc-typing-dots">
+        <span /><span /><span />
+      </div>
+    </div>
+  );
+}
+
+/* Single suggestion card */
+function SuggestionCard({ candidate, onInvite }) {
+  const [showExplain, setShowExplain] = useState(false);
+
+  return (
+    <div className="sc-card">
+      <div className="sc-card-top">
+        <div className="sc-card-left">
+          <div
+            className="sc-card-avatar"
+            style={{ background: candidate.avatarColor || avatarGradients[candidate.id % 5] }}
+          >
+            {candidate.initials}
+          </div>
+          <div>
+            <p className="sc-card-name">{candidate.name}</p>
+            <p className="sc-card-role">
+              {candidate.isApplicant ? "✉️ Applied" : "💎 Hidden Talent"} · {candidate.role}
+            </p>
+          </div>
+        </div>
+        <span className={`sc-score ${getScoreClass(candidate.matchScore)}`}>
+          {getScoreLabel(candidate.matchScore)}
+        </span>
+      </div>
+
+      {/* Stats row */}
+      <div className="sc-card-stats">
+        <span className="sc-rating">⭐ {candidate.avgRating}</span>
+        <span className="sc-cred">🏅 {candidate.credibility}</span>
+        <span className="sc-badges-row">
+          {candidate.blueTick   && <span className="sc-badge-tag" title="Blue Tick — Identity Verified">✅</span>}
+          {candidate.greenTick  && <span className="sc-badge-tag" title="Green Tick — 3+ Projects Done">🟢</span>}
+          {candidate.goldenTick && <span className="sc-badge-tag" title="Golden Tick — Highly Active">🏆</span>}
+        </span>
+      </div>
+
+      {/* Skill tags */}
+      <div className="sc-skills">
+        {candidate.skills.map((s) => (
+          <span key={s} className="sc-skill-tag">{s}</span>
+        ))}
+      </div>
+
+      {/* Action buttons */}
+      <div className="sc-card-actions">
+        <button
+          className="sc-btn-explain"
+          onClick={() => setShowExplain((p) => !p)}
+        >
+          {showExplain ? "▲ Hide" : "🔍 Why this match?"}
+        </button>
+        <button className="sc-btn-invite" onClick={() => onInvite(candidate)}>
+          📨 Invite
+        </button>
+      </div>
+
+      {/* Match explainer */}
+      {showExplain && (
+        <div className="sc-explain-box">
+          <p>AI Match Analysis:</p>
+          <ul>
+            {candidate.explainPoints.map((pt, i) => (
+              <li key={i}>{pt}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Invite modal */
+function InviteModal({ candidate, jobContext, onClose, onSend }) {
+  const [msg, setMsg] = useState(
+    `Hi ${candidate?.name?.split(" ")[0] || "there"},\n\nI found your profile through FoundU's AI matcher and think you'd be a great fit${jobContext ? ` for our open role` : ""}. Your credibility score and verified badges really stood out!\n\nWould you be interested in connecting?\n\nBest,\nFoundU`
+  );
+  const [sent, setSent] = useState(false);
+
+  const handleSend = () => {
+    setSent(true);
+    setTimeout(() => {
+      onSend();
+      onClose();
+    }, 1200);
+  };
+
+  return (
+    <div className="sc-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="sc-modal">
+        <h4>📨 Invite {candidate?.name}</h4>
+        <p>This will send a direct message + notification to {candidate?.name?.split(" ")[0]}.</p>
+        <textarea
+          rows={7}
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+        />
+        <div className="sc-modal-actions">
+          <button className="sc-modal-cancel" onClick={onClose}>Cancel</button>
+          <button className="sc-modal-send" onClick={handleSend} disabled={sent}>
+            {sent ? "✅ Sent!" : "Send Invite 🚀"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================
+   MAIN COMPONENT
+   ================================================================ */
+export default function SmartChatbot({ userRole: propRole, userId }) {
+  const location = useLocation();
+
+  /* ── Detect role from localStorage if not passed as prop ── */
+  const userRole = propRole || localStorage.getItem("user_type") || "founder";
+
+  /* ── Detect job_id from URL ─────────────────────────────── */
+  const jobMatch = location.pathname.match(/\/job(?:posting)?[/=?]?(\d+)/i);
+  const queryJobId = new URLSearchParams(location.search).get("job_id");
+  const jobId = jobMatch?.[1] || queryJobId || null;
+
+  /* ── Pages where chatbot should be HIDDEN ───────────────── */
+  const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
+  const shouldHide = hiddenPaths.some(
+    (p) => location.pathname === p || location.pathname.startsWith("/login")
+  );
+  if (shouldHide) return null;
+
+  /* ── State ──────────────────────────────────────────────── */
+  const [isOpen, setIsOpen]         = useState(false);
+  const [step, setStep]             = useState(0);       // 0=greeting, 1-5=questions, 6=results
+  const [messages, setMessages]     = useState([]);
+  const [isTyping, setIsTyping]     = useState(false);
+  const [filters, setFilters]       = useState({});
+  const [suggestions, setSuggestions] = useState([]);
+  const [inviteTarget, setInviteTarget] = useState(null);
+  const [hasNotif, setHasNotif]     = useState(true);
+  const messagesEndRef               = useRef(null);
+
+  const flow = FLOWS[userRole] || FLOWS.founder;
+
+  /* ── Auto-scroll to bottom on new messages ──────────────── */
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  /* ── Initialize chat when opened ───────────────────────── */
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setHasNotif(false);
+      startGreeting();
+    }
+  }, [isOpen]);
+
+  /* ── Reset when role/location changes ───────────────────── */
+  useEffect(() => {
+    setMessages([]);
+    setStep(0);
+    setFilters({});
+    setSuggestions([]);
+  }, [userRole, location.pathname]);
+
+  /* ── Helpers ────────────────────────────────────────────── */
+  const addBotMsg = (text, delay = 0) => {
+    return new Promise((resolve) => {
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [...prev, { type: "bot", text }]);
+        resolve();
+      }, delay + 700);
+    });
+  };
+
+  const addUserMsg = (text) => {
+    setMessages((prev) => [...prev, { type: "user", text }]);
+  };
+
+  const addCards = (cards) => {
+    setMessages((prev) => [...prev, { type: "cards", cards }]);
+  };
+
+  /* ── Greeting flow ───────────────────────────────────────── */
+  const startGreeting = async () => {
+    setStep(0);
+    await addBotMsg(flow.greeting, 200);
+
+    // If founder on a job page, add context message
+    if (userRole === "founder" && jobId) {
+      await addBotMsg(`I can see you're viewing **Job #${jobId}**. I'll tailor my suggestions specifically for this posting! 🎯`, 300);
+    }
+
+    setStep(1);
+  };
+
+  /* ── Handle option click ─────────────────────────────────── */
+  const handleOption = async (option) => {
+    const currentQ = flow.questions[step - 1];
+    if (!currentQ) return;
+
+    // Record user answer
+    addUserMsg(option);
+    const newFilters = { ...filters, [currentQ.key]: option };
+    setFilters(newFilters);
+
+    const nextStep = step + 1;
+
+    if (nextStep <= flow.questions.length) {
+      // Next question
+      const nextQ = flow.questions[nextStep - 1];
+      await addBotMsg(`Got it! ${getTransitionLine(option)} — ${nextQ.text}`);
+      setStep(nextStep);
+    } else {
+      // All questions done → show results
+      await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching... 🔍");
+      setStep("loading");
+
+      setTimeout(() => {
+        const mockData = MOCK_SUGGESTIONS[userRole] || MOCK_SUGGESTIONS.founder;
+        setSuggestions(mockData);
+        addCards(mockData);
+        setStep("results");
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "bot",
+            text: `✅ Found **${mockData.length} top matches** for you! Here they are, ranked by AI credibility score:`,
+          },
+        ]);
+      }, 1800);
+    }
+  };
+
+  /* Context-aware transition lines for natural conversation */
+  const getTransitionLine = (option) => {
+    const lines = {
+      "🧑‍💻 Freelancer":        "Looking for freelancers",
+      "🤝 Co-Founder":          "Looking for a co-founder",
+      "Show me both":            "Showing all talent types",
+      "💻 Tech":                 "Tech domain scoped",
+      "🎨 Design":               "Design domain scoped",
+      "📣 Marketing":            "Marketing domain scoped",
+      "🌱 Fresher":              "Fresher-level preference noted",
+      "⚡ Mid-Level":            "Mid-level preference noted",
+      "🔥 Senior":               "Senior-level preference noted",
+      "🎯 Any Level":            "Open to any experience level",
+      "⭐ Highest Rating":        "Prioritizing top-rated talent",
+      "🏅 Best Credibility":     "Prioritizing most credible profiles",
+      "🎯 Exact Skill Match":    "Prioritizing skill-exact matches",
+      "🔍 Discover Hidden Talent": "Including hidden talent in search",
+      "✅ Yes! Show hidden talent": "Including proactive talent discovery",
+      "📋 Applicants only":      "Limiting to applicants only",
+    };
+    return lines[option] || "Preference noted";
+  };
+
+  /* ── Reset chat ──────────────────────────────────────────── */
+  const handleReset = () => {
+    setMessages([]);
+    setStep(0);
+    setFilters({});
+    setSuggestions([]);
+    setTimeout(startGreeting, 100);
+  };
+
+  /* ── Current options to display ─────────────────────────── */
+  const currentOptions = () => {
+    if (step === "results") {
+      return ["🔄 Start Over", "🔍 Refine Filters"];
+    }
+    if (typeof step === "number" && step >= 1 && step <= flow.questions.length) {
+      return flow.questions[step - 1].options;
+    }
+    return [];
+  };
+
+  const handleOptionClickWrapper = (opt) => {
+    if (opt === "🔄 Start Over" || opt === "🔍 Refine Filters") {
+      handleReset();
+    } else {
+      handleOption(opt);
+    }
+  };
+
+  /* ── Render a single message ─────────────────────────────── */
+  const renderMessage = (msg, idx) => {
+    if (msg.type === "bot") {
+      return (
+        <div key={idx} className="sc-msg-bot">
+          <div className="sc-msg-bot-avatar">✨</div>
+          <div
+            className="sc-msg-bot-bubble"
+            dangerouslySetInnerHTML={{
+              __html: msg.text
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                .replace(/\n/g, "<br/>"),
+            }}
+          />
+        </div>
+      );
+    }
+
+    if (msg.type === "user") {
+      return (
+        <div key={idx} className="sc-msg-user">
+          <div className="sc-msg-user-bubble">{msg.text}</div>
+        </div>
+      );
+    }
+
+    if (msg.type === "cards") {
+      return (
+        <div key={idx} className="sc-cards">
+          {msg.cards.map((c) => (
+            <SuggestionCard
+              key={c.id}
+              candidate={c}
+              onInvite={(candidate) => setInviteTarget(candidate)}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  /* ── Page title for context display ─────────────────────── */
+  const getPageContext = () => {
+    if (userRole === "founder" && jobId) return `Job #${jobId}`;
+    const map = {
+      "/startup-dashboard": "Your Dashboard",
+      "/freelancer-dashboard": "Your Dashboard",
+      "/cofounder-dashboard": "Your Dashboard",
+      "/freelancer-jobs": "Browse Jobs",
+      "/cofounder-jobs": "Browse Jobs",
+    };
+    return map[location.pathname] || null;
+  };
+
+  /* ================================================================
+     RENDER
+     ================================================================ */
+  return (
+    <>
+      {/* Floating trigger button */}
+      <button
+        className={`sc-fab${isOpen ? " open" : ""}`}
+        onClick={() => setIsOpen((p) => !p)}
+        aria-label="Open AI Assistant"
+      >
+        <span className="sc-fab-icon">{isOpen ? "✕" : "✨"}</span>
+        {hasNotif && !isOpen && <span className="sc-notif-dot" />}
+      </button>
+
+      {/* Chat popup */}
+      {isOpen && (
+        <div className="sc-popup">
+          {/* Header */}
+          <div className="sc-header">
+            <div className="sc-header-left">
+              <div className="sc-avatar">
+                ✨
+                <span className="sc-avatar-online" />
+              </div>
+              <div className="sc-header-info">
+                <h3>FoundU AI Assistant</h3>
+                <p>
+                  <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#22c55e", marginRight: 4 }} />
+                  Online · AI-Powered
+                  {getPageContext() && (
+                    <span style={{ marginLeft: 6, color: "#c4b5fd" }}>
+                      · {getPageContext()}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="sc-header-actions">
+              <button
+                className="sc-icon-btn"
+                onClick={handleReset}
+                title="Restart chat"
+              >
+                🔄
+              </button>
+              <button
+                className="sc-icon-btn"
+                onClick={() => setIsOpen(false)}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="sc-messages">
+            {step === 0 && messages.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "#4b5563" }}>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>✨</div>
+                <p style={{ fontSize: 13 }}>Starting AI Assistant...</p>
+              </div>
+            )}
+
+            {messages.map((msg, idx) => renderMessage(msg, idx))}
+
+            {isTyping && (
+              <TypingIndicator />
+            )}
+
+            {step === "loading" && !isTyping && (
+              <div style={{ textAlign: "center", padding: "16px", color: "#3b82f6", fontSize: 12 }}>
+                <div style={{ marginBottom: 8 }}>🔍 Scanning profiles...</div>
+                <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 10 }}>
+                  Analyzing credibility scores, badges & AI matching...
+                </div>
+                <div style={{
+                  height: 3, background: "rgba(59,130,246,0.15)",
+                  borderRadius: 3, overflow: "hidden"
+                }}>
+                  <div style={{
+                    height: "100%",
+                    background: "linear-gradient(90deg,#1d4ed8,#93c5fd)",
+                    borderRadius: 3,
+                    animation: "sc-loading-bar 1.6s ease-in-out infinite"
+                  }} />
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Option buttons */}
+          {currentOptions().length > 0 && !isTyping && step !== "loading" && (
+            <div className="sc-options">
+              {currentOptions().map((opt) => (
+                <button
+                  key={opt}
+                  className={
+                    opt === "🔄 Start Over" || opt === "🔍 Refine Filters"
+                      ? "sc-reset-btn"
+                      : "sc-option-btn"
+                  }
+                  onClick={() => handleOptionClickWrapper(opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Invite modal */}
+      {inviteTarget && (
+        <InviteModal
+          candidate={inviteTarget}
+          jobContext={jobId}
+          onClose={() => setInviteTarget(null)}
+          onSend={() => {
+            toast.success(`✅ Invite sent to ${inviteTarget.name}!`, {
+              theme: "dark",
+              icon: "📨",
+            });
+            setInviteTarget(null);
+          }}
+        />
+      )}
+    </>
+  );
+}

@@ -1,6 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -13,6 +14,8 @@ const CoFounderJobs = () => {
   const navigate = useNavigate();
   const [industryFilter, setIndustryFilter] = useState("All Industry");
   const [stageFilter, setStageFilter] = useState("All Stage");
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Sample data for AI matched jobs (with percentage)
   const aiMatchedJobs = [
@@ -107,6 +110,50 @@ const CoFounderJobs = () => {
       position: "CTO, CFO",
     },
   ];
+
+  // Fetch available jobs from API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        // Fetch all jobs
+        const jobsResponse = await fetch("http://localhost:4000/api/jobs");
+        const jobsData = await jobsResponse.json();
+
+        // Fetch all startup profiles for logos
+        const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+        const profilesData = await profilesResponse.json();
+
+        // Create a map of founder_id to startup logo and name
+        const startupMap = {};
+        profilesData.forEach((profile) => {
+          startupMap[profile.founder_id] = {
+            logo: profile.startup_logo_url,
+            name: profile.startup_name
+          };
+        });
+
+        // Filter for co-founder jobs
+        const filteredJobs = jobsData
+          .filter((job) => job.job_type === "cofounder")
+          .map((job) => ({
+            id: job.job_id,
+            logo: startupMap[job.founder_id]?.logo || null,
+            startupName: startupMap[job.founder_id]?.name || job.startup_name || "Unknown Startup",
+            about: job.full_job_description,
+            position: job.job_title,
+          }));
+
+        setAvailableJobs(filteredJobs);
+      } catch (error) {
+        console.error("Error fetching co-founder jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   const handleShowInterest = (id) => {
     navigate(`/cofounder-jobs/${id}`);
@@ -254,45 +301,67 @@ const CoFounderJobs = () => {
             </div>
           </div>
 
+          {/* Available Jobs Heading */}
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            <span className="text-white">Available </span>
+            <span className="text-blue-300">Jobs</span>
+          </h2>
+
           {/* Regular Jobs Cards (without AI percentage) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {regularJobs.map((job) => (
-              <div
-                key={job.id}
-                className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 border border-blue-700/30 hover:border-blue-500/50 transition-all duration-300"
-              >
-                {/* Logo and Startup Name */}
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-2xl mr-3 border border-blue-500/30">
-                    {job.logo}
-                  </div>
-                  <h2 className="text-xl font-bold text-white">
-                    {job.startupName}
-                  </h2>
-                </div>
-
-                {/* About */}
-                <p className="text-gray-300 text-sm mb-4 leading-relaxed line-clamp-3">
-                  {job.about}
-                </p>
-
-                {/* Position */}
-                <div className="mb-4">
-                  <p className="text-blue-300 text-sm font-medium">
-                    Positions: {job.position}
-                  </p>
-                </div>
-
-                {/* Show Interest Button */}
-                <button
-                  onClick={() => handleShowInterest(job.id)}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+            </div>
+          ) : availableJobs.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No co-founder jobs available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {availableJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 border border-blue-700/30 hover:border-blue-500/50 transition-all duration-300 flex flex-col h-full"
                 >
-                  Show Interest
-                </button>
-              </div>
-            ))}
-          </div>
+                  {/* Logo and Startup Name */}
+                  <div className="flex items-center mb-4">
+                    {job.logo ? (
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-3 border border-blue-500/30 overflow-hidden bg-white">
+                        <img src={job.logo} alt={job.startupName} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-2xl mr-3 border border-blue-500/30">
+                        {job.startupName.substring(0, 1)}
+                      </div>
+                    )}
+                    <h2 className="text-xl font-bold text-white truncate">
+                      {job.startupName}
+                    </h2>
+                  </div>
+
+                  {/* About */}
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed line-clamp-3 flex-grow">
+                    {job.about}
+                  </p>
+
+                  {/* Position */}
+                  <div className="mb-4">
+                    <p className="text-blue-300 text-sm font-medium">
+                      Position: {job.position}
+                    </p>
+                  </div>
+
+                  {/* Show Interest Button */}
+                  <button
+                    onClick={() => handleShowInterest(job.id)}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] mt-auto"
+                  >
+                    Show Interest
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,9 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import "./App.css";
-
 import HomePage from "./pages/HomePage";
 import StartupDashboard from "./pages/StartupDashboard";
 import StartupServices from "./pages/StartupServices";
@@ -28,9 +26,14 @@ import FreelancerBadges from './pages/FreelancerBadges'
 import CoFounderBadges from './pages/CoFounderBadges'
 import FounderBadges from './pages/FounderBadges'
 import Chatbox from "./pages/Chatbox";
+import ViewJobPosting from "./pages/ViewJobPosting";
+import SmartChatbot from "./pages/SmartChatbot";
 
 
 function App() {
+  const userRole   = localStorage.getItem("user_type") || null;
+  const userId     = localStorage.getItem("user_id")   || null;
+  const isLoggedIn = !!userId;
   return (
     <Router>
       <ScrollToTop />
@@ -71,7 +74,13 @@ function App() {
         <Route path="/cofounder-badges" element={<CoFounderBadges />} />
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
+        <Route path="/jobposting" element={<ViewJobPosting />} />
+        
       </Routes>
+        {isLoggedIn && (
+        <SmartChatbot userRole={userRole} userId={userId} />
+      )}
+
     </Router>
   );
 }

@@ -26,6 +26,7 @@ exports.signup = async (req, res) => {
       "SELECT id FROM users WHERE email = ?",
       [email]
     );
+
     if (existing.length) {
       return res.status(409).json({ message: "Email already registered" });
     }
@@ -103,52 +104,67 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
-  const [rows] = await db.promise().query(
-    "SELECT * FROM users WHERE email = ?",
-    [email]
-  );
+  try {
+    const [rows] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
-  if (!rows.length) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const user = rows[0];
-  const match = await bcrypt.compare(password, user.password_hash);
-
-  if (!match) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  req.session.user = {
-    id: user.id,
-    email: user.email,
-    user_type: user.user_type
-  };
-
-  // Force session to save before sending response
-  req.session.save((err) => {
-    if (err) {
-      console.error("Session save error:", err);
-      return res.status(500).json({ message: "Session error" });
+    if (!rows.length) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-    console.log("Session saved for user:", user.email);
-    console.log("Session ID after login:", req.sessionID);
-    
-    res.json({
-      success: true,
-      message: "Logged in",
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        user_type: user.user_type,
-        is_profile_complete: user.is_profile_complete,
-        freelancer_id: user.freelancer_id,
-        founder_id: user.founder_id,
-        cofounder_id: user.cofounder_id
+
+    const user = rows[0];
+
+    const match = await bcrypt.compare(password, user.password_hash);
+
+    if (!match) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // ⭐ STORE USER IN SESSION
+    req.session.user = {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      user_type: user.user_type,
+      is_profile_complete: user.is_profile_complete,
+      freelancer_id: user.freelancer_id,
+      founder_id: user.founder_id,
+      cofounder_id: user.cofounder_id
+    };
+
+    // Force session save
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Session error" });
       }
+
+      console.log("Session saved for user:", req.session.user.email);
+      console.log("Session ID:", req.sessionID);
+      console.log("Session Data:", req.session);
+
+      res.json({
+        success: true,
+        message: "Logged in successfully",
+        user: {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          user_type: user.user_type,
+          is_profile_complete: user.is_profile_complete,
+          freelancer_id: user.freelancer_id,
+          founder_id: user.founder_id,
+          cofounder_id: user.cofounder_id
+        }
+      });
     });
-  });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /* =========================

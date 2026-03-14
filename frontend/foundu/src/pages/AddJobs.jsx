@@ -54,6 +54,10 @@ const initial = {
     compensation: "Equity only",
     commitment: "Full-time",
     priorities: [],
+    jobLevel: "",
+    jobType: "",
+    requirements: [""],
+    responsibilities: [""],
     jobTitle: "",
     jobDescription: "",
   },
@@ -65,8 +69,8 @@ function Chip({ label, active, onClick }) {
       type="button"
       onClick={onClick}
       className={`px-3 py-1 rounded-full text-sm border transition-all mr-2 mb-2 ${active
-          ? "bg-blue-500 text-white border-blue-500"
-          : "bg-gray-800 text-gray-200 border-gray-700"
+        ? "bg-blue-500 text-white border-blue-500"
+        : "bg-gray-800 text-gray-200 border-gray-700"
         }`}
     >
       {label}
@@ -79,33 +83,39 @@ export default function AddJobs() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(() => {
-  try {
-    const raw = localStorage.getItem("addJobForm");
-    const parsed = raw ? JSON.parse(raw) : {};
+    try {
+      const raw = localStorage.getItem("addJobForm");
+      const parsed = raw ? JSON.parse(raw) : {};
 
-    return {
-      ...initial,
-      ...parsed,
-      common: {
-        ...initial.common,
-        ...(parsed.common || {}),
-      },
-      freelancer: {
-        ...initial.freelancer,
-        ...(parsed.freelancer || {}),
-        requirements: Array.isArray(parsed?.freelancer?.requirements)
-          ? parsed.freelancer.requirements
-          : initial.freelancer.requirements,
-      },
-      cofounder: {
-        ...initial.cofounder,
-        ...(parsed.cofounder || {}),
-      },
-    };
-  } catch (e) {
-    return initial;
-  }
-});
+      return {
+        ...initial,
+        ...parsed,
+        common: {
+          ...initial.common,
+          ...(parsed.common || {}),
+        },
+        freelancer: {
+          ...initial.freelancer,
+          ...(parsed.freelancer || {}),
+          requirements: Array.isArray(parsed?.freelancer?.requirements)
+            ? parsed.freelancer.requirements
+            : initial.freelancer.requirements,
+        },
+        cofounder: {
+          ...initial.cofounder,
+          ...(parsed.cofounder || {}),
+          requirements: Array.isArray(parsed?.cofounder?.requirements)
+            ? parsed.cofounder.requirements
+            : initial.cofounder.requirements,
+          responsibilities: Array.isArray(parsed?.cofounder?.responsibilities)
+            ? parsed.cofounder.responsibilities
+            : initial.cofounder.responsibilities,
+        },
+      };
+    } catch (e) {
+      return initial;
+    }
+  });
 
 
 
@@ -183,6 +193,20 @@ export default function AddJobs() {
       if (!cofounder.commitment) errors.push("Please select commitment level");
       if (cofounder.priorities.length === 0)
         errors.push("Please select at least one priority factor for cofounder");
+      if (!cofounder.jobLevel)
+        errors.push("Please select job level for cofounder");
+      if (!cofounder.jobType)
+        errors.push("Please select job type for cofounder");
+      if (
+        !cofounder.requirements ||
+        cofounder.requirements.filter((r) => r.trim() !== "").length === 0
+      )
+        errors.push("Please add at least one job requirement for cofounder");
+      if (
+        !cofounder.responsibilities ||
+        cofounder.responsibilities.filter((r) => r.trim() !== "").length === 0
+      )
+        errors.push("Please add at least one responsibility for cofounder");
       if (!cofounder.jobTitle?.trim())
         errors.push("Please provide a job title for cofounder position");
       if (!cofounder.jobDescription?.trim())
@@ -243,6 +267,10 @@ export default function AddJobs() {
           compensation: cofounder.compensation,
           commitment: cofounder.commitment,
           priority_factors: cofounder.priorities,
+          job_level: cofounder.jobLevel,
+          job_location_type: cofounder.jobType,
+          job_requirements: cofounder.requirements.filter((r) => r.trim() !== ""),
+          responsibilities: cofounder.responsibilities.filter((r) => r.trim() !== ""),
           job_title: cofounder.jobTitle,
           full_job_description: cofounder.jobDescription,
         });
@@ -323,8 +351,8 @@ export default function AddJobs() {
                   setFormData((s) => ({ ...s, hiringType: c.key }))
                 }
                 className={`p-5 text-left rounded-xl border transition-colors ${formData.hiringType === c.key
-                    ? "bg-blue-500 border-blue-500 text-white"
-                    : "bg-gray-800 border-gray-700 text-gray-200 hover:border-blue-400"
+                  ? "bg-blue-500 border-blue-500 text-white"
+                  : "bg-gray-800 border-gray-700 text-gray-200 hover:border-blue-400"
                   }`}
               >
                 <div className="font-semibold text-lg">{c.title}</div>
@@ -415,8 +443,8 @@ export default function AddJobs() {
                       <label
                         key={w}
                         className={`px-3 py-2 rounded-md border cursor-pointer transition-colors text-center ${formData.freelancer.workType === w
-                            ? "bg-blue-500 border-blue-500"
-                            : "bg-gray-800 border-gray-700 hover:border-blue-400"
+                          ? "bg-blue-500 border-blue-500"
+                          : "bg-gray-800 border-gray-700 hover:border-blue-400"
                           }`}
                       >
                         <input
@@ -711,6 +739,50 @@ export default function AddJobs() {
                   </select>
                 </div>
 
+                {/* Job Level */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.cofounder.jobLevel}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: { ...fd.cofounder, jobLevel: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
+                    <option value="">Select job level</option>
+                    {["Low level", "Medium level", "High level"].map((l) => (
+                      <option key={l}>{l}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Job Type */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.cofounder.jobType}
+                    onChange={(e) =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: { ...fd.cofounder, jobType: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
+                  >
+                    <option value="">Select job type</option>
+                    {["Work from home", "Hybrid", "In office"].map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Priority Factors */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -772,8 +844,86 @@ export default function AddJobs() {
                     }
                     rows="5"
                     className="w-full bg-gray-800 p-3 rounded-md border border-gray-700 text-white resize-none"
-                    placeholder="Describe the vision, responsibilities, equity split, company stage..."
+                    placeholder="Describe the vision, equity split, company stage..."
                   />
+                </div>
+
+                {/* Job Requirements */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Job Requirements <span className="text-red-500">*</span>
+                  </label>
+                  {formData.cofounder.requirements.map((req, idx) => (
+                    <input
+                      key={idx}
+                      type="text"
+                      value={req}
+                      onChange={(e) => {
+                        const updated = [...formData.cofounder.requirements];
+                        updated[idx] = e.target.value;
+                        setFormData((fd) => ({
+                          ...fd,
+                          cofounder: { ...fd.cofounder, requirements: updated },
+                        }));
+                      }}
+                      className="w-full bg-gray-800 p-2 mb-2 rounded-md border border-gray-700 text-white"
+                      placeholder={`Requirement ${idx + 1}`}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: {
+                          ...fd.cofounder,
+                          requirements: [...fd.cofounder.requirements, ""],
+                        },
+                      }))
+                    }
+                    className="text-blue-400 text-sm mt-1"
+                  >
+                    + Add requirement
+                  </button>
+                </div>
+
+                {/* Responsibilities */}
+                <div className="mb-3">
+                  <label className="block text-sm mb-2 font-medium">
+                    Responsibilities <span className="text-red-500">*</span>
+                  </label>
+                  {formData.cofounder.responsibilities.map((resp, idx) => (
+                    <input
+                      key={idx}
+                      type="text"
+                      value={resp}
+                      onChange={(e) => {
+                        const updated = [...formData.cofounder.responsibilities];
+                        updated[idx] = e.target.value;
+                        setFormData((fd) => ({
+                          ...fd,
+                          cofounder: { ...fd.cofounder, responsibilities: updated },
+                        }));
+                      }}
+                      className="w-full bg-gray-800 p-2 mb-2 rounded-md border border-gray-700 text-white"
+                      placeholder={`Responsibility ${idx + 1}`}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((fd) => ({
+                        ...fd,
+                        cofounder: {
+                          ...fd.cofounder,
+                          responsibilities: [...fd.cofounder.responsibilities, ""],
+                        },
+                      }))
+                    }
+                    className="text-blue-400 text-sm mt-1"
+                  >
+                    + Add responsibility
+                  </button>
                 </div>
               </div>
             )}
@@ -874,12 +1024,50 @@ export default function AddJobs() {
                       {formData.cofounder.priorities.join(", ") || "—"}
                     </div>
                     <div>
+                      <strong>Job Level:</strong>{" "}
+                      {formData.cofounder.jobLevel || "—"}
+                    </div>
+                    <div>
+                      <strong>Job Type:</strong>{" "}
+                      {formData.cofounder.jobType || "—"}
+                    </div>
+                    <div>
                       <strong>Job Title:</strong>{" "}
                       {formData.cofounder.jobTitle || "—"}
                     </div>
                     <div>
                       <strong>Description:</strong>{" "}
                       {formData.cofounder.jobDescription || "—"}
+                    </div>
+                    <div>
+                      <strong>Requirements:</strong>
+                      {formData.cofounder.requirements &&
+                        formData.cofounder.requirements.length > 0 ? (
+                        <ul className="list-disc list-inside mt-1">
+                          {formData.cofounder.requirements
+                            .filter((r) => r.trim() !== "")
+                            .map((req, idx) => (
+                              <li key={idx}>{req}</li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <span> —</span>
+                      )}
+                    </div>
+                    <div>
+                      <strong>Responsibilities:</strong>
+                      {formData.cofounder.responsibilities &&
+                        formData.cofounder.responsibilities.length > 0 ? (
+                        <ul className="list-disc list-inside mt-1">
+                          {formData.cofounder.responsibilities
+                            .filter((r) => r.trim() !== "")
+                            .map((resp, idx) => (
+                              <li key={idx}>{resp}</li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <span> —</span>
+                      )}
                     </div>
                   </div>
                 </div>

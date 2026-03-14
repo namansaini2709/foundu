@@ -138,6 +138,13 @@ exports.createCofounderJob = (req, res) => {
     compensation,
     commitment,
     priority_factors,
+
+    // 🔹 NEW FIELDS
+    job_level,
+    job_location_type,
+    job_requirements,
+    responsibilities,
+
     job_title,
     full_job_description
   } = req.body;
@@ -191,9 +198,15 @@ exports.createCofounderJob = (req, res) => {
                   compensation,
                   commitment,
                   priority_factors,
+
+                  job_level,
+                  job_location_type,
+                  job_requirements,
+                  responsibilities,
+
                   job_title,
                   full_job_description
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                   user_id,
                   founder_id,
@@ -205,6 +218,12 @@ exports.createCofounderJob = (req, res) => {
                   compensation || null,
                   commitment || null,
                   JSON.stringify(priority_factors || []),
+
+                  job_level || null,
+                  job_location_type || null,
+                  job_requirements ? JSON.stringify(job_requirements) : null,
+                  responsibilities ? JSON.stringify(responsibilities) : null,
+
                   job_title || null,
                   full_job_description || null
                 ],
@@ -252,7 +271,7 @@ exports.getJobById = (req, res) => {
     [req.params.id],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
-      
+
       if (!rows.length)
         return res.status(404).json({ message: "Job not found" });
 
@@ -270,7 +289,7 @@ exports.deleteJobById = (req, res) => {
     [req.params.id],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      
+
       if (!result.affectedRows)
         return res.status(404).json({ message: "Job not found" });
 
