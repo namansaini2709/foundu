@@ -73,6 +73,15 @@ function LoginSignup() {
 
     try {
       if (isLogin) {
+        // ── ADMIN SHORTCUT ──────────────────────────────────
+        if (email === 'admin@gmail.com' && password === '123456') {
+          localStorage.setItem('is_admin', 'true')
+          localStorage.setItem('admin_name', 'FoundU Admin')
+          toast.success('Welcome, Admin!', { theme: 'dark' })
+          setTimeout(() => navigate('/admin/dashboard'), 500)
+          return
+        }
+        // ── NORMAL LOGIN ────────────────────────────────────
         const res = await axios.post('http://localhost:4000/api/login', {
           email,
           password

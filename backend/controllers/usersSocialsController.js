@@ -48,7 +48,16 @@ exports.addUserSocials = (req, res) => {
           company_registration_number,
           past_work_proof,
           profile_picture_url
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+          linkedin_url                 = VALUES(linkedin_url),
+          github_url                   = VALUES(github_url),
+          portfolio_url                = VALUES(portfolio_url),
+          company_linkedin_url         = VALUES(company_linkedin_url),
+          company_social_url           = VALUES(company_social_url),
+          company_registration_number  = VALUES(company_registration_number),
+          past_work_proof              = VALUES(past_work_proof),
+          profile_picture_url          = VALUES(profile_picture_url)`,
         [
           user_id,
           user.full_name,
@@ -64,13 +73,43 @@ exports.addUserSocials = (req, res) => {
           past_work_proof,
           profile_picture_url
         ],
-        () => {
+        (err) => {
+          if (err) return res.status(500).json({ error: err.message });
           res.json({
             success: true,
             message: "User socials saved successfully"
           });
         }
       );
+    }
+  );
+};
+
+/* ==========================
+   GET USER SOCIALS + STATUS
+========================== */
+exports.getUserSocials = (req, res) => {
+  const { user_id } = req.params;
+
+  if (!user_id) return res.status(400).json({ message: "user_id required" });
+
+  db.query(
+    `SELECT 
+      us.linkedin_url,
+      us.github_url,
+      us.portfolio_url,
+      us.profile_picture_url,
+      u.blue_tick_status,
+      u.blue_tick_verified
+    FROM users u
+    LEFT JOIN users_socials us ON us.user_id = u.id
+    WHERE u.id = ?
+    LIMIT 1`,
+    [user_id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!rows.length) return res.status(404).json({ message: "User not found" });
+      res.json({ success: true, data: rows[0] });
     }
   );
 };

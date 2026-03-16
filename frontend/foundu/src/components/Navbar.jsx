@@ -23,19 +23,20 @@ const userTypeLinks = {
     { label: "Our Services", to: "/startup-services" },
     { label: "Dashboard", to: "/startup-dashboard" },
     { label: "Add a New Job", to: "/add-job" },
+    { label: "Live User Feed", to: "/live-feed" },
     { label: "Badges", to: "/founder-badges" },
   ],
   freelancer: [
     { label: "View Jobs", to: "/freelancer-jobs" },
     { label: "Dashboard", to: "/freelancer-dashboard" },
     { label: "Badges", to: "/freelancer-badges" },
-    { label: "Reviews & Ratings", to: "/" },
+    { label: "Reviews & Ratings", to: "/freelancer-reviews" },
   ],
   cofounder: [
     { label: "Dashboard", to: "/cofounder-dashboard" },
     { label: "View Jobs", to: "/cofounder-jobs" },
     { label: "Badges", to: "/cofounder-badges" },
-    { label: "Reviews & Ratings", to: "/" },
+    { label: "Reviews & Ratings", to: "/freelancer-reviews" },
   ],
 };
 
@@ -53,7 +54,7 @@ function Navbar() {
   useEffect(() => {
     const fetchUserData = async () => {
       const userId = localStorage.getItem("user_id");
-      
+
       if (userId) {
         try {
           const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
@@ -101,9 +102,9 @@ function Navbar() {
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
-      
+
       toast.success("Logged out successfully!", { theme: "dark" });
-      
+
       // Redirect after a short delay
       setTimeout(() => {
         navigate("/");
@@ -114,9 +115,9 @@ function Navbar() {
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
-      
+
       toast.success("Logged out successfully!", { theme: "dark" });
-      
+
       setTimeout(() => {
         navigate("/");
       }, 1500);
@@ -125,7 +126,7 @@ function Navbar() {
 
   const handleDeleteAccount = async () => {
     setShowDeleteModal(false);
-    
+
     try {
       toast.info("Deleting account...", { theme: "dark" });
       const userId = localStorage.getItem("user_id");
@@ -133,9 +134,9 @@ function Navbar() {
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
-      
+
       toast.success("Account deleted successfully!", { theme: "dark" });
-      
+
       setTimeout(() => {
         navigate("/");
       }, 1500);
@@ -148,9 +149,9 @@ function Navbar() {
   const getProfileRoute = () => {
     // Prioritize localStorage user_type, fallback to user object
     const userType = (localStorage.getItem("user_type") || user?.user_type || "").toLowerCase();
-    
+
     if (!userType) return "/";
-    
+
     switch (userType) {
       case "freelancer":
         return "/freelancer-profile";
@@ -166,9 +167,9 @@ function Navbar() {
   const getDashboardRoute = () => {
     // Prioritize localStorage user_type, fallback to user object
     const userType = (localStorage.getItem("user_type") || user?.user_type || "").toLowerCase();
-    
+
     if (!userType) return "/";
-    
+
     switch (userType) {
       case "freelancer":
         return "/freelancer-dashboard";
@@ -194,7 +195,7 @@ function Navbar() {
     const route = getProfileRoute();
     const userType = localStorage.getItem("user_type");
     const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
-    
+
     toast.info(`Redirecting to ${userTypeDisplay} Profile...`, { theme: "dark", autoClose: 1000 });
     setTimeout(() => {
       navigate(route);
@@ -205,7 +206,7 @@ function Navbar() {
     const route = getDashboardRoute();
     const userType = localStorage.getItem("user_type");
     const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
-    
+
     toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, { theme: "dark", autoClose: 1000 });
     setTimeout(() => {
       navigate(route);
@@ -215,11 +216,11 @@ function Navbar() {
   // Get navigation links based on user type
   const getNavLinks = () => {
     const userType = (localStorage.getItem("user_type") || "").toLowerCase();
-    
+
     if (!userType || !isLoggedIn()) {
       return defaultNavLinks;
     }
-    
+
     return userTypeLinks[userType] || defaultNavLinks;
   };
 
@@ -246,9 +247,8 @@ function Navbar() {
       style={gradientBlackToBlue}
     >
       <div
-        className={`bg-black/30 backdrop-blur-md border-b border-blue-700/30 ${
-          scrolled ? "shadow-lg" : ""
-        }`}
+        className={`bg-black/30 backdrop-blur-md border-b border-blue-700/30 ${scrolled ? "shadow-lg" : ""
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -262,11 +262,10 @@ function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === link.to
-                    ? "text-blue-300"
-                    : "text-white hover:text-blue-300"
-                }`}
+                className={`text-sm font-medium transition-colors ${location.pathname === link.to
+                  ? "text-blue-300"
+                  : "text-white hover:text-blue-300"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -300,9 +299,8 @@ function Navbar() {
                     {getUserDisplayName()}
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${
-                      isProfileOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 transition-transform ${isProfileOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -469,11 +467,10 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-sm font-medium ${
-                    location.pathname === link.to
-                      ? "text-blue-300"
-                      : "text-white"
-                  }`}
+                  className={`text-sm font-medium ${location.pathname === link.to
+                    ? "text-blue-300"
+                    : "text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -613,15 +610,15 @@ function Navbar() {
                 </svg>
               </div>
             </div>
-            
+
             <h3 className="text-2xl font-bold text-white text-center mb-3">
               Delete Account
             </h3>
-            
+
             <p className="text-gray-300 text-center mb-6">
               Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
             </p>
-            
+
             <div className="flex gap-4">
               <button
                 type="button"

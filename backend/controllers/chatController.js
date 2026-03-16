@@ -5,7 +5,7 @@ exports.getMyChats = (req, res) => {
   console.log("Session User:", req.session.user);
   console.log("Cookies:", req.headers.cookie);
   const userId = req.session.user ? req.session.user.id : null;
-  
+
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -51,67 +51,70 @@ exports.getMessages = (req, res) => {
     "SELECT * FROM chat_participants WHERE chat_id = ? AND user_id = ?",
     [chatId, userId],
     (err, results) => {
-        if (err || results.length === 0) {
-            return res.status(403).json({ message: "Access denied" });
-        }
+      if (err || results.length === 0) {
+        return res.status(403).json({ message: "Access denied" });
+      }
 
-        // Fetch messages
-        db.query(
-            `SELECT m.*, u.full_name as sender_name 
+      // Fetch messages
+      db.query(
+        `SELECT m.*, u.full_name as sender_name 
              FROM messages m 
              JOIN users u ON m.sender_id = u.id 
              WHERE m.chat_id = ? 
              ORDER BY m.created_at ASC`,
-            [chatId],
-            (err, messages) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json(messages);
-            }
-        );
+        [chatId],
+        (err, messages) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json(messages);
+        }
+      );
     }
   );
 };
 
 // Send a message
 exports.sendMessage = (req, res) => {
-    const senderId = req.session.user ? req.session.user.id : null;
-    const { chatId, content } = req.body;
+  const senderId = req.session.user ? req.session.user.id : null;
+  const { chatId, content } = req.body;
 
-    if (!senderId) return res.status(401).json({ message: "Unauthorized" });
+  if (!senderId) return res.status(401).json({ message: "Unauthorized" });
 
-    // Verify participation first
-    db.query(
-        "SELECT * FROM chat_participants WHERE chat_id = ? AND user_id = ?",
-        [chatId, senderId],
-        (err, results) => {
-            if (err || results.length === 0) return res.status(403).json({ message: "Access denied" });
+  // Verify participation first
+  db.query(
+    "SELECT * FROM chat_participants WHERE chat_id = ? AND user_id = ?",
+    [chatId, senderId],
+    (err, results) => {
+      if (err || results.length === 0) return res.status(403).json({ message: "Access denied" });
 
-            db.query(
-                "INSERT INTO messages (chat_id, sender_id, content) VALUES (?, ?, ?)",
-                [chatId, senderId, content],
-                (err, result) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    
-                    // Update chat timestamp
-                    db.query("UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [chatId]);
+      db.query(
+        "INSERT INTO messages (chat_id, sender_id, content) VALUES (?, ?, ?)",
+        [chatId, senderId, content],
+        (err, result) => {
+          if (err) return res.status(500).json({ error: err.message });
 
-                    res.json({ success: true, messageId: result.insertId });
-                }
-            );
+          // Update chat timestamp
+          db.query("UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [chatId]);
+
+          res.json({ success: true, messageId: result.insertId });
         }
-    );
+      );
+    }
+  );
 };
 
 // Create a chat (if not exists)
 exports.createChat = (req, res) => {
-    const myId = req.session.user ? req.session.user.id : null;
-    const { otherUserId } = req.body;
+  const myId = req.session?.user?.id || req.body.userId || null;
+  const { otherUserId } = req.body;
 
-    if (!myId) return res.status(401).json({ message: "Unauthorized" });
+  console.log(`[CHAT CREATE] myId=${myId}, otherUserId=${otherUserId}`);
 
-    // Check if chat already exists
-    // A bit complex in SQL: Find a chat_id where both users are participants
-    const checkQuery = `
+  if (!myId) return res.status(401).json({ message: "Unauthorized - no user ID found" });
+  if (!otherUserId) return res.status(400).json({ message: "otherUserId is required" });
+
+  // Check if chat already exists
+  // A bit complex in SQL: Find a chat_id where both users are participants
+  const checkQuery = `
         SELECT c.id 
         FROM chats c
         JOIN chat_participants cp1 ON c.id = cp1.chat_id
@@ -120,28 +123,28 @@ exports.createChat = (req, res) => {
         LIMIT 1
     `;
 
-    db.query(checkQuery, [myId, otherUserId], (err, results) => {
+  db.query(checkQuery, [myId, otherUserId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (results.length > 0) {
+      return res.json({ chatId: results[0].id, alreadyExists: true });
+    }
+
+    // Create new chat
+    db.query("INSERT INTO chats () VALUES ()", (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const newChatId = result.insertId;
+
+      // Add participants
+      const values = [
+        [newChatId, myId],
+        [newChatId, otherUserId]
+      ];
+      db.query("INSERT INTO chat_participants (chat_id, user_id) VALUES ?", [values], (err) => {
         if (err) return res.status(500).json({ error: err.message });
-
-        if (results.length > 0) {
-            return res.json({ chatId: results[0].id, alreadyExists: true });
-        }
-
-        // Create new chat
-        db.query("INSERT INTO chats () VALUES ()", (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-
-            const newChatId = result.insertId;
-            
-            // Add participants
-            const values = [
-                [newChatId, myId],
-                [newChatId, otherUserId]
-            ];
-            db.query("INSERT INTO chat_participants (chat_id, user_id) VALUES ?", [values], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ chatId: newChatId, alreadyExists: false });
-            });
-        });
+        res.json({ chatId: newChatId, alreadyExists: false });
+      });
     });
+  });
 };

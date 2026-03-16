@@ -145,6 +145,54 @@ exports.login = async (req, res) => {
       console.log("Session ID:", req.sessionID);
       console.log("Session Data:", req.session);
 
+      // ── LOG LOGIN AUDIT (one row per day, UNIQUE key deduplicates) ──
+      db.query(
+        `INSERT IGNORE INTO login_audit (user_id, login_date) VALUES (?, CURDATE())`,
+        [user.id],
+        (auditErr) => {
+          if (auditErr) console.error("Login audit error:", auditErr);
+        }
+      );
+
+      // ── AUTO-CHECK GOLDEN TICK after login ──
+      // Requires: blue_tick_verified=1 + 20 distinct login days this month
+      db.query(
+        `SELECT 
+          u.blue_tick_verified,
+          u.golden_tick_verified,
+          u.golden_tick_month,
+          DATE_FORMAT(CURDATE(), '%Y-%m') AS current_month,
+          COUNT(la.id) AS login_days_this_month
+         FROM users u
+         LEFT JOIN login_audit la 
+           ON la.user_id = u.id 
+           AND MONTH(la.login_date)  = MONTH(CURDATE())
+           AND YEAR(la.login_date)   = YEAR(CURDATE())
+         WHERE u.id = ?
+         GROUP BY u.id`,
+        [user.id],
+        (checkErr, checkRows) => {
+          if (!checkErr && checkRows.length) {
+            const row = checkRows[0];
+            const eligible =
+              row.blue_tick_verified == 1 &&
+              row.login_days_this_month >= 20;
+            const alreadyAwarded =
+              row.golden_tick_verified == 1 &&
+              row.golden_tick_month === row.current_month;
+
+            if (eligible && !alreadyAwarded) {
+              db.query(
+                `UPDATE users 
+                 SET golden_tick_verified = 1, golden_tick_month = DATE_FORMAT(CURDATE(), '%Y-%m')
+                 WHERE id = ?`,
+                [user.id]
+              );
+            }
+          }
+        }
+      );
+
       res.json({
         success: true,
         message: "Logged in successfully",
@@ -237,6 +285,55 @@ exports.getUserById = async (req, res) => {
   }
 
   res.json(rows[0]);
+};
+
+/* =========================
+   GET LIVE USER FEED
+========================= */
+exports.getLiveFeed = (req, res) => {
+  const query = `
+    SELECT 
+      u.id, 
+      u.full_name, 
+      u.user_type, 
+      u.credibility_score, 
+      u.blue_tick_verified, 
+      u.golden_tick_verified,
+      u.green_tick_verified,
+      u.is_profile_complete,
+      us.profile_picture_url,
+      COALESCE(us.github_url, fp.github, cp.github_behance) AS github,
+      COALESCE(us.linkedin_url, fp.linkedin, cp.linkedin) AS linkedin,
+      us.portfolio_url AS portfolio,
+      fp.skills_description,
+      fp.experience,
+      fp.working_environment,
+      cp.superpower1,
+      cp.superpower2,
+      cp.superpower3,
+      cp.full_legal_name,
+      COALESCE(r_stats.avg_stars, 0) as avg_stars,
+      COALESCE(r_stats.review_count, 0) as review_count
+    FROM users u
+    LEFT JOIN users_socials us ON u.id = us.user_id
+    LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+    LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+    LEFT JOIN (
+      SELECT user_id, AVG(stars) as avg_stars, COUNT(review_id) as review_count
+      FROM reviews
+      GROUP BY user_id
+    ) r_stats ON u.id = r_stats.user_id
+    WHERE u.user_type IN ('freelancer', 'cofounder')
+    ORDER BY u.credibility_score DESC, u.created_at DESC
+  `;
+
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.error("[LIVE FEED ERROR]", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
 };
 
 /* =========================

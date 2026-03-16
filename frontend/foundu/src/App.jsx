@@ -28,11 +28,15 @@ import FounderBadges from './pages/FounderBadges'
 import Chatbox from "./pages/Chatbox";
 import ViewJobPosting from "./pages/ViewJobPosting";
 import SmartChatbot from "./pages/SmartChatbot";
+import FreelancerReviews from "./pages/FreelancerReviews";
+import LiveUserFeed from "./pages/LiveUserFeed";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminBadges from "./admin/pages/AdminBadges";
 
 
 function App() {
-  const userRole   = localStorage.getItem("user_type") || null;
-  const userId     = localStorage.getItem("user_id")   || null;
+  const userRole = localStorage.getItem("user_type") || null;
+  const userId = localStorage.getItem("user_id") || null;
   const isLoggedIn = !!userId;
   return (
     <Router>
@@ -75,9 +79,13 @@ function App() {
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
         <Route path="/jobposting" element={<ViewJobPosting />} />
-        
+        <Route path="/freelancer-reviews" element={<FreelancerReviews />} />
+        <Route path="/live-feed" element={<LiveUserFeed />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/badges" element={<AdminBadges />} />
+
       </Routes>
-        {isLoggedIn && (
+      {isLoggedIn && (
         <SmartChatbot userRole={userRole} userId={userId} />
       )}
 

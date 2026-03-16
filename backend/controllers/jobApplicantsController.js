@@ -66,7 +66,11 @@ exports.getAllApplicants = (req, res) => {
 
   const query = `
     SELECT 
-      ja.*,
+      ja.user_id,
+      ja.job_id,
+      ja.applicant_type,
+      ja.status,
+      ja.created_at,
 
       u.full_name,
       u.email,
@@ -74,8 +78,20 @@ exports.getAllApplicants = (req, res) => {
 
       us.profile_picture_url,
 
-      fp.*,
-      cp.*
+      fp.skills_description,
+      fp.experience,
+      fp.phone_number,
+      fp.github,
+      fp.linkedin AS linkedin,
+      fp.working_environment,
+
+      cp.full_legal_name,
+      cp.github_behance,
+      cp.linkedin AS cp_linkedin,
+      cp.reference_contact,
+      cp.superpower1,
+      cp.superpower2,
+      cp.superpower3
 
     FROM job_applicants ja
 
@@ -132,6 +148,8 @@ exports.updateApplicantStatus = (req, res) => {
   const { job_id, user_id } = req.params;
   const { status } = req.body;
 
+  console.log(`[UPDATE STATUS] job_id=${job_id}, user_id=${user_id}, status=${status}`);
+
   if (!["pending", "accepted", "rejected"].includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
   }
@@ -141,13 +159,48 @@ exports.updateApplicantStatus = (req, res) => {
      SET status = ? 
      WHERE job_id = ? AND user_id = ?`,
     [status, job_id, user_id],
-    () => {
+    (err, result) => {
+      if (err) {
+        console.error("[UPDATE STATUS ERROR]", err);
+        return res.status(500).json({ error: err.message });
+      }
+      console.log(`[UPDATE STATUS RESULT] affectedRows=${result.affectedRows}`);
       res.json({
         success: true,
-        message: "Applicant status updated"
+        message: "Applicant status updated",
+        affectedRows: result.affectedRows
       });
     }
   );
+};
+
+/* =========================
+   GET APPLICATIONS BY USER ID
+========================= */
+exports.getApplicationsByUserId = (req, res) => {
+  const { user_id } = req.params;
+
+  const query = `
+    SELECT 
+      ja.job_id,
+      ja.user_id,
+      ja.applicant_type,
+      ja.status,
+      ja.created_at AS applied_on,
+      fj.job_title,
+      fj.startup_name,
+      fj.job_type,
+      fj.domain
+    FROM job_applicants ja
+    JOIN foundu_jobs fj ON fj.job_id = ja.job_id
+    WHERE ja.user_id = ?
+    ORDER BY ja.created_at DESC
+  `;
+
+  db.query(query, [user_id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 };
 
 /* =========================
