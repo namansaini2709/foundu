@@ -742,7 +742,7 @@ export default function JobApplicationsDashboard() {
 
         {selectedJob && (
           <>
-            <div className="bg-gray-900 border border-purple-500 rounded-xl p-6">
+            {/* <div className="bg-gray-900 border border-purple-500 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -827,7 +827,7 @@ export default function JobApplicationsDashboard() {
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-2xl font-bold text-white mb-4">

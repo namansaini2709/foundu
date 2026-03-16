@@ -1,10 +1,15 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   DollarSign,
   Briefcase,
   MapPin,
   CheckCircle,
   ArrowLeft,
+  Zap,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -19,274 +24,188 @@ function CoFounderJobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Job data keyed by id
-  const jobDetails = {
-    1: {
-      logo: "TV",
-      startupName: "TechVenture",
-      salary: "$8,000 - $15,000",
-      experienceLevel: "Intermediate",
-      location: "Remote",
-      about:
-        "We are building the next generation of AI-powered solutions for enterprise clients. Our platform helps businesses automate complex workflows and make data-driven decisions. We are looking for passionate co-founders who share our vision of transforming how businesses operate.",
-      jobDescription:
-        "We are looking for an experienced co-founder to join our innovative team. You will be responsible for leading technical development and strategic decisions. Your role will involve working on both frontend and backend systems, ensuring high performance and scalability of our platform.",
-      responsibilities: [
-        "Lead technical architecture and development decisions",
-        "Build scalable and maintainable systems for enterprise clients",
-        "Collaborate with the founding team on product strategy",
-        "Hire and manage the technical team as we grow",
-        "Ensure high code quality and best practices",
-        "Participate in fundraising and investor meetings",
-        "Translate business requirements into technical solutions",
-      ],
-      requirements: [
-        "5+ years of experience in full stack development",
-        "Strong background in AI/ML technologies",
-        "Experience with cloud infrastructure (AWS, Azure, GCP)",
-        "Proven track record of building scalable applications",
-        "Excellent leadership and communication skills",
-        "Entrepreneurial mindset and passion for startups",
-        "Ability to work in a fast-paced environment",
-      ],
-    },
-    2: {
-      logo: "IL",
-      startupName: "InnovateLab",
-      salary: "$6,000 - $12,000",
-      experienceLevel: "Senior",
-      location: "Hybrid",
-      about:
-        "Revolutionizing the healthcare industry with cutting-edge telemedicine solutions. We connect patients with doctors seamlessly through our innovative platform. Join us in making healthcare accessible to everyone.",
-      jobDescription:
-        "We are seeking a co-founder with deep expertise in healthcare technology and product development. You will play a crucial role in shaping our product roadmap and building solutions that improve patient outcomes.",
-      responsibilities: [
-        "Develop and execute product strategy",
-        "Build telemedicine platform features",
-        "Ensure HIPAA compliance and security",
-        "Work with healthcare providers and stakeholders",
-        "Lead product development team",
-        "Participate in regulatory discussions",
-      ],
-      requirements: [
-        "7+ years in healthcare technology",
-        "Experience with telemedicine platforms",
-        "Knowledge of healthcare regulations",
-        "Strong product management skills",
-        "Background in healthcare or medical field preferred",
-      ],
-    },
-    3: {
-      logo: "DF",
-      startupName: "DataFlow",
-      salary: "$7,000 - $14,000",
-      experienceLevel: "Intermediate",
-      location: "Remote",
-      about:
-        "Transforming how businesses handle big data with our cloud-native analytics platform. We make complex data analysis simple and accessible for everyone. Join us in democratizing data analytics.",
-      jobDescription:
-        "We are looking for a co-founder who can lead our technical team and help build a world-class data analytics platform. You will work on cutting-edge technologies and solve complex data challenges.",
-      responsibilities: [
-        "Design and implement scalable data processing systems",
-        "Build intuitive analytics dashboards",
-        "Lead the engineering team",
-        "Work with data scientists and analysts",
-        "Ensure platform reliability and performance",
-        "Participate in product strategy discussions",
-      ],
-      requirements: [
-        "6+ years in data engineering or analytics",
-        "Experience with big data technologies (Spark, Hadoop)",
-        "Strong background in cloud platforms",
-        "Knowledge of data visualization tools",
-        "Excellent problem-solving skills",
-      ],
-    },
-    4: {
-      logo: "GT",
-      startupName: "GreenTech Solutions",
-      salary: "$5,000 - $10,000",
-      experienceLevel: "Entry",
-      location: "Hybrid",
-      about:
-        "Leading the charge in sustainable technology solutions. We develop eco-friendly software and hardware products that help reduce carbon footprint. Be part of the green revolution.",
-      jobDescription:
-        "Join us as a co-founder to build sustainable technology solutions. You will help shape our product vision and lead development of eco-friendly tech products.",
-      responsibilities: [
-        "Develop sustainable technology solutions",
-        "Lead product development initiatives",
-        "Build partnerships with green tech organizations",
-        "Ensure products meet sustainability standards",
-        "Lead technical team",
-        "Participate in sustainability initiatives",
-      ],
-      requirements: [
-        "4+ years in software or hardware development",
-        "Passion for sustainability and green technology",
-        "Experience with IoT or hardware preferred",
-        "Strong technical and leadership skills",
-        "Commitment to environmental causes",
-      ],
-    },
-    5: {
-      logo: "FP",
-      startupName: "FinTech Pro",
-      salary: "$9,000 - $18,000",
-      experienceLevel: "Senior",
-      location: "Remote",
-      about:
-        "Disrupting the financial services industry with blockchain technology and AI. Our platform enables secure, fast, and transparent financial transactions. Join the fintech revolution.",
-      jobDescription:
-        "We are seeking an experienced co-founder to lead our technical development in the fintech space. You will work on cutting-edge blockchain and AI technologies.",
-      responsibilities: [
-        "Lead blockchain and AI development",
-        "Ensure security and compliance in financial systems",
-        "Build scalable fintech platform",
-        "Work with financial institutions",
-        "Lead technical team",
-        "Participate in regulatory compliance",
-      ],
-      requirements: [
-        "8+ years in fintech or financial services",
-        "Experience with blockchain technology",
-        "Knowledge of financial regulations",
-        "Strong security and compliance background",
-        "Experience with payment systems",
-      ],
-    },
-    6: {
-      logo: "CS",
-      startupName: "CloudSync",
-      salary: "$6,000 - $12,000",
-      experienceLevel: "Intermediate",
-      location: "Remote",
-      about:
-        "Enterprise cloud solutions provider helping businesses migrate to the cloud seamlessly. We offer comprehensive cloud consulting and implementation services.",
-      jobDescription:
-        "Join us as a co-founder to help businesses transform through cloud technology. You will lead technical initiatives and build cloud migration solutions.",
-      responsibilities: [
-        "Lead cloud architecture and migration projects",
-        "Build cloud-native applications",
-        "Work with enterprise clients",
-        "Lead technical consulting team",
-        "Ensure cloud security and best practices",
-        "Participate in client meetings and presentations",
-      ],
-      requirements: [
-        "5+ years in cloud computing",
-        "Experience with AWS, Azure, or GCP",
-        "Strong consulting and client-facing skills",
-        "Knowledge of cloud migration strategies",
-        "Excellent communication skills",
-      ],
-    },
-    7: {
-      logo: "MH",
-      startupName: "MarketPlace Hub",
-      salary: "$5,500 - $11,000",
-      experienceLevel: "Intermediate",
-      location: "Hybrid",
-      about:
-        "Creating the largest B2B marketplace for small businesses. Our platform connects suppliers with buyers, making commerce easier and more efficient.",
-      jobDescription:
-        "We are looking for a co-founder to help build and scale our B2B marketplace platform. You will work on product growth, technical architecture, and partnerships.",
-      responsibilities: [
-        "Build and scale the marketplace platform",
-        "Define product strategy and roadmap",
-        "Develop supplier and buyer onboarding flows",
-        "Grow partnerships with small businesses",
-        "Lead engineering and product teams",
-        "Participate in fundraising and growth strategy",
-      ],
-      requirements: [
-        "5+ years in marketplace or e-commerce platforms",
-        "Experience with product-led growth",
-        "Strong understanding of B2B dynamics",
-        "Technical and entrepreneurial mindset",
-        "Excellent networking and partnership skills",
-      ],
-    },
-    8: {
-      logo: "EI",
-      startupName: "EduTech Innovations",
-      salary: "$5,000 - $9,000",
-      experienceLevel: "Entry",
-      location: "Remote",
-      about:
-        "Transforming education through technology. We build learning platforms that make education accessible, engaging, and effective for students worldwide.",
-      jobDescription:
-        "Join us as a co-founder to revolutionize how students learn. You will lead technical development of our adaptive learning platform and help shape our education strategy.",
-      responsibilities: [
-        "Build adaptive learning platform features",
-        "Lead edtech product development",
-        "Partner with schools and institutions",
-        "Ensure accessibility and inclusivity",
-        "Lead engineering team",
-        "Participate in curriculum and content strategy",
-      ],
-      requirements: [
-        "4+ years in edtech or consumer apps",
-        "Passion for education and accessibility",
-        "Experience with mobile and web platforms",
-        "Strong UX and product instincts",
-        "Ability to work with educators and students",
-      ],
-    },
-    9: {
-      logo: "HC",
-      startupName: "HealthConnect",
-      salary: "$6,500 - $13,000",
-      experienceLevel: "Senior",
-      location: "Hybrid",
-      about:
-        "Connecting healthcare providers with patients through innovative digital solutions. We streamline healthcare delivery and improve patient outcomes.",
-      jobDescription:
-        "We are seeking a co-founder to help build digital healthcare solutions. You will work on connecting patients with healthcare providers seamlessly.",
-      responsibilities: [
-        "Develop healthcare platform features",
-        "Ensure HIPAA compliance",
-        "Work with healthcare providers",
-        "Build patient engagement tools",
-        "Lead technical development",
-        "Participate in healthcare partnerships",
-      ],
-      requirements: [
-        "6+ years in healthcare technology",
-        "Knowledge of healthcare regulations",
-        "Experience with healthcare systems",
-        "Strong security and compliance background",
-        "Understanding of healthcare workflows",
-      ],
-    },
-    10: {
-      logo: "RM",
-      startupName: "RetailMax",
-      salary: "$5,500 - $10,000",
-      experienceLevel: "Intermediate",
-      location: "Remote",
-      about:
-        "Empowering retailers with AI-driven inventory management and customer analytics. We help retail businesses optimize operations and increase sales.",
-      jobDescription:
-        "Join us as a co-founder to transform retail operations. You will help build AI-powered solutions for inventory management and customer analytics.",
-      responsibilities: [
-        "Develop AI-powered retail solutions",
-        "Build inventory management systems",
-        "Create customer analytics tools",
-        "Work with retail businesses",
-        "Lead technical team",
-        "Participate in retail partnerships",
-      ],
-      requirements: [
-        "5+ years in retail technology or e-commerce",
-        "Experience with AI/ML applications",
-        "Knowledge of inventory management",
-        "Understanding of retail operations",
-        "Strong analytical skills",
-      ],
-    },
+  const [jobData, setJobData] = useState(null);
+  const [startupData, setStartupData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+
+  // Get user data from localStorage
+  const getUserData = () => {
+    try {
+      const possibleKeys = ["user", "userData", "currentUser", "authUser"];
+      for (const key of possibleKeys) {
+        const userDataString = localStorage.getItem(key);
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            const userId = userData.user_id || userData.id || userData.userId;
+            const userType = userData.user_type || userData.userType || userData.applicant_type || userData.type;
+            if (userId && userType) {
+              return { user_id: userId, user_type: userType };
+            }
+          } catch (parseError) {
+            console.error(`Failed to parse ${key}:`, parseError);
+          }
+        }
+      }
+      const directUserId = localStorage.getItem("user_id");
+      const directUserType = localStorage.getItem("user_type");
+      if (directUserId && directUserType) {
+        return { user_id: directUserId, user_type: directUserType };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting user data:", error);
+      return null;
+    }
   };
 
-  const job = jobDetails[id] || jobDetails[1];
+  // Check if user has already applied
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      const userData = getUserData();
+      if (!userData || !id) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/jobs/${id}/applicants/${userData.user_id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setHasApplied(true);
+          setApplicationStatus(data.status);
+        }
+      } catch (error) {
+        console.log("No existing application found");
+      }
+    };
+
+    if (id) {
+      checkApplicationStatus();
+    }
+  }, [id]);
+
+  // Fetch job details and startup profile
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      if (!id) {
+        navigate("/cofounder-jobs");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const jobResponse = await fetch(`http://localhost:4000/api/jobs/${id}`);
+        if (!jobResponse.ok) {
+          toast.error("Failed to load job details");
+          navigate("/cofounder-jobs");
+          return;
+        }
+        const job = await jobResponse.json();
+        setJobData(job);
+
+        // Fetch startup profile using founder_id
+        if (job.founder_id) {
+          const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+          const profiles = await profilesResponse.json();
+          const startupProfile = profiles.find((profile) => Number(profile.founder_id) === Number(job.founder_id));
+          if (startupProfile) {
+            setStartupData(startupProfile);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching job details:", error);
+        toast.error("Failed to load job details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobDetails();
+  }, [id, navigate]);
+
+  const handleApplyNow = async () => {
+    const userData = getUserData();
+    if (!userData || !userData.user_id) {
+      toast.error("Please login to apply");
+      setTimeout(() => navigate("/login-signup"), 1500);
+      return;
+    }
+
+    if (hasApplied) {
+      toast.warning("You have already shown interest in this job");
+      return;
+    }
+
+    setApplying(true);
+    try {
+      const response = await fetch("http://localhost:4000/api/jobs/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_id: parseInt(id),
+          user_id: parseInt(userData.user_id),
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setHasApplied(true);
+        setApplicationStatus("pending");
+        toast.success("Interest submitted successfully! 🎉");
+        setTimeout(() => navigate("/cofounder-dashboard"), 2000);
+      } else {
+        toast.error(data.message || "Failed to submit interest");
+      }
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const getApplyButtonConfig = () => {
+    if (applying) return { text: "Submitting...", disabled: true, className: "bg-gray-500 cursor-not-allowed" };
+    if (hasApplied) {
+      const statusText = { pending: "Interest Pending", accepted: "Interest Accepted ✓", rejected: "Interest Rejected" };
+      const statusClass = { pending: "bg-yellow-600 hover:bg-yellow-700", accepted: "bg-green-600 hover:bg-green-700", rejected: "bg-red-600 hover:bg-red-700" };
+      return { text: statusText[applicationStatus] || "Already Applied", disabled: true, className: statusClass[applicationStatus] || "bg-gray-600 cursor-not-allowed" };
+    }
+    return { text: "Show Interest", disabled: false, className: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen" style={gradientBlackToBlue}>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!jobData) {
+    return (
+      <div className="min-h-screen" style={gradientBlackToBlue}>
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <p className="text-gray-400 text-xl mb-4">Job not found</p>
+            <button onClick={() => navigate("/cofounder-jobs")} className="text-blue-400 hover:text-blue-300">Back to Jobs</button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const buttonConfig = getApplyButtonConfig();
+  const job = jobData; // For compatibility with existing JSX
 
   return (
     <div className="min-h-screen" style={gradientBlackToBlue}>
@@ -313,43 +232,69 @@ function CoFounderJobDetail() {
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-8 md:p-12 shadow-2xl relative">
             {/* Header Section */}
             <div className="flex items-start gap-6 mb-8 pb-8 border-b border-white/20">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0">
-                <span className="text-3xl font-bold text-blue-200">
-                  {job.logo}
-                </span>
-              </div>
+              {startupData?.startup_logo_url ? (
+                <div className="w-20 h-20 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0 overflow-hidden bg-white">
+                  <img
+                    src={startupData.startup_logo_url}
+                    alt={job.job_title}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500/40 to-blue-600/40 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0">
+                  <span className="text-3xl font-bold text-blue-200">
+                    {job.job_title?.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() || "CF"}
+                  </span>
+                </div>
+              )}
 
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                  {job.startupName}
+                  {startupData?.startup_name || job.startup_name || "Unknown Startup"}
                 </h1>
 
-                {/* Job Details Row */}
                 <div className="flex flex-wrap gap-6 items-center">
                   <div className="flex items-center gap-2 text-blue-300">
                     <DollarSign className="w-5 h-5" />
-                    <span className="font-semibold text-lg">{job.salary}</span>
-                    <span className="text-gray-400 text-sm">/month</span>
+                    <span className="font-semibold text-lg">{job.budget_range || job.compensation || "Not specified"}</span>
                   </div>
 
                   <div className="flex items-center gap-2 text-blue-300">
                     <Briefcase className="w-5 h-5" />
-                    <span className="font-medium">{job.experienceLevel}</span>
+                    <span className="font-medium">{job.job_level || job.experienceLevel}</span>
                   </div>
 
                   <div className="flex items-center gap-2 text-blue-300">
                     <MapPin className="w-5 h-5" />
-                    <span className="font-medium">{job.location}</span>
+                    <span className="font-medium">{job.job_location_type || job.location}</span>
                   </div>
+
+                  {job.urgency && (
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <Zap className="w-5 h-5" />
+                      <span className="font-medium capitalize">{job.urgency}</span>
+                    </div>
+                  )}
+
+                  {job.duration && (
+                    <div className="flex items-center gap-2 text-blue-300">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-medium">{job.duration}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Show Interest Button - Top Right */}
             <div className="absolute top-6 right-4">
-              <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2">
+              <button
+                onClick={handleApplyNow}
+                disabled={buttonConfig.disabled}
+                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''}`}
+              >
                 <Briefcase className="w-5 h-5" />
-                Show Interest
+                {buttonConfig.text}
               </button>
             </div>
 
@@ -357,11 +302,11 @@ function CoFounderJobDetail() {
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                 <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
-                About {job.startupName}
+                About {startupData?.startup_name || job.startup_name || "Startup"}
               </h2>
               <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <p className="text-gray-300 leading-relaxed text-base">
-                  {job.about}
+                <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
+                  {startupData?.problem_solving || startupData?.startup_details || "No startup details available at the moment."}
                 </p>
               </div>
             </div>
@@ -373,31 +318,37 @@ function CoFounderJobDetail() {
                 Job Description
               </h2>
               <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <p className="text-gray-300 leading-relaxed text-base">
-                  {job.jobDescription}
+                <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
+                  {job.full_job_description || "No job description available."}
                 </p>
               </div>
             </div>
 
             {/* Responsibilities Section */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
-                Responsibilities
-              </h2>
-              <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
-                <ul className="space-y-3">
-                  {job.responsibilities.map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300 leading-relaxed">
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+            {job.responsibilities && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <div className="w-1 h-8 bg-blue-400 rounded-full"></div>
+                  Responsibilities
+                </h2>
+                <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
+                  <ul className="space-y-3">
+                    {(() => {
+                      let resp = [];
+                      try {
+                        resp = typeof job.responsibilities === 'string' ? JSON.parse(job.responsibilities) : job.responsibilities;
+                      } catch (e) { resp = [job.responsibilities]; }
+                      return resp.map((item, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-300 leading-relaxed">{item}</span>
+                        </li>
+                      ));
+                    })()}
+                  </ul>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Requirements Section */}
             <div className="mb-8">
@@ -407,14 +358,25 @@ function CoFounderJobDetail() {
               </h2>
               <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl p-6 border border-blue-700/30">
                 <ul className="space-y-3">
-                  {job.requirements.map((requirement, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300 leading-relaxed">
-                        {requirement}
-                      </span>
-                    </li>
-                  ))}
+                  {(() => {
+                    let reqs = [];
+                    try {
+                      if (job.job_requirements) {
+                        reqs = typeof job.job_requirements === 'string' ? JSON.parse(job.job_requirements) : job.job_requirements;
+                      } else if (job.requirements) {
+                        reqs = typeof job.requirements === 'string' ? JSON.parse(job.requirements) : job.requirements;
+                      }
+                    } catch (e) { reqs = [job.job_requirements || job.requirements]; }
+
+                    if (!reqs || reqs.length === 0) return <p className="text-gray-400">No requirements specified.</p>;
+
+                    return reqs.map((requirement, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-300 leading-relaxed">{requirement}</span>
+                      </li>
+                    ));
+                  })()}
                 </ul>
               </div>
             </div>
