@@ -54,6 +54,7 @@ const usersSocialsRoutes = require("./routes/usersSocialsRoutes");
 const badgeRoutes = require("./routes/badgeRoutes");
 const jobApplicantsRoutes = require("./routes/jobApplicantsRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -85,6 +86,7 @@ app.use("/api", usersSocialsRoutes);
 app.use("/api", badgeRoutes);
 app.use("/api", jobApplicantsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api", adminRoutes);
 
 /* =========================
    HEALTH CHECK

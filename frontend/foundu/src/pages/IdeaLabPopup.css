@@ -3,26 +3,24 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root {
-  --ink: #09080C;
-  --ink2: #100F14;
-  --ink3: #17161C;
-  --ink4: #1F1E26;
-  --bdr: rgba(255, 255, 255, 0.055);
-  --bdr2: rgba(255, 255, 255, 0.10);
-  --bdr3: rgba(255, 255, 255, 0.16);
-  --saffron: #FF6B2C;
-  --saffron2: #FF8F5A;
-  --gold: #F5A623;
-  --gold2: #FFD166;
-  --jade: #00C96B;
-  --jade2: #4DFFA0;
-  --sky: #38B2FF;
-  --sky2: #7ECFFF;
-  --crimson: #FF3D57;
-  --violet: #9B6DFF;
-  --tx: #F5F0E8;
-  --tx2: #A09488;
-  --tx3: #564E46;
+  --ink: #020024;
+  --ink2: #090979;
+  --ink3: rgba(9, 9, 121, 0.8);
+  --ink4: rgba(31, 41, 55, 0.4);
+  --bdr: rgba(59, 130, 246, 0.3);
+  --bdr2: rgba(59, 130, 246, 0.5);
+  --bdr3: rgba(59, 130, 246, 0.7);
+  --primary: #3b82f6;
+  --secondary: #22c55e;
+  --jade: #10b981;
+  --jade2: #34d399;
+  --sky: #0ea5e9;
+  --sky2: #38bdf8;
+  --gold: #facc15;
+  --gold2: #fde047;
+  --tx: #ffffff;
+  --tx2: #d1d5db;
+  --tx3: #9ca3af;
   --r: 0.75rem;
 }
 
@@ -46,11 +44,12 @@
 }
 
 .venture-modal-container {
-  width: 100%;
-  max-width: 1200px;
-  height: 90vh;
+  width: 90%;
+  max-width: 900px;
+  height: 80vh;
   background: var(--ink);
-  border: 1px solid var(--bdr2);
+  background: linear-gradient(160deg, var(--ink) 0%, var(--ink2) 100%);
+  border: 1.5px solid var(--bdr2);
   border-radius: 28px;
   display: flex;
   overflow: hidden;
@@ -58,6 +57,7 @@
   position: relative;
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: var(--tx);
+  backdrop-filter: blur(20px);
 }
 
 /* SIDEBAR */
@@ -420,20 +420,22 @@
   position: fixed;
   bottom: 104px;
   right: 28px;
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--saffron), var(--gold));
+  background: linear-gradient(135deg, var(--sky), var(--jade));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 9999;
-  box-shadow: 0 10px 30px rgba(255,107,44,0.4);
-  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .fab-idea:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
 }

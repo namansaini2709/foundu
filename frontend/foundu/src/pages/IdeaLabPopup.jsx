@@ -34,12 +34,42 @@ const IdeaLabPopup = ({ userId }) => {
             ] 
         },
         { 
+            id: "skills", 
+            q: "Aapki core skills kya hain?", 
+            opts: [
+                {v: "Development / AI", e: "⚙️"},
+                {v: "Marketing / Sales", e: "📢"},
+                {v: "Operations / Logistics", e: "📦"},
+                {v: "Product Management", e: "🎯"}
+            ] 
+        },
+        { 
+            id: "passions", 
+            q: "Aap kis sector mein passionate hain?", 
+            opts: [
+                {v: "FinTech / Crypto", e: "💰"},
+                {v: "AgriTech / Sustainability", e: "🌱"},
+                {v: "HealthTech / Wellness", e: "🏥"},
+                {v: "EdTech / Learning", e: "🎓"}
+            ] 
+        },
+        { 
             id: "capital", 
             q: "Starting capital kitna hai?", 
             opts: [
                 {v: "₹0–50K (Lean)", e: "🪙"},
                 {v: "₹50K–5L (Moderate)", e: "💵"},
                 {v: "₹5L+ (Serious)", e: "🏦"}
+            ] 
+        },
+        { 
+            id: "ambition", 
+            q: "Aapka primary goal kya hai?", 
+            opts: [
+                {v: "Lifestyle Business", e: "🏠"},
+                {v: "Hyper-Growth Scale", e: "🚀"},
+                {v: "Social Impact", e: "🌍"},
+                {v: "Side Hustle", e: "⚡"}
             ] 
         }
     ];
@@ -63,7 +93,9 @@ const IdeaLabPopup = ({ userId }) => {
         setTimeout(() => {
             const mockReport = {
                 title: customTitle || (text.substring(0, 30) + "..."),
-                refinedIdea: "A comprehensive hyper-local marketplace platform connecting organic farmers directly with urban consumers using blockchain for transparency and AI for logistics optimization.",
+                refinedIdea: mode === 'discover' 
+                    ? `Based on your ${answers.bg} background and ${answers.skills} skills, we recommend: **A Smart ${answers.passions} Platform** leveraging AI to optimize ${answers.bg === 'Tech / Engineering' ? 'backend efficiency' : 'market reach'}.`
+                    : "A comprehensive hyper-local marketplace platform connecting organic farmers directly with urban consumers using blockchain for transparency and AI for logistics optimization.",
                 roadmap: [
                     "Foundation: Market research, entity registration and team assembly.",
                     "Build: MVP development, supply chain integration and pilot testing.",

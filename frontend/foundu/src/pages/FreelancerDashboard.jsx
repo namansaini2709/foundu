@@ -1,105 +1,202 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Chatbox from './Chatbox';
+
+const API_URL = 'http://localhost:4000/api';
 
 const FreelancerDashboard = () => {
-    const [activeTab, setActiveTab] = useState('projects');
+    const [activeTab, setActiveTab] = useState('chats');
+    const [applications, setApplications] = useState([]);
+    const [loadingApps, setLoadingApps] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('all');
 
-    // Gradient style matching HomePage
+    const userId = localStorage.getItem('user_id');
+
     const gradientBlackToBlue = {
         background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
     };
 
-    // Dummy Data
-    const projects = [
-        { id: 1, title: 'E-commerce Website', status: 'Accepted', date: '2023-10-01' },
-        { id: 2, title: 'Personal Portfolio', status: 'Completed', date: '2023-09-15' },
-        { id: 3, title: 'Mobile App Design', status: 'Pending', date: '2023-10-05' },
-        { id: 4, title: 'SEO Optimization', status: 'Rejected', date: '2023-09-20' },
-        { id: 5, title: 'Blog Writing', status: 'Applied', date: '2023-10-08' },
+    // Tab config with icons
+    const tabs = [
+        { key: 'chats', label: 'Your Chats', icon: '💬' },
+        { key: 'projects', label: 'Projects', icon: '📂' },
+        { key: 'payments', label: 'Payments', icon: '💰' },
+        { key: 'badges', label: 'Badges', icon: '🏅' },
     ];
 
+    // Fetch applications when projects tab is active
+    useEffect(() => {
+        if (activeTab === 'projects' && userId) {
+            fetchApplications();
+        }
+    }, [activeTab, userId]);
+
+    const fetchApplications = async () => {
+        setLoadingApps(true);
+        try {
+            const res = await axios.get(`${API_URL}/user/${userId}/applications`);
+            setApplications(res.data);
+        } catch (err) {
+            console.error('Error fetching applications:', err);
+        }
+        setLoadingApps(false);
+    };
+
+    const filteredApplications = statusFilter === 'all'
+        ? applications
+        : applications.filter(app => app.status === statusFilter);
+
+    // Dummy Data for payments (keeping as-is per requirements)
     const transactions = [
         { id: 1, description: 'Project Payment - E-commerce', amount: '+$500', date: '2023-10-02', type: 'Credit' },
         { id: 2, description: 'Withdrawal to Bank', amount: '-$200', date: '2023-09-25', type: 'Debit' },
         { id: 3, description: 'Project Payment - Portfolio', amount: '+$300', date: '2023-09-18', type: 'Credit' },
     ];
 
-    const billingHistory = [
-        { id: 1, invoiceId: 'INV-2023-001', date: '2023-10-01', amount: '$15.00', status: 'Paid', plan: 'Pro Plan' },
-        { id: 2, invoiceId: 'INV-2023-002', date: '2023-09-01', amount: '$15.00', status: 'Paid', plan: 'Pro Plan' },
-    ];
+    const getStatusStyle = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'accepted':
+                return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+            case 'completed':
+                return 'bg-blue-500/15 text-blue-300 border border-blue-500/30';
+            case 'rejected':
+                return 'bg-red-500/15 text-red-300 border border-red-500/30';
+            default:
+                return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+        }
+    };
 
     return (
         <div className="min-h-screen text-white font-sans" style={gradientBlackToBlue}>
             <Navbar />
 
-            {/* Main Content Padding for Fixed Navbar */}
             <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
 
                 {/* Header Section */}
                 <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 mb-8 shadow-lg">
-                    <h1 className="text-4xl font-bold text-white mb-2">Freelancer Dashboard</h1>
-                    <p className="text-blue-200 text-lg">Manage your application, savings, and subscription</p>
+                    <h1 className="text-4xl font-bold text-white mb-2 text-center">Freelancer Dashboard</h1>
+                    <p className="text-blue-200 text-lg text-center">Manage your chats, applications, earnings, and badges</p>
 
-                    {/* Toggle Bar / Tabs */}
-                    <div className="flex space-x-2 mt-8 overflow-x-auto pb-2">
-                        {['projects', 'payments', 'badges', 'billing'].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`px-6 py-3 rounded-full text-sm font-semibold capitalize transition-all duration-300 ${activeTab === tab
-                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-105'
-                                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white'
-                                    }`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
+                    {/* ═══════════════════════════════════════════════
+                        PREMIUM CENTER-ALIGNED TOGGLE BAR
+                    ═══════════════════════════════════════════════ */}
+                    <div className="flex justify-center mt-8">
+                        <div className="inline-flex items-center bg-gray-900/60 backdrop-blur-xl rounded-2xl p-1.5 border border-white/10 shadow-2xl shadow-blue-900/20">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => setActiveTab(tab.key)}
+                                    className={`
+                                        relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold
+                                        transition-all duration-400 ease-out cursor-pointer
+                                        ${activeTab === tab.key
+                                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
+                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        }
+                                    `}
+                                    style={{
+                                        transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    }}
+                                >
+                                    <span className="text-lg">{tab.icon}</span>
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Content Area */}
-                <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 shadow-xl min-h-[500px]">
+                <div className={`bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl ${activeTab === 'chats' ? 'p-0 overflow-hidden' : 'p-8'} min-h-[500px]`}>
 
-                    {/* Projects Tab */}
-                    {activeTab === 'projects' && (
-                        <div>
-                            <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-bold text-white">My Projects and Applications</h2>
-                            </div>
-
-                            {/* Filters */}
-                            <div className="flex flex-wrap gap-3 mb-8">
-                                {['Applications', 'All Projects', 'Accepted', 'Completed', 'Pending', 'Rejected'].map((filter) => (
-                                    <button key={filter} className="px-4 py-2 rounded-lg bg-gray-700/50 border border-blue-500/30 text-sm font-medium text-blue-100 hover:bg-blue-600/20 hover:border-blue-400 transition-all">
-                                        {filter}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Dummy Data List */}
-                            <div className="space-y-4">
-                                {projects.map((project) => (
-                                    <div key={project.id} className="p-5 rounded-xl bg-gray-700/30 border border-gray-600/50 hover:border-blue-500/50 transition-all flex justify-between items-center group">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">{project.title}</h3>
-                                            <p className="text-sm text-gray-400">Applied on {project.date}</p>
-                                        </div>
-                                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide ${project.status === 'Completed' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
-                                                project.status === 'Accepted' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
-                                                    project.status === 'Rejected' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-                                                        'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                                            }`}>
-                                            {project.status.toUpperCase()}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                    {/* ═══════════ YOUR CHATS TAB ═══════════ */}
+                    {activeTab === 'chats' && (
+                        <div className="h-[600px]">
+                            <Chatbox />
                         </div>
                     )}
 
-                    {/* Payments Tab */}
+                    {/* ═══════════ PROJECTS TAB ═══════════ */}
+                    {activeTab === 'projects' && (
+                        <div>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white">My Applications</h2>
+                                    <p className="text-gray-400 text-sm mt-1">Track your job applications & statuses</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-gray-900/50 rounded-xl p-1 border border-white/10">
+                                    {['all', 'pending', 'accepted', 'rejected'].map((f) => (
+                                        <button
+                                            key={f}
+                                            onClick={() => setStatusFilter(f)}
+                                            className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-300 cursor-pointer ${statusFilter === f
+                                                    ? 'bg-blue-600 text-white shadow-md'
+                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                                }`}
+                                        >
+                                            {f}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {loadingApps ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                    <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                                    <p className="text-gray-400 text-sm">Loading applications...</p>
+                                </div>
+                            ) : filteredApplications.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                    <div className="text-6xl opacity-30">📋</div>
+                                    <p className="text-gray-400 text-lg">No applications found</p>
+                                    <p className="text-gray-500 text-sm">Your job applications will appear here</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {filteredApplications.map((app, idx) => (
+                                        <div
+                                            key={`${app.job_id}-${idx}`}
+                                            className="group p-5 rounded-xl bg-gray-900/40 border border-gray-700/40 hover:border-blue-500/40 transition-all duration-300 hover:bg-gray-900/60"
+                                        >
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                                <div className="flex-1">
+                                                    <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
+                                                        {app.job_title || 'Untitled Job'}
+                                                    </h3>
+                                                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                                                        <span className="flex items-center gap-1.5 text-sm text-gray-400">
+                                                            <span className="text-blue-400">🏢</span>
+                                                            {app.startup_name || 'Unknown Startup'}
+                                                        </span>
+                                                        {app.domain && (
+                                                            <span className="flex items-center gap-1.5 text-sm text-gray-400">
+                                                                <span className="text-purple-400">•</span>
+                                                                {app.domain}
+                                                            </span>
+                                                        )}
+                                                        <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                                                            📅 {new Date(app.applied_on).toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'short',
+                                                                day: 'numeric'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase ${getStatusStyle(app.status)}`}>
+                                                    {app.status || 'Pending'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ═══════════ PAYMENTS TAB ═══════════ */}
                     {activeTab === 'payments' && (
                         <div>
                             <h2 className="text-2xl font-bold text-white mb-8">My Payment</h2>
@@ -162,7 +259,7 @@ const FreelancerDashboard = () => {
                         </div>
                     )}
 
-                    {/* Badges Tab */}
+                    {/* ═══════════ BADGES TAB ═══════════ */}
                     {activeTab === 'badges' && (
                         <div>
                             <h2 className="text-2xl font-bold text-white mb-8">Badges Achieved</h2>
@@ -199,7 +296,6 @@ const FreelancerDashboard = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-red-300 mb-6 pl-3 border-l-4 border-red-500">Credibility Score Badge</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    {/* 90-95 Red */}
                                     <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-colors">
                                         <div className="text-3xl font-bold text-red-500 mb-2">90-95%</div>
                                         <p className="text-sm text-gray-300">Top Rated</p>
@@ -207,7 +303,6 @@ const FreelancerDashboard = () => {
                                             <div className="bg-red-600 h-2 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]" style={{ width: '95%' }}></div>
                                         </div>
                                     </div>
-                                    {/* 85-90 Less Red */}
                                     <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-colors">
                                         <div className="text-3xl font-bold text-red-400 mb-2">85-90%</div>
                                         <p className="text-sm text-gray-300">Highly Credible</p>
@@ -215,7 +310,6 @@ const FreelancerDashboard = () => {
                                             <div className="bg-red-400 h-2 rounded-full shadow-[0_0_10px_rgba(248,113,113,0.5)]" style={{ width: '88%' }}></div>
                                         </div>
                                     </div>
-                                    {/* 80-85 Even More Less */}
                                     <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-colors">
                                         <div className="text-3xl font-bold text-red-300 mb-2">80-85%</div>
                                         <p className="text-sm text-gray-300">Credible</p>
@@ -223,7 +317,6 @@ const FreelancerDashboard = () => {
                                             <div className="bg-red-300 h-2 rounded-full shadow-[0_0_10px_rgba(252,165,165,0.5)]" style={{ width: '82%' }}></div>
                                         </div>
                                     </div>
-                                    {/* Below 80 Dull Red */}
                                     <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-colors">
                                         <div className="text-3xl font-bold text-red-200 mb-2">&lt; 80%</div>
                                         <p className="text-sm text-gray-300">Growing</p>
@@ -232,45 +325,6 @@ const FreelancerDashboard = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Billing Tab */}
-                    {activeTab === 'billing' && (
-                        <div>
-                            <h2 className="text-2xl font-bold text-white mb-8">Billing and Invoices</h2>
-                            <div className="bg-gray-700/30 rounded-xl overflow-hidden border border-gray-600/30 shadow-lg">
-                                <table className="w-full text-left">
-                                    <thead className="bg-gray-800/50 border-b border-gray-600/50">
-                                        <tr>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Invoice ID</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Date</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Plan</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Amount</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-blue-300 uppercase tracking-wider">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-600/30">
-                                        {billingHistory.map((bill) => (
-                                            <tr key={bill.id} className="hover:bg-gray-700/50 transition-colors">
-                                                <td className="px-6 py-4 text-sm font-medium text-white">{bill.invoiceId}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-300">{bill.date}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-300">{bill.plan}</td>
-                                                <td className="px-6 py-4 text-sm font-bold text-white">{bill.amount}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/20 text-green-300 border border-green-500/30">
-                                                        {bill.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-blue-400 hover:text-blue-300 cursor-pointer font-semibold">
-                                                    Download
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     )}

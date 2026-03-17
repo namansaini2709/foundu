@@ -1,204 +1,222 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Chatbox from "./Chatbox";
 import {
-  FaBuilding,
-  FaAward,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaClock,
-  FaStar,
   FaShieldAlt,
   FaMedal,
+  FaAward,
 } from "react-icons/fa";
 
+const API_URL = "http://localhost:4000/api";
+
 const CoFounderDashboard = () => {
-  const [activeTab, setActiveTab] = useState("applications");
+  const [activeTab, setActiveTab] = useState("chats");
+  const [applications, setApplications] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const userId = localStorage.getItem("user_id");
 
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
 
-  // Dummy data for applications
-  const applications = [
-    {
-      id: 1,
-      logo: "🚀",
-      name: "TechStart Innovations",
-      aboutUs:
-        "We are revolutionizing the tech industry with innovative solutions and cutting-edge technology. Our mission is to empower businesses through digital transformation.",
-      aiMatch: 92,
-      status: "accepted",
-    },
-    {
-      id: 2,
-      logo: "💼",
-      name: "Marketing Pro Solutions",
-      aboutUs:
-        "A leading marketing agency focused on helping startups scale through strategic marketing campaigns and brand development. We specialize in digital marketing and growth strategies.",
-      aiMatch: 85,
-      status: "undergoing",
-    },
-    {
-      id: 3,
-      logo: "⚡",
-      name: "CloudTech Systems",
-      aboutUs:
-        "Building the next generation of cloud infrastructure solutions for enterprises worldwide. Our platform enables seamless cloud migration and management.",
-      aiMatch: 78,
-      status: "rejected",
-    },
-    {
-      id: 4,
-      logo: "🌟",
-      name: "InnovateLab",
-      aboutUs:
-        "A creative agency dedicated to helping startups bring their innovative ideas to life. We combine design thinking with technical expertise to create exceptional products.",
-      aiMatch: 88,
-      status: "accepted",
-    },
+  // Tab config with icons
+  const tabs = [
+    { key: "chats", label: "My Chats", icon: "💬" },
+    { key: "applications", label: "Applications", icon: "📂" },
+    { key: "badges", label: "My Badges", icon: "🏅" },
   ];
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "accepted":
-        return <FaCheckCircle className="text-green-400" />;
-      case "rejected":
-        return <FaTimesCircle className="text-red-400" />;
-      case "undergoing":
-        return <FaClock className="text-yellow-400" />;
-      default:
-        return null;
+  // Fetch applications when applications tab is active
+  useEffect(() => {
+    if (activeTab === "applications" && userId) {
+      fetchApplications();
     }
+  }, [activeTab, userId]);
+
+  const fetchApplications = async () => {
+    setLoadingApps(true);
+    try {
+      const res = await axios.get(`${API_URL}/user/${userId}/applications`);
+      setApplications(res.data);
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    }
+    setLoadingApps(false);
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "accepted":
-        return "ACCEPTED";
-      case "rejected":
-        return "REJECTED";
-      case "undergoing":
-        return "UNDERGOING";
-      default:
-        return "";
-    }
-  };
+  const filteredApplications =
+    statusFilter === "all"
+      ? applications
+      : applications.filter((app) => app.status === statusFilter);
 
-  const getStatusColor = (status) => {
-    switch (status) {
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
       case "accepted":
-        return "text-green-400";
+        return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+      case "completed":
+        return "bg-blue-500/15 text-blue-300 border border-blue-500/30";
       case "rejected":
-        return "text-red-400";
-      case "undergoing":
-        return "text-yellow-400";
+        return "bg-red-500/15 text-red-300 border border-red-500/30";
       default:
-        return "text-white";
+        return "bg-amber-500/15 text-amber-300 border border-amber-500/30";
     }
   };
 
   return (
-    <div className="min-h-screen" style={gradientBlackToBlue}>
+    <div className="min-h-screen text-white font-sans" style={gradientBlackToBlue}>
       <Navbar />
 
-      <div className="pt-24 pb-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold text-center mb-12 text-white">
+      <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 mb-8 shadow-lg">
+          <h1 className="text-4xl font-bold text-white mb-2 text-center">
             CO-FOUNDER DASHBOARD
           </h1>
+          <p className="text-blue-200 text-lg text-center">
+            Manage your chats, applications, and verified badges
+          </p>
 
-          {/* Toggle Bar */}
-          <div className="flex justify-center mb-12">
-            <div className="bg-gray-800/50 backdrop-blur-sm border-2 border-white/30 rounded-xl p-2 inline-flex gap-2">
-              <button
-                onClick={() => setActiveTab("applications")}
-                className={`px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 ${
-                  activeTab === "applications"
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/50"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                My Applications
-              </button>
-              <button
-                onClick={() => setActiveTab("badges")}
-                className={`px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 ${
-                  activeTab === "badges"
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/50"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                My Badges
-              </button>
+          {/* ═══════════════════════════════════════════════
+              PREMIUM CENTER-ALIGNED TOGGLE BAR
+          ═══════════════════════════════════════════════ */}
+          <div className="flex justify-center mt-8">
+            <div className="inline-flex items-center bg-gray-900/60 backdrop-blur-xl rounded-2xl p-1.5 border border-white/10 shadow-2xl shadow-blue-900/20">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`
+                    relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold
+                    transition-all duration-400 ease-out cursor-pointer
+                    ${activeTab === tab.key
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }
+                  `}
+                  style={{
+                    transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                >
+                  <span className="text-lg">{tab.icon}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Content Section */}
+        {/* Content Area */}
+        <div
+          className={`bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl ${activeTab === "chats" ? "p-0 overflow-hidden" : "p-8"
+            } min-h-[500px]`}
+        >
+          {/* ═══════════ YOUR CHATS TAB ═══════════ */}
+          {activeTab === "chats" && (
+            <div className="h-[600px]">
+              <Chatbox />
+            </div>
+          )}
+
+          {/* ═══════════ APPLICATIONS TAB ═══════════ */}
           {activeTab === "applications" && (
-            <div className="max-w-6xl mx-auto">
-              {/* Main Container Box */}
-              <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-6 md:p-8">
-                {/* 4 Application Boxes Vertically */}
-                <div className="space-y-6">
-                  {applications.map((app) => (
-                    <div
-                      key={app.id}
-                      className="bg-gray-900/40 backdrop-blur-sm border border-white/20 rounded-xl p-6 relative"
+            <div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    My Applications
+                  </h2>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Track your co-founder job applications & statuses
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-900/50 rounded-xl p-1 border border-white/10">
+                  {["all", "pending", "accepted", "rejected"].map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setStatusFilter(f)}
+                      className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-300 cursor-pointer ${statusFilter === f
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                        }`}
                     >
-                      <div className="flex flex-col md:flex-row justify-between gap-4">
-                        {/* Left Side - Logo, Name, and About */}
-                        <div className="flex items-start gap-4 flex-1">
-                          {/* Logo */}
-                          <div className="text-5xl md:text-6xl flex-shrink-0">
-                            {app.logo}
-                          </div>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                          {/* Name and About */}
-                          <div className="flex-1">
-                            <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-                              {app.name}
-                            </h3>
-                            <p className="text-gray-300 text-sm md:text-base leading-relaxed">
-                              {app.aboutUs}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Right Side - AI Match and Status */}
-                        <div className="flex flex-col items-end justify-between gap-4 md:min-w-[150px]">
-                          {/* AI Match Score - Top Right */}
-                          <div className="text-right">
-                            <p className="text-gray-400 text-xs mb-1">
-                              AI Match Score
-                            </p>
-                            <p className="text-3xl md:text-4xl font-bold text-green-400">
-                              {app.aiMatch}%
-                            </p>
-                          </div>
-
-                          {/* Status - Bottom Right */}
-                          <div className="text-right">
-                            <div className="flex items-center gap-2 justify-end">
-                              {getStatusIcon(app.status)}
-                              <span
-                                className={`text-lg md:text-xl font-bold ${getStatusColor(app.status)}`}
-                              >
-                                {getStatusText(app.status)}
+              {loadingApps ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                  <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                  <p className="text-gray-400 text-sm">
+                    Loading applications...
+                  </p>
+                </div>
+              ) : filteredApplications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="text-6xl opacity-30">📋</div>
+                  <p className="text-gray-400 text-lg">No applications found</p>
+                  <p className="text-gray-500 text-sm">
+                    Your co-founder job applications will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredApplications.map((app, idx) => (
+                    <div
+                      key={`${app.job_id}-${idx}`}
+                      className="group p-5 rounded-xl bg-gray-900/40 border border-gray-700/40 hover:border-blue-500/40 transition-all duration-300 hover:bg-gray-900/60"
+                    >
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
+                            {app.job_title || "Untitled Job"}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-3 mt-2">
+                            <span className="flex items-center gap-1.5 text-sm text-gray-400">
+                              <span className="text-blue-400">🏢</span>
+                              {app.startup_name || "Unknown Startup"}
+                            </span>
+                            {app.domain && (
+                              <span className="flex items-center gap-1.5 text-sm text-gray-400">
+                                <span className="text-purple-400">•</span>
+                                {app.domain}
                               </span>
-                            </div>
+                            )}
+                            <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                              📅{" "}
+                              {new Date(app.applied_on).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
+                            </span>
                           </div>
                         </div>
+                        <span
+                          className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase ${getStatusStyle(
+                            app.status
+                          )}`}
+                        >
+                          {app.status || "Pending"}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
+          {/* ═══════════ BADGES TAB ═══════════ */}
           {activeTab === "badges" && (
             <div className="space-y-12">
               {/* Badges You Have Obtained */}

@@ -6,6 +6,6 @@ const { isAuthenticated } = require("../middlewares/authMiddleware");
 router.get("/my-chats", isAuthenticated, chatController.getMyChats);
 router.get("/:chatId/messages", isAuthenticated, chatController.getMessages);
 router.post("/message", isAuthenticated, chatController.sendMessage);
-router.post("/create", isAuthenticated, chatController.createChat);
+router.post("/create", chatController.createChat);
 
 module.exports = router;

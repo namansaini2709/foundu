@@ -22,27 +22,22 @@ import CPolicy from "./pages/CPolicy";
 import AddJobs from "./pages/AddJobs";
 import ScrollToTop from "./components/ScrollToTop";
 import LandingPage from "./pages/LandingPage";
-import FreelancerBadges from "./pages/FreelancerBadges";
-import CoFounderBadges from "./pages/CoFounderBadges";
-import FounderBadges from "./pages/FounderBadges";
+import FreelancerBadges from './pages/FreelancerBadges'
+import CoFounderBadges from './pages/CoFounderBadges'
+import FounderBadges from './pages/FounderBadges'
 import Chatbox from "./pages/Chatbox";
-<<<<<<< HEAD
-import JobApplicationsDashboard from "./pages/viewJobposting";
-import SmartChatbot from "./pages/SmartChatbot";
-=======
 import ViewJobPosting from "./pages/ViewJobPosting";
 import SmartChatbot from "./pages/SmartChatbot";
-
->>>>>>> origin
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminBadges from "./admin/pages/AdminBadges";
+import IdeaLab from "./pages/IdeaLab";
+import IdeaLabPopup from "./pages/IdeaLabPopup";
+import QuickJobPopup from "./pages/QuickJobPopup";
 
 function App() {
   const userRole   = localStorage.getItem("user_type") || null;
   const userId     = localStorage.getItem("user_id")   || null;
   const isLoggedIn = !!userId;
-<<<<<<< HEAD
-
-=======
->>>>>>> origin
   return (
     <Router>
       <ScrollToTop />
@@ -83,23 +78,23 @@ function App() {
         <Route path="/cofounder-badges" element={<CoFounderBadges />} />
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
-<<<<<<< HEAD
-        <Route path="/jobposting" element={<JobApplicationsDashboard />} />
-      </Routes>
-
-      {/* ✅ SMART AI CHATBOT — global, appears on all authenticated pages */}
-      {isLoggedIn && (
-        <SmartChatbot userRole={userRole} userId={userId} />
-      )}
-=======
         <Route path="/jobposting" element={<ViewJobPosting />} />
+
+        {/* ✅ ADMIN ROUTES — no Navbar/Footer, uses AdminLayout */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/badges"    element={<AdminBadges />} />
+        <Route path="/idea-lab"        element={<IdeaLab />} />
+
         
       </Routes>
         {isLoggedIn && (
-        <SmartChatbot userRole={userRole} userId={userId} />
+        <>
+          <SmartChatbot userRole={userRole} userId={userId} />
+          <IdeaLabPopup userId={userId} />
+          {userRole === 'founder' && <QuickJobPopup userId={userId} />}
+        </>
       )}
 
->>>>>>> origin
     </Router>
   );
 }
