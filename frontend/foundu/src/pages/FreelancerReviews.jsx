@@ -7,7 +7,14 @@ const API_URL = 'http://localhost:4000/api';
 
 const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
-    const [credibility, setCredibility] = useState({ credibility_score: 0, badge: 'Growing', avg_stars: '0.0', review_count: 0 });
+    const [credibility, setCredibility] = useState({ 
+        credibility_score: 0, 
+        badge: 'Growing', 
+        avg_stars: '0.0', 
+        review_count: 0,
+        ai_summary: '',
+        breakdown: { stars: 0, reviews: 0, badges: 0 }
+    });
     const [loading, setLoading] = useState(true);
     const [recalculating, setRecalculating] = useState(false);
 
@@ -167,7 +174,7 @@ const FreelancerReviews = () => {
                                 </div>
 
                                 {/* Stats */}
-                                <div className="flex gap-6">
+                                <div className="flex gap-10">
                                     <div className="text-center lg:text-left">
                                         <p className="text-3xl font-bold text-yellow-400">{credibility.avg_stars}</p>
                                         <p className="text-xs text-gray-400 mt-1">Avg Stars</p>
@@ -176,6 +183,35 @@ const FreelancerReviews = () => {
                                     <div className="text-center lg:text-left">
                                         <p className="text-3xl font-bold text-blue-400">{credibility.review_count}</p>
                                         <p className="text-xs text-gray-400 mt-1">Total Reviews</p>
+                                    </div>
+                                    {credibility.ai_summary && (
+                                        <>
+                                            <div className="w-px bg-gray-700"></div>
+                                            <div className="flex-1 max-w-[280px]">
+                                                <p className="text-xs text-indigo-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                                    <span className="text-sm">✨</span> AI Reputation Insights
+                                                </p>
+                                                <p className="text-sm text-gray-300 italic leading-relaxed">
+                                                    "{credibility.ai_summary}"
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Score Breakdown */}
+                                <div className="grid grid-cols-3 gap-4 w-full max-w-md">
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                                        <p className="text-xs text-gray-500 uppercase mb-1">Stars (45%)</p>
+                                        <p className="text-lg font-bold text-yellow-500">{credibility.breakdown?.stars || 0}</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                                        <p className="text-xs text-gray-500 uppercase mb-1">Reviews (45%)</p>
+                                        <p className="text-lg font-bold text-blue-500">{credibility.breakdown?.reviews || 0}</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                                        <p className="text-xs text-gray-500 uppercase mb-1">Badges (10%)</p>
+                                        <p className="text-lg font-bold text-emerald-500">{credibility.breakdown?.badges || 0}</p>
                                     </div>
                                 </div>
 

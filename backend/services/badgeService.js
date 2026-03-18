@@ -56,12 +56,13 @@ exports.evaluateGreenTick = (user_id) => {
 
       const type = rows[0].user_type;
 
-      if (type === "freelancer") {
+      // ── FREELANCERS & CO-FOUNDERS: Completed Jobs ──
+      if (type === "freelancer" || type === "cofounder") {
         db.query(
-          "SELECT COUNT(*) as cnt FROM projects WHERE freelancer_id = ? AND status='completed'",
+          "SELECT COUNT(*) as cnt FROM job_applicants WHERE user_id = ? AND status IN ('accepted', 'completed')",
           [user_id],
           (err, res) => {
-            if (res[0].cnt >= 3) {
+            if (!err && res[0].cnt >= 1) {
               db.query(
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
                 [user_id]
@@ -71,27 +72,13 @@ exports.evaluateGreenTick = (user_id) => {
         );
       }
 
+      // ── FOUNDERS: Posted Jobs ──
       if (type === "founder") {
         db.query(
           "SELECT COUNT(*) as cnt FROM foundu_jobs WHERE founder_id = ?",
           [user_id],
           (err, res) => {
-            if (res[0].cnt >= 3) {
-              db.query(
-                "UPDATE users SET green_tick_verified = true WHERE id = ?",
-                [user_id]
-              );
-            }
-          }
-        );
-      }
-
-      if (type === "cofounder") {
-        db.query(
-          "SELECT COUNT(*) as cnt FROM startup_connections WHERE cofounder_id = ? AND status='successful'",
-          [user_id],
-          (err, res) => {
-            if (res[0].cnt >= 3) {
+            if (!err && res[0].cnt >= 1) {
               db.query(
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
                 [user_id]

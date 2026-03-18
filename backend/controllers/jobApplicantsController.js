@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const badgeService = require("../services/badgeService");
 
 /* =========================
    APPLY TO JOB
@@ -43,18 +44,18 @@ exports.applyToJob = (req, res) => {
           user_id,
           user.user_type,
           user.freelancer_id,
-          user.cofounder_id
+          user.cofounder_id,
         ],
         (err) => {
           if (err) return res.status(500).json({ error: err.message });
 
           res.json({
             success: true,
-            message: "Applied to job successfully"
+            message: "Applied to job successfully",
           });
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -148,9 +149,11 @@ exports.updateApplicantStatus = (req, res) => {
   const { job_id, user_id } = req.params;
   const { status } = req.body;
 
-  console.log(`[UPDATE STATUS] job_id=${job_id}, user_id=${user_id}, status=${status}`);
+  console.log(
+    `[UPDATE STATUS] job_id=${job_id}, user_id=${user_id}, status=${status}`,
+  );
 
-  if (!["pending", "accepted", "rejected"].includes(status)) {
+  if (!["pending", "accepted", "rejected", "completed"].includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
   }
 
@@ -164,13 +167,19 @@ exports.updateApplicantStatus = (req, res) => {
         console.error("[UPDATE STATUS ERROR]", err);
         return res.status(500).json({ error: err.message });
       }
+
+      // ── TRIGGER GREEN TICK EVALUATION ──
+      if (status === "accepted" || status === "completed") {
+        badgeService.evaluateGreenTick(user_id);
+      }
+
       console.log(`[UPDATE STATUS RESULT] affectedRows=${result.affectedRows}`);
       res.json({
         success: true,
         message: "Applicant status updated",
-        affectedRows: result.affectedRows
+        affectedRows: result.affectedRows,
       });
-    }
+    },
   );
 };
 
@@ -216,8 +225,8 @@ exports.deleteApplicant = (req, res) => {
     () => {
       res.json({
         success: true,
-        message: "Applicant removed"
+        message: "Applicant removed",
       });
-    }
+    },
   );
 };

@@ -1,21 +1,30 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Chatbox from "./Chatbox";
 import {
   FaShieldAlt,
   FaMedal,
   FaAward,
 } from "react-icons/fa";
+import blueBadge from '../assets/bluebadge.png';
+import greenBadge from '../assets/greenbadge.png';
+import goldenBadge from '../assets/goldenbadge.png';
+import red1 from "../assets/9095.png";
+import red2 from "../assets/8590.png";
+import red3 from "../assets/8085.png";
+import red4 from "../assets/below80.png";
 
 const API_URL = "http://localhost:4000/api";
 
 const CoFounderDashboard = () => {
-  const [activeTab, setActiveTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("applications");
   const [applications, setApplications] = useState([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [badgeData, setBadgeData] = useState(null);
+  const [credibilityData, setCredibilityData] = useState(null);
 
   const userId = localStorage.getItem("user_id");
 
@@ -26,7 +35,6 @@ const CoFounderDashboard = () => {
 
   // Tab config with icons
   const tabs = [
-    { key: "chats", label: "My Chats", icon: "💬" },
     { key: "applications", label: "Applications", icon: "📂" },
     { key: "badges", label: "My Badges", icon: "🏅" },
   ];
@@ -38,6 +46,19 @@ const CoFounderDashboard = () => {
     }
   }, [activeTab, userId]);
 
+  // Fetch badge statuses and credibility score
+  useEffect(() => {
+    if (userId) {
+      axios.get(`${API_URL}/user-socials/${userId}`)
+        .then(res => setBadgeData(res.data.data))
+        .catch(err => console.error("Error fetching badges:", err));
+
+      axios.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: userId })
+        .then(res => setCredibilityData(res.data))
+        .catch(err => console.error("Error fetching credibility:", err));
+    }
+  }, [userId]);
+
   const fetchApplications = async () => {
     setLoadingApps(true);
     try {
@@ -47,6 +68,19 @@ const CoFounderDashboard = () => {
       console.error("Error fetching applications:", err);
     }
     setLoadingApps(false);
+  };
+
+  const refreshBadges = async () => {
+    try {
+      await axios.post(`${API_URL}/badges/recalculate`, { user_id: userId });
+      // Refetch badge data
+      const res = await axios.get(`${API_URL}/user-socials/${userId}`);
+      setBadgeData(res.data.data);
+      toast.success("Badges refreshed successfully!");
+    } catch (err) {
+      console.error("Error refreshing badges:", err);
+      toast.error("Failed to refresh badges");
+    }
   };
 
   const filteredApplications =
@@ -112,16 +146,8 @@ const CoFounderDashboard = () => {
 
         {/* Content Area */}
         <div
-          className={`bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl ${activeTab === "chats" ? "p-0 overflow-hidden" : "p-8"
-            } min-h-[500px]`}
+          className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-8 min-h-[500px]"
         >
-          {/* ═══════════ YOUR CHATS TAB ═══════════ */}
-          {activeTab === "chats" && (
-            <div className="h-[600px]">
-              <Chatbox />
-            </div>
-          )}
-
           {/* ═══════════ APPLICATIONS TAB ═══════════ */}
           {activeTab === "applications" && (
             <div>
@@ -140,8 +166,8 @@ const CoFounderDashboard = () => {
                       key={f}
                       onClick={() => setStatusFilter(f)}
                       className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-300 cursor-pointer ${statusFilter === f
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
                         }`}
                     >
                       {f}
@@ -218,140 +244,91 @@ const CoFounderDashboard = () => {
 
           {/* ═══════════ BADGES TAB ═══════════ */}
           {activeTab === "badges" && (
-            <div className="space-y-12">
-              {/* Badges You Have Obtained */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                  Badges You Have Obtained
+            <div>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-bold text-white">
+                  Badges Achieved
                 </h2>
-                <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-8">
-                  <p className="text-gray-400 text-center py-8">
-                    No badges obtained yet. Keep applying to earn your first
-                    badge!
-                  </p>
-                </div>
+                <button
+                  onClick={refreshBadges}
+                  className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>🔄</span> Refresh Badges
+                </button>
               </div>
 
-              {/* Badges You Can Claim */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                  Badges You Can Claim
-                </h2>
-
-                {/* Verification Badge Category */}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-semibold text-blue-300 mb-4">
-                    Verification Badge
-                  </h3>
-                  <div className="flex flex-wrap gap-4">
-                    {/* Blue Tech Badge */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-blue-500 rounded-xl p-6 flex items-center gap-4 min-w-[200px] hover:border-blue-400 transition-all duration-300">
-                      <FaShieldAlt className="text-blue-500 text-4xl" />
-                      <div>
-                        <p className="text-white font-semibold text-lg">
-                          Blue Tech
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          Verification Badge
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Golden Tech Badge */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-yellow-500 rounded-xl p-6 flex items-center gap-4 min-w-[200px] hover:border-yellow-400 transition-all duration-300">
-                      <FaMedal className="text-yellow-500 text-4xl" />
-                      <div>
-                        <p className="text-white font-semibold text-lg">
-                          Golden Tech
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          Verification Badge
-                        </p>
-                      </div>
+              {/* Verification Badges */}
+              {(badgeData?.blue_tick_verified === 1 || badgeData?.blue_tick_verified === true ||
+                badgeData?.golden_tick_verified === 1 || badgeData?.golden_tick_verified === true ||
+                badgeData?.green_tick_verified === 1 || badgeData?.green_tick_verified === true) && (
+                  <div className="mb-12">
+                    <h3 className="text-lg font-semibold text-blue-300 mb-6 pl-3 border-l-4 border-blue-500">
+                      Verification Badge
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {(badgeData?.blue_tick_verified === 1 || badgeData?.blue_tick_verified === true) && (
+                        <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-blue-500/30 hover:border-blue-400 transition-all group">
+                          <img src={blueBadge} alt="Blue Badge" className=" object-cover w-20 h-20 mb-2" />
+                          <p className="font-bold text-blue-400 text-lg">Identity Verified</p>
+                          <p className="text-sm text-gray-400 text-center mt-2">Blue Tick Check</p>
+                        </div>
+                      )}
+                      {(badgeData?.golden_tick_verified === 1 || badgeData?.golden_tick_verified === true) && (
+                        <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-yellow-500/30 hover:border-yellow-400 transition-all group">
+                          <img src={goldenBadge} alt="Golden Badge" className=" object-cover w-20 h-20 mb-2" />
+                          <p className="font-bold text-yellow-400 text-lg">Skill Verified</p>
+                          <p className="text-sm text-gray-400 text-center mt-2">Golden Tick Check</p>
+                        </div>
+                      )}
+                      {(badgeData?.green_tick_verified === 1 || badgeData?.green_tick_verified === true) && (
+                        <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-green-500/30 hover:border-green-400 transition-all group">
+                          <img src={greenBadge} alt="Green Badge" className=" object-cover w-20 h-20 mb-2" />
+                          <p className="font-bold text-green-400 text-lg">Payment Verified</p>
+                          <p className="text-sm text-gray-400 text-center mt-2">Green Tick Check</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Credibility Score Badge Category */}
+              {/* Credibility Score Badges */}
+              {(credibilityData || badgeData?.credibility_badge) && (
                 <div>
-                  <h3 className="text-2xl font-semibold text-blue-300 mb-4">
+                  <h3 className="text-lg font-semibold text-red-300 mb-6 pl-3 border-l-4 border-red-500">
                     Credibility Score Badge
                   </h3>
-                  <div className="space-y-4">
-                    {/* 92-95 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-600 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-600 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              92-95 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Excellent Credibility
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-32 h-4 bg-red-600 rounded-full"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {(credibilityData?.badge === 'Exceptional' || badgeData?.credibility_badge === '90-95') && (
+                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-all group">
+                        <img src={red1} alt="Exceptional Badge" className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-500 shadow-lg shadow-red-500/20" />
+                        <p className="text-xl font-bold text-red-500">90-95</p>
+                        <p className="text-sm text-gray-300 mt-1">Top Rated (Exceptional)</p>
                       </div>
-                    </div>
-
-                    {/* 85-90 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-500 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-500 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              85-90 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Very Good Credibility
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-32 h-4 bg-red-500 rounded-full"></div>
+                    )}
+                    {(credibilityData?.badge === 'Excellent' || badgeData?.credibility_badge === '85-90') && (
+                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-all group">
+                        <img src={red2} alt="Excellent Badge" className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-400 shadow-lg shadow-red-400/20" />
+                        <p className="text-xl font-bold text-red-400">85-90</p>
+                        <p className="text-sm text-gray-300 mt-1">Highly Credible (Excellent)</p>
                       </div>
-                    </div>
-
-                    {/* 82-85 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-400 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-400 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              82-85 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Good Credibility
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-32 h-4 bg-red-400 rounded-full"></div>
+                    )}
+                    {(credibilityData?.badge === 'Very Good' || badgeData?.credibility_badge === '80-85') && (
+                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-all group">
+                        <img src={red3} alt="Very Good Badge" className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-300 shadow-lg shadow-red-300/20" />
+                        <p className="text-xl font-bold text-red-300">80-85</p>
+                        <p className="text-sm text-gray-300 mt-1">Credible (Very Good)</p>
                       </div>
-                    </div>
-
-                    {/* 80 Below Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-300 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-300 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              80 Below Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Basic Credibility
-                            </p>
-                          </div>
-                        </div>
-                        <div className="w-32 h-4 bg-red-300 rounded-full"></div>
+                    )}
+                    {(credibilityData?.badge === 'Growing' || badgeData?.credibility_badge === 'below-80') && (
+                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-all group">
+                        <img src={red4} alt="Growing Badge" className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-200 shadow-lg shadow-red-200/20" />
+                        <p className="text-xl font-bold text-red-200">Below 80</p>
+                        <p className="text-sm text-gray-300 mt-1">Growing (Good)</p>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

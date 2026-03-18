@@ -32,6 +32,15 @@ import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
+import AboutDetails from "./pages/AboutDetails";
+
+import IdeaLabPopup from "./pages/IdeaLabPopup";
+
+// import IdeaLab from "./pages/IdeaLab";
+import QuickJobPopup from "./pages/QuickJobPopup";
+import ResetPassword from "./pages/ResetPassword";
+import Notifications from "./pages/Notifications";
+import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 
 
 function App() {
@@ -79,14 +88,24 @@ function App() {
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
         <Route path="/jobposting" element={<ViewJobPosting />} />
-        <Route path="/freelancer-reviews" element={<FreelancerReviews />} />
+        <Route path="/reviews" element={<FreelancerReviews />} />
         <Route path="/live-feed" element={<LiveUserFeed />} />
+
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/badges" element={<AdminBadges />} />
+        {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
+        <Route path="/about-details" element={<AboutDetails />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
       {isLoggedIn && (
-        <SmartChatbot userRole={userRole} userId={userId} />
+        <>
+          <GlobalChatOverlay userId={userId} />
+          <SmartChatbot userRole={userRole} userId={userId} />
+          <IdeaLabPopup userId={userId} />
+          {userRole === 'founder' && <QuickJobPopup userId={userId} />}
+        </>
       )}
 
     </Router>

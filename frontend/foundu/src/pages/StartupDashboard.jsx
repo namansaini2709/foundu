@@ -1,609 +1,430 @@
 import { useState, useEffect } from "react";
+import { 
+  Plus, 
+  Target, 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  Handshake,
+  Zap, 
+  ArrowRight, 
+  BrainCircuit, 
+  ShieldCheck, 
+  Layout, 
+  PieChart, 
+  Workflow,
+  Sparkles,
+  Rocket,
+  MessageSquare,
+  BarChart,
+  Lightbulb,
+  Search,
+  FileCheck,
+  ChevronRight,
+  Activity
+} from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// Gradient styles
-const gradientBlackToBlue = {
-  background:
-    "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
-};
-const gradientBlueToBlack = {
-  background:
-    "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
-};
+// Move Data Outside Component to prevent recreation
+const FEATURES = [
+  {
+    name: "Founder Compatibility",
+    fullName: "Founder–Founder Compatibility Score",
+    description: "Analyzes mindset, risk tolerance, vision alignment, and working style between you and potential co-founders.",
+    detailedDescription: "Resumes don't build unicorns. Synergistic minds do. Our AI analyzes the 'soul' of your collaboration, identifying potential friction points in decision-making and vision alignment before you sign the paperwork. We simulate years of partnership stress in minutes.",
+    whenToUse: "Before onboarding a co-founder or discussing equity splits.",
+    icon: <BrainCircuit className="w-5 h-5" />,
+    accent: "blue",
+    recommended: true,
+    metrics: ["Vision Alignment: 92%", "Risk Tolerance Sync: 84%", "Communication Style: Fluid"]
+  },
+  {
+    name: "Founder Readiness",
+    fullName: "Founder Readiness Score",
+    description: "Evaluates whether you are prepared to hire, partner, or scale based on clarity and capacity.",
+    detailedDescription: "Are you truly ready to lead? Scaling too early is the #1 startup killer. This score evaluates your operational maturity, personal bandwidth, and execution capacity to ensure you're not building on a shaky foundation.",
+    whenToUse: "Before hiring your first employee or seeking external partners.",
+    icon: <FileCheck className="w-5 h-5" />,
+    accent: "green",
+    metrics: ["Execution Capacity: 78%", "Clarity of Mission: High", "Resource Stability: Mid"]
+  },
+  {
+    name: "Founder Simulator",
+    fullName: "AI Founder Simulator",
+    description: "Simulates co-founder conversations and challenges your decisions like a partner.",
+    detailedDescription: "Practice the hard conversations before they happen. Our AI acts as a seasoned co-founder, questioning your assumptions, challenging your pivot ideas, and preparing you for the reality of high-stakes startup life.",
+    whenToUse: "When validating major decisions or feeling uncertain about a pivot.",
+    icon: <MessageSquare className="w-5 h-5" />,
+    accent: "purple",
+  },
+  {
+    name: "Startup DNA Score",
+    fullName: "Startup DNA Score",
+    description: "Defines your internal execution speed, risk appetite, and style.",
+    detailedDescription: "Every startup has a unique code. Our DNA analysis identifies your team's natural tempo—whether you're a blitzscaling rocket or a calculated, product-first lab. Finding talent that matches this DNA is the secret to 10x growth.",
+    whenToUse: "To find people who truly fit your startup culture.",
+    icon: <Workflow className="w-5 h-5" />,
+    accent: "blue",
+  },
+  {
+    name: "Burn Reality Checker",
+    fullName: "Burn Reality Checker",
+    description: "Analyze burn rate, hiring speed, and runway sustainability with AI.",
+    detailedDescription: "The runway is shorter than you think. Our AI looks beyond your spreadsheet to analyze your actual hiring patterns and execution speed, giving you a realistic 'impact burn' assessment.",
+    whenToUse: "Before making hiring or major vendor decisions.",
+    icon: <TrendingUp className="w-5 h-5" />,
+    accent: "yellow",
+  },
+  {
+    name: "Trial Sprint Gen",
+    fullName: "Trial Sprint Generator",
+    description: "Creates short testing cycles before you commit to long-term hires.",
+    detailedDescription: "Stop guessing. Start testing. This generator creates custom, 2-week performance benchmarks tailored to the role you're hiring, allowing you to see actual output before signing a contract.",
+    whenToUse: "Before finalizing any high-impact hire or partner.",
+    icon: <Zap className="w-5 h-5" />,
+    accent: "orange",
+  },
+  {
+    name: "AI Idea Generator",
+    fullName: "AI Idea Generator & Stress-Tester",
+    description: "Refines and stress-tests your startup idea based on execution feasibility.",
+    detailedDescription: "Ideas are easy; execution is everything. This tool rips your idea apart and helps you rebuild it stronger, identifying market gaps and technical hurdles you might have overlooked.",
+    whenToUse: "During early ideation or when considering a product expansion.",
+    icon: <Lightbulb className="w-5 h-5" />,
+    accent: "blue",
+  },
+  {
+    name: "Role Identification",
+    fullName: '"Who Do You Really Need?" AI',
+    description: "Identifies the exact role or capability your startup needs right now.",
+    detailedDescription: "Don't hire a CTO when you need a Lead Architect. Don't hire a CMO when you need a Growth Hacker. Our AI analyzes your backlog and current velocity to identify the specific gap in your armor.",
+    whenToUse: "When unsure whether to hire, partner, or outsource.",
+    icon: <Target className="w-5 h-5" />,
+    accent: "purple",
+    recommended: true,
+  },
+  {
+    name: "Pitch Deck Templates",
+    fullName: "AI-Recommended Pitch Deck Templates",
+    description: "Deck structures tailored to your startup stage and model.",
+    detailedDescription: "Investors see thousands of decks. We ensure yours hits the exact notes they are looking for, based on successful raises in your specific niche and stage.",
+    whenToUse: "Before investor outreach or major demo days.",
+    icon: <BarChart className="w-5 h-5" />,
+    accent: "blue",
+  },
+  {
+    name: "Talent Recs",
+    fullName: "AI People & Talent Recommendations",
+    description: "AI-curated recommendations based on DNA and execution style.",
+    detailedDescription: "The final step in your journey. We suggest specific individuals from the Foundu network who don't just have the skills, but the exact DNA match for your startup's current trajectory.",
+    whenToUse: "After reviewing insights and setting your readiness scores.",
+    icon: <Search className="w-5 h-5" />,
+    accent: "green",
+  }
+];
 
-function StartupDashboard() {
-  const [showNavbar, setShowNavbar] = useState(false);
+const StartupDashboard = () => {
+  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
 
-  // Navbar scroll detection
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowNavbar(window.scrollY > 50);
+  // Stats Data
+  const stats = [
+    {
+      title: "Total Jobs Posted",
+      value: "12",
+      subtitle: "Active Opportunities",
+      icon: <Target className="w-6 h-6" />,
+      color: "blue",
+      btnText: "Post Job"
+    },
+    {
+      title: "Total Matches",
+      value: "08",
+      subtitle: "Successful Connections",
+      icon: <Users className="w-6 h-6" />,
+      color: "green"
+    },
+    {
+      title: "Capital Invested",
+      value: "$2,450",
+      subtitle: "Current Month",
+      icon: <DollarSign className="w-6 h-6" />,
+      color: "yellow"
+    },
+    {
+      title: "Active Vendors",
+      value: "15",
+      subtitle: "Service Partners",
+      icon: <Handshake className="w-6 h-6" />,
+      color: "purple",
+      btnText: "View All"
+    }
+  ];
+
+  // Helper for accent classes to avoid Tailwind purge
+  const getAccentColor = (accent) => {
+    const map = {
+      blue: "text-blue-400 border-blue-500/20 bg-blue-500/10",
+      green: "text-green-400 border-green-500/20 bg-green-500/10",
+      purple: "text-purple-400 border-purple-500/20 bg-purple-500/10",
+      indigo: "text-indigo-400 border-indigo-500/20 bg-indigo-500/10",
+      yellow: "text-yellow-400 border-yellow-500/20 bg-yellow-500/10",
+      orange: "text-orange-400 border-orange-500/20 bg-orange-500/10",
     };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Navbar Component (same as homepage)
-  // const Navbar = () => <Navbar />;
-
-  // Dashboard Stats Section
-  const DashboardStats = () => {
-    const stats = [
-      {
-        title: "Total Jobs Posted",
-        value: "12",
-        subtitle: "Post a New Job",
-        color: "blue",
-        action: "Post Job",
-      },
-      {
-        title: "Total Matches Made",
-        value: "8",
-        subtitle: "Successful Connections",
-        color: "green",
-        action: null,
-      },
-      {
-        title: "Total Money Spent",
-        value: "$2,450",
-        subtitle: "This Month",
-        color: "yellow",
-        action: null,
-      },
-      {
-        title: "Vendors/Service Providers",
-        value: "15",
-        subtitle: "Active Matches",
-        color: "purple",
-        action: "View More Vendors",
-      },
-    ];
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => {
-          const borderClass =
-            stat.color === "blue"
-              ? "border-blue-400/50 hover:border-blue-400"
-              : stat.color === "green"
-                ? "border-green-400/50 hover:border-green-400"
-                : stat.color === "yellow"
-                  ? "border-yellow-400/50 hover:border-yellow-400"
-                  : "border-purple-400/50 hover:border-purple-400";
-          const textClass =
-            stat.color === "blue"
-              ? "text-blue-400"
-              : stat.color === "green"
-                ? "text-green-400"
-                : stat.color === "yellow"
-                  ? "text-yellow-400"
-                  : "text-purple-400";
-          const valueClass =
-            stat.color === "blue"
-              ? "text-blue-300"
-              : stat.color === "green"
-                ? "text-green-300"
-                : stat.color === "yellow"
-                  ? "text-yellow-300"
-                  : "text-purple-300";
-          const buttonClass =
-            stat.color === "blue"
-              ? "bg-blue-500 hover:bg-blue-600"
-              : stat.color === "green"
-                ? "bg-green-500 hover:bg-green-600"
-                : stat.color === "yellow"
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-purple-500 hover:bg-purple-600";
-
-          return (
-            <div
-              key={index}
-              className={`bg-gray-800/40 backdrop-blur-sm border-2 rounded-xl p-6 hover:scale-105 transition-all duration-300 ${borderClass}`}
-            >
-              <div className={`${textClass} text-sm font-semibold mb-2`}>
-                {stat.title}
-              </div>
-              <div className={`${valueClass} text-4xl font-bold mb-2`}>
-                {stat.value}
-              </div>
-              <div className="text-gray-300 text-sm mb-4">{stat.subtitle}</div>
-              {stat.action && (
-                <button
-                  className={`w-full ${buttonClass} text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm`}
-                >
-                  {stat.action}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
+    return map[accent] || map.blue;
   };
 
-  // Founder Snapshot Panel
-  const FounderSnapshot = () => {
-    const metrics = {
-      readinessScore: 78,
-      readinessLabel: "Ready to Scale",
-      dnaStatus: "Balanced",
-      hiringRisk: "Medium",
-      burnReality: "Stable",
-      nextStep:
-        "Review Founder-Founder Compatibility before onboarding a new co-founder",
+  const getStatBorder = (color) => {
+    const map = {
+      blue: "border-blue-400/20 hover:border-blue-400/50",
+      green: "border-green-400/20 hover:border-green-400/50",
+      yellow: "border-yellow-400/20 hover:border-yellow-400/50",
+      purple: "border-purple-400/20 hover:border-purple-400/50",
     };
-
-    return (
-      <div className="bg-gray-800/40 backdrop-blur-sm border-2 border-blue-700/50 rounded-xl p-6 mb-6">
-        <h2 className="text-2xl font-bold text-white mb-6">AI Briefing</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-green-500/20 border border-green-400 rounded-lg p-4">
-            <div className="text-green-400 text-sm font-semibold mb-1">
-              Founder Readiness
-            </div>
-            <div className="text-3xl font-bold text-green-300">
-              {metrics.readinessScore}%
-            </div>
-            <div className="text-green-200 text-xs mt-1">
-              {metrics.readinessLabel}
-            </div>
-          </div>
-          <div className="bg-blue-500/20 border border-blue-400 rounded-lg p-4">
-            <div className="text-blue-400 text-sm font-semibold mb-1">
-              Startup DNA
-            </div>
-            <div className="text-2xl font-bold text-blue-300">
-              {metrics.dnaStatus}
-            </div>
-          </div>
-          <div className="bg-yellow-500/20 border border-yellow-400 rounded-lg p-4">
-            <div className="text-yellow-400 text-sm font-semibold mb-1">
-              Hiring Risk
-            </div>
-            <div className="text-2xl font-bold text-yellow-300">
-              {metrics.hiringRisk}
-            </div>
-          </div>
-          <div className="bg-green-500/20 border border-green-400 rounded-lg p-4">
-            <div className="text-green-400 text-sm font-semibold mb-1">
-              Burn Reality
-            </div>
-            <div className="text-2xl font-bold text-green-300">
-              {metrics.burnReality}
-            </div>
-          </div>
-          <div className="bg-blue-600/30 border border-blue-500 rounded-lg p-4">
-            <div className="text-blue-300 text-sm font-semibold mb-1">
-              AI Recommended
-            </div>
-            <div className="text-xs text-gray-300 leading-relaxed">
-              {metrics.nextStep}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return map[color] || map.blue;
   };
-
-  // AI Feature Cards
-  const AIFeatures = () => {
-    const features = [
-      {
-        name: "Founder–Founder Compatibility Score",
-        description:
-          "Analyzes mindset, risk tolerance, vision alignment, and working style between you and potential co-founders.",
-        whenToUse: "Before onboarding a co-founder or discussing equity.",
-        aiRecommended: true,
-      },
-      {
-        name: "Founder Readiness Score",
-        description:
-          "Evaluates whether you are currently prepared to hire, partner, or scale based on clarity, commitment, and execution capacity.",
-        whenToUse: "Before hiring or seeking partners.",
-        aiRecommended: false,
-      },
-      {
-        name: "AI Founder Simulator",
-        description:
-          "Simulates real co-founder conversations and challenges your decisions like an experienced startup partner.",
-        whenToUse: "When validating decisions or feeling uncertain.",
-        aiRecommended: false,
-      },
-      {
-        name: "Startup DNA Score",
-        description:
-          "Defines your startup's execution style, speed, risk appetite, and long-term orientation.",
-        whenToUse: "To find people who truly fit your startup culture.",
-        aiRecommended: false,
-      },
-      {
-        name: "Burn Reality Checker",
-        description:
-          "Analyzes your burn rate, hiring plans, and execution speed to flag financial risk early.",
-        whenToUse: "Before making hiring or vendor decisions.",
-        aiRecommended: false,
-      },
-      {
-        name: "Trial Sprint Generator",
-        description:
-          "Creates short trial sprints to test freelancers or co-founders before committing long-term.",
-        whenToUse: "Before finalizing any hire or partner.",
-        aiRecommended: false,
-      },
-      {
-        name: "AI Idea Generator",
-        description:
-          "Refines, stress-tests, and improves your startup idea based on execution feasibility.",
-        whenToUse: "During ideation or when pivoting.",
-        aiRecommended: false,
-      },
-      {
-        name: '"Who Do You Really Need?" AI',
-        description:
-          "Identifies the exact role or capability your startup needs right now instead of generic titles.",
-        whenToUse: "When unsure whether to hire, partner, or outsource.",
-        aiRecommended: true,
-      },
-      {
-        name: "FoundU Recommended Pitch Deck Templates",
-        description:
-          "AI-recommended pitch deck structures tailored to your startup stage and model.",
-        whenToUse: "Before investor outreach or demo days.",
-        aiRecommended: false,
-      },
-      {
-        name: "Freelancer / Co-founder Recommendations",
-        description:
-          "AI-curated people recommendations based on startup DNA, execution style, and trust signals.",
-        whenToUse: "After reviewing insights and readiness scores.",
-        aiRecommended: false,
-      },
-    ];
-
-    return (
-      <div className="pr-4">
-        <h2 className="text-3xl font-bold text-white mb-6">
-          AI Insights for Your Startup
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-gray-800/40 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 hover:border-blue-400 transition-all"
-            >
-              {feature.aiRecommended && (
-                <span className="inline-block bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full mb-3">
-                  AI RECOMMENDED
-                </span>
-              )}
-              <h3 className="text-xl font-bold text-white mb-3">
-                {feature.name}
-              </h3>
-              <p className="text-gray-300 text-sm mb-4">
-                {feature.description}
-              </p>
-              <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 mb-4">
-                <p className="text-blue-200 text-xs font-semibold mb-1">
-                  When to use:
-                </p>
-                <p className="text-gray-300 text-xs">{feature.whenToUse}</p>
-              </div>
-              <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300">
-                Open Analysis
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Execution Panel
-  const ExecutionPanel = () => {
-    const portals = [
-      "Hiring & Talent Portal",
-      "CRM / Lead Management Portal",
-      "Helpdesk / Support Portal",
-      "Vendor Management Portal",
-      "Internal Task / Execution Portal",
-    ];
-
-    return (
-      <div className="bg-gray-800/40 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Next Actions</h2>
-
-        {/* Primary Highlight - Buy Portals */}
-        <div className="bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-400 rounded-xl p-6 mb-6 shadow-lg shadow-yellow-500/20">
-          <div className="flex items-center mb-3">
-            <span className="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full">
-              🔥 PREMIUM
-            </span>
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">
-            Buy Ready-to-Use Startup Portals
-          </h3>
-          <p className="text-gray-300 text-sm mb-4">
-            Instantly launch with pre-built business portals.
-          </p>
-          <ul className="space-y-2 mb-4">
-            {portals.map((portal, index) => (
-              <li
-                key={index}
-                className="text-gray-200 text-sm flex items-center"
-              >
-                <span className="text-yellow-400 mr-2">✓</span>
-                {portal}
-              </li>
-            ))}
-          </ul>
-          <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
-            View & Buy Portals
-          </button>
-        </div>
-
-        {/* Secondary Actions */}
-        <div className="space-y-4">
-          <div className="bg-gray-700/30 border border-blue-700/50 rounded-lg p-4">
-            <h4 className="text-white font-semibold mb-2">
-              Generate Pitch Deck
-            </h4>
-            <p className="text-gray-400 text-xs mb-3">
-              Create a pitch deck using AI templates.
-            </p>
-            <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
-              Generate Deck
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Footer (same as homepage)
-  // const Footer = () => (
-  //   <footer className="relative py-16 px-4 mt-12" style={gradientBlueToBlack}>
-  //     <div className="max-w-7xl mx-auto">
-  //       <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-12 mb-8">
-  //         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-  //           <div className="md:col-span-1">
-  //             <div className="flex items-center mb-4">
-  //               <span className="text-3xl font-bold text-white">F</span>
-  //               <span className="text-white text-2xl font-bold ml-2">
-  //                 OUNDU
-  //               </span>
-  //             </div>
-  //             <p className="text-gray-300 text-sm leading-relaxed mb-4">
-  //               The central platform for startups to discover, connect, and
-  //               collaborate with skilled freelancers and co-founders.
-  //             </p>
-  //             <div className="flex gap-4">
-  //               <a
-  //                 href="#"
-  //                 className="text-white/80 hover:text-white transition-colors"
-  //               >
-  //                 <svg
-  //                   className="w-6 h-6"
-  //                   fill="currentColor"
-  //                   viewBox="0 0 24 24"
-  //                 >
-  //                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-  //                 </svg>
-  //               </a>
-  //               <a
-  //                 href="#"
-  //                 className="text-white/80 hover:text-white transition-colors"
-  //               >
-  //                 <svg
-  //                   className="w-6 h-6"
-  //                   fill="currentColor"
-  //                   viewBox="0 0 24 24"
-  //                 >
-  //                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-  //                 </svg>
-  //               </a>
-  //               <a
-  //                 href="#"
-  //                 className="text-white/80 hover:text-white transition-colors"
-  //               >
-  //                 <svg
-  //                   className="w-6 h-6"
-  //                   fill="currentColor"
-  //                   viewBox="0 0 24 24"
-  //                 >
-  //                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-  //                 </svg>
-  //               </a>
-  //             </div>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">
-  //               Contact Us
-  //             </h3>
-  //             <ul className="space-y-3">
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg
-  //                   className="w-5 h-5 mr-2"
-  //                   fill="none"
-  //                   stroke="currentColor"
-  //                   viewBox="0 0 24 24"
-  //                 >
-  //                   <path
-  //                     strokeLinecap="round"
-  //                     strokeLinejoin="round"
-  //                     strokeWidth={2}
-  //                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-  //                   />
-  //                 </svg>
-  //                 foundu@example.com
-  //               </li>
-  //               <li className="flex items-center text-white/80 text-sm">
-  //                 <svg
-  //                   className="w-5 h-5 mr-2"
-  //                   fill="none"
-  //                   stroke="currentColor"
-  //                   viewBox="0 0 24 24"
-  //                 >
-  //                   <path
-  //                     strokeLinecap="round"
-  //                     strokeLinejoin="round"
-  //                     strokeWidth={2}
-  //                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-  //                   />
-  //                 </svg>
-  //                 +1 (555) 123-4567
-  //               </li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">
-  //               Resources
-  //             </h3>
-  //             <ul className="space-y-2">
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   About Us
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Our Team
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   FAQ
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Contact Us
-  //                 </a>
-  //               </li>
-  //             </ul>
-  //           </div>
-  //           <div>
-  //             <h3 className="text-white font-semibold text-lg mb-4">
-  //               For Startups
-  //             </h3>
-  //             <ul className="space-y-2">
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Browse Talent
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Create Profile
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Post Gig
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Explore Community
-  //                 </a>
-  //               </li>
-  //               <li>
-  //                 <a
-  //                   href="#"
-  //                   className="text-white/80 hover:text-white transition-colors text-sm"
-  //                 >
-  //                   Partner With Us
-  //                 </a>
-  //               </li>
-  //             </ul>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <div className="text-center">
-  //         <div className="text-6xl md:text-8xl font-bold text-white/10 mb-6">
-  //           FOUNDU
-  //         </div>
-  //         <div className="flex justify-center gap-8 mb-6">
-  //           <a
-  //             href="#"
-  //             className="text-white/60 hover:text-white transition-colors text-sm"
-  //           >
-  //             Privacy Policy
-  //           </a>
-  //           <a
-  //             href="#"
-  //             className="text-white/60 hover:text-white transition-colors text-sm"
-  //           >
-  //             Terms of Service
-  //           </a>
-  //           <a
-  //             href="#"
-  //             className="text-white/60 hover:text-white transition-colors text-sm"
-  //           >
-  //             Cookie Policy
-  //           </a>
-  //         </div>
-  //         <div className="text-white/60 text-sm">
-  //           © 2025 Foundu, All rights reserved.
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </footer>
-  // );
 
   return (
-    <div className="min-h-screen" style={gradientBlackToBlue}>
+    <div className="min-h-screen bg-[#020024] text-white selection:bg-blue-500/30 overflow-x-hidden">
       <Navbar />
-      <div className="pt-24 px-6 pb-8">
-        <div className="max-w-[1920px] mx-auto">
-          {/* Top Section - Founder Snapshot */}
-          <FounderSnapshot />
-
-          {/* Dashboard Stats */}
-          <DashboardStats />
-
-          {/* Main Content - 75/25 Split */}
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left Section - 75% */}
-            <div className="lg:w-3/4">
-              <AIFeatures />
-            </div>
-
-            {/* Right Section - 25% */}
-            <div className="lg:w-1/4">
-              <ExecutionPanel />
-            </div>
-          </div>
-        </div>
+      
+      {/* Background Ambient Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-indigo-600/10 rounded-full blur-[100px]"></div>
       </div>
+
+      <main className="relative z-10 pt-32 px-6 pb-20 max-w-[1700px] mx-auto">
+        {/* Welcome Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-white/5 pb-12">
+          <div>
+            <div className="flex items-center gap-2 text-blue-400 font-bold tracking-[0.2em] text-xs mb-4 uppercase">
+              <Rocket className="w-4 h-4" />
+              Startup Command Center
+            </div>
+            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter">
+              DASHBOARD<span className="text-blue-500">.</span>
+            </h1>
+          </div>
+          <button className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-500/20 flex items-center gap-3 group">
+            POST NEW JOB
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+          </button>
+        </header>
+
+        {/* Dashboard Stats */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className={`group relative bg-white/5 backdrop-blur-xl border rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:bg-white/10 ${getStatBorder(stat.color)}`}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className={`p-4 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-400 group-hover:scale-110 transition-transform`}>
+                  {stat.icon}
+                </div>
+                <div className="text-gray-500 text-[10px] font-black tracking-widest uppercase">Live Engagement</div>
+              </div>
+              <div className="text-4xl font-black text-white mb-2">{stat.value}</div>
+              <div className="text-gray-400 font-medium mb-6 uppercase text-xs tracking-wider">{stat.title}</div>
+              <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                <span className="text-[10px] text-gray-500 font-bold">{stat.subtitle}</span>
+                {stat.btnText && (
+                  <button className="text-blue-400 text-xs font-black flex items-center gap-1 hover:text-blue-300 transition-colors">
+                    {stat.btnText} <ArrowRight className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* Main Content Layout */}
+        <div className="flex flex-col xl:flex-row gap-8">
+          
+          {/* LEFT SIDEBAR - Features List */}
+          <aside className="xl:w-1/5">
+            <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden sticky top-32">
+              <div className="p-8 border-b border-white/5">
+                <h3 className="text-white font-black text-xs tracking-widest uppercase flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  AI Intelligence
+                </h3>
+              </div>
+              <div className="p-3 max-h-[600px] overflow-y-auto custom-scrollbar">
+                {FEATURES.map((feature, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveFeatureIndex(index)}
+                    className={`w-full flex items-center gap-4 p-5 rounded-[1.5rem] transition-all duration-300 group mb-2 ${
+                      activeFeatureIndex === index 
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-[1.02]' 
+                      : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <div className={`p-2.5 rounded-xl ${activeFeatureIndex === index ? 'bg-white/20' : 'bg-white/5'}`}>
+                      {feature.icon}
+                    </div>
+                    <div className="flex-grow text-left">
+                      <div className="text-sm font-black truncate">{feature.name}</div>
+                      {feature.recommended && (
+                        <div className={`text-[8px] font-black uppercase tracking-tighter ${activeFeatureIndex === index ? 'text-blue-100' : 'text-blue-400'}`}>
+                          Top Recommended
+                        </div>
+                      )}
+                    </div>
+                    <ChevronRight className={`w-4 h-4 transition-all ${activeFeatureIndex === index ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* CENTER - Feature Analysis View */}
+          <div className="xl:w-[55%]">
+            {FEATURES[activeFeatureIndex] && (
+              <section className="min-h-[700px] flex flex-col bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] overflow-hidden relative group">
+                {/* Decorative bar */}
+                <div className="h-3 w-full flex">
+                   <div className="bg-blue-500 w-1/3"></div>
+                   <div className="bg-indigo-500/50 w-1/3"></div>
+                   <div className="bg-purple-500/20 w-1/3"></div>
+                </div>
+
+                <div className="p-12 flex-grow flex flex-col">
+                  {/* Analysis Info */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-10 mb-16">
+                    <div className="flex-grow">
+                      <div className="flex items-center gap-6 mb-8">
+                        <div className={`p-6 rounded-[2rem] border-2 shadow-2xl transition-transform group-hover:scale-110 ${getAccentColor(FEATURES[activeFeatureIndex].accent)}`}>
+                          {FEATURES[activeFeatureIndex].icon}
+                        </div>
+                        <div>
+                          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-3">
+                            {FEATURES[activeFeatureIndex].fullName}
+                          </h2>
+                          <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                             <span className="text-blue-400 text-[10px] font-black tracking-widest uppercase">Deep Neural Engine active</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-2xl text-gray-200 font-light leading-relaxed border-l-4 border-blue-500/30 pl-10">
+                        {FEATURES[activeFeatureIndex].detailedDescription}
+                      </p>
+                    </div>
+                    <div className="w-full md:w-72 space-y-6">
+                      <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center backdrop-blur-xl">
+                        <span className="text-gray-500 text-[10px] font-black tracking-widest uppercase block mb-3">Analysis Precision</span>
+                        <div className="text-5xl font-black text-white">96%</div>
+                      </div>
+                      {FEATURES[activeFeatureIndex].recommended && (
+                        <div className="bg-blue-600 rounded-3xl p-8 text-center shadow-2xl shadow-blue-600/20">
+                           <span className="text-blue-100 text-[10px] font-black tracking-widest uppercase block mb-3">Priority Action</span>
+                           <div className="text-white text-sm font-black italic">Strategic High Impact</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
+                        <h4 className="text-white font-black text-lg mb-8 flex items-center gap-3">
+                          <Activity className="w-6 h-6 text-blue-400" />
+                          KEY INSIGHTS
+                        </h4>
+                        <div className="space-y-6">
+                           {(FEATURES[activeFeatureIndex].metrics || ["Strategic Growth: +24%", "Market Penetration: High", "Execution Risk: Minimal"]).map((m, i) => (
+                             <div key={i} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+                                <span className="text-gray-400 font-light">{m.split(':')[0]}</span>
+                                <span className="text-white font-black">{m.split(':')[1] || "Analyzed"}</span>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
+                        <h4 className="text-indigo-400 font-black text-lg mb-8 flex items-center gap-3">
+                          <Handshake className="w-6 h-6" />
+                          OPPORTUNITY WINDOW
+                        </h4>
+                        <p className="text-gray-300 text-lg leading-relaxed mb-auto border-l-2 border-indigo-500/20 pl-6 italic font-light">
+                          {FEATURES[activeFeatureIndex].whenToUse}
+                        </p>
+                     </div>
+                  </div>
+
+                  <button className="mt-auto relative w-full py-10 bg-blue-600 hover:bg-blue-500 transition-all rounded-[2.5rem] overflow-hidden group/btn shadow-2xl shadow-blue-700/40">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                    <div className="relative z-10 flex items-center justify-center gap-6">
+                       <span className="text-2xl font-black tracking-tight text-white uppercase">Initialize Deep Analysis Center</span>
+                       <ArrowRight className="w-8 h-8 group-hover/btn:translate-x-4 transition-transform" />
+                    </div>
+                  </button>
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* RIGHT PANEL - Portals & Deck */}
+          <aside className="xl:w-1/4">
+            <div className="space-y-8">
+              {/* Ready Portals */}
+              <div className="bg-gray-800/40 backdrop-blur-xl border border-blue-700/50 rounded-[2.5rem] p-10">
+                <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase">Next Actions</h2>
+                <div className="bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-400/50 rounded-3xl p-8 mb-8 relative overflow-hidden group/p">
+                  <div className="absolute top-4 right-4 bg-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest">PREMIUM</div>
+                  <h3 className="text-2xl font-black text-white mb-3">Startup Portals</h3>
+                  <p className="text-gray-300 text-sm mb-8 leading-relaxed font-light">Deploy pre-built specialized business hubs instantly.</p>
+                  <ul className="space-y-4 mb-10">
+                    {["Hiring & Talent Hub", "CRM Lead Manager", "Support Desk", "Vendor Portal"].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-white text-sm font-bold">
+                        <div className="w-5 h-5 rounded-full bg-yellow-400/20 flex items-center justify-center text-[10px] text-yellow-400">✓</div>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03]">
+                    VIEW PORTALS
+                  </button>
+                </div>
+
+                <div className="bg-gray-700/30 border border-blue-700/20 rounded-3xl p-8">
+                   <h4 className="text-white font-black mb-2 text-lg">Pitch Deck Pro</h4>
+                   <p className="text-gray-500 text-xs mb-6 italic">Generate investor-ready slides with AI.</p>
+                   <button className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs tracking-widest uppercase transition-all">
+                     LAUNCH BUILDER
+                   </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+
       <Footer />
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.15);
+        }
+        body {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+      `}} />
     </div>
   );
-}
+};
 
 export default StartupDashboard;

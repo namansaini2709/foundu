@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const db = require("../config/db");
-const transporter = require("../config/mail");
+const mailService = require("../services/mailService");
 const { generateToken } = require("../utils/token");
 
 const resetTokens = {}; // temporary (move to DB/Redis later)
@@ -227,21 +227,46 @@ exports.logout = (req, res) => {
 /* =========================
    FORGOT PASSWORD
 ========================= */
-exports.forgotPassword = (req, res) => {
+exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
-  const token = generateToken();
 
-  resetTokens[token] = email;
+  try {
+    // 🔍 Check if user exists
+    const [rows] = await db.promise().query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
 
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    if (!rows.length) {
+      return res.status(404).json({ message: "User with this email does not exist" });
+    }
 
-  transporter.sendMail({
-    to: email,
-    subject: "Reset Password - FoundU",
-    text: `Reset your password using this link:\n${resetLink}`
-  });
+    const token = generateToken();
+    resetTokens[token] = email;
 
-  res.json({ success: true, message: "Reset link sent to email" });
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    const subject = "Reset Your Password - FoundU";
+    const text = `You requested a password reset. Please use the following link to reset your password:\n\n${resetLink}\n\nIf you did not request this, please ignore this email.`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>You requested a password reset for your FoundU account.</p>
+        <p>Click the button below to reset your password:</p>
+        <div style="margin: 20px 0;">
+          <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+        </div>
+        <p style="margin-top: 20px; font-size: 12px; color: #777;">If you did not request this, please ignore this email. This link will expire shortly.</p>
+      </div>
+    `;
+
+    await mailService.sendEmail(email, subject, text, html);
+
+    res.json({ success: true, message: "A reset password link has been sent to your email address." });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ error: "Failed to send reset link. Please try again later." });
+  }
 };
 
 /* =========================
@@ -250,20 +275,29 @@ exports.forgotPassword = (req, res) => {
 exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
-  const email = resetTokens[token];
-  if (!email) {
-    return res.status(400).json({ message: "Invalid or expired token" });
+  try {
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    const email = resetTokens[token];
+    if (!email) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    await db.promise().query(
+      "UPDATE users SET password_hash=? WHERE email=?",
+      [hash, email]
+    );
+
+    delete resetTokens[token];
+    res.json({ success: true, message: "Your password has been updated successfully." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ error: "Failed to reset password. Please try again later." });
   }
-
-  const hash = await bcrypt.hash(newPassword, 10);
-
-  await db.promise().query(
-    "UPDATE users SET password_hash=? WHERE email=?",
-    [hash, email]
-  );
-
-  delete resetTokens[token];
-  res.json({ message: "Password updated successfully" });
 };
 
 /* =========================

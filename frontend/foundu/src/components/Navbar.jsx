@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { Bell } from "lucide-react";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const gradientBlackToBlue = {
-  background:
-    "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
-};
+
 
 // Default links for non-logged-in users
 const defaultNavLinks = [
@@ -30,13 +28,13 @@ const userTypeLinks = {
     { label: "View Jobs", to: "/freelancer-jobs" },
     { label: "Dashboard", to: "/freelancer-dashboard" },
     { label: "Badges", to: "/freelancer-badges" },
-    { label: "Reviews & Ratings", to: "/freelancer-reviews" },
+    { label: "Reviews & Ratings", to: "/reviews" },
   ],
   cofounder: [
     { label: "Dashboard", to: "/cofounder-dashboard" },
     { label: "View Jobs", to: "/cofounder-jobs" },
     { label: "Badges", to: "/cofounder-badges" },
-    { label: "Reviews & Ratings", to: "/freelancer-reviews" },
+    { label: "Reviews & Ratings", to: "/reviews" },
   ],
 };
 
@@ -228,9 +226,8 @@ function Navbar() {
     return (
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-        style={gradientBlackToBlue}
       >
-        <div className="bg-black/30 backdrop-blur-md border-b border-blue-700/30">
+        <div className="transition-all duration-300 bg-transparent border-transparent">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="h-8 animate-pulse bg-blue-500/20 rounded"></div>
           </div>
@@ -244,10 +241,11 @@ function Navbar() {
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={gradientBlackToBlue}
     >
       <div
-        className={`bg-black/30 backdrop-blur-md border-b border-blue-700/30 ${scrolled ? "shadow-lg" : ""
+        className={`transition-all duration-300 ${scrolled
+          ? "bg-black/30 backdrop-blur-md border-b border-blue-700/30 shadow-lg"
+          : "bg-transparent border-transparent"
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -273,7 +271,19 @@ function Navbar() {
           </div>
 
           {/* User profile or login buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {(isLoggedIn() || user) && (
+              <Link
+                to="/notifications"
+                className="relative p-2 text-gray-400 hover:text-white transition-all duration-300 group"
+              >
+                <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black">
+                  3
+                </span>
+              </Link>
+            )}
+
             {(isLoggedIn() || user) ? (
               // Logged in user - show profile dropdown
               <div className="relative profile-dropdown">
@@ -639,19 +649,7 @@ function Navbar() {
         </div>
       )}
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
+      {/* Toast Container removed - now global in App.jsx */}
     </nav>
   );
 }

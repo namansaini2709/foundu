@@ -120,19 +120,19 @@ function Footer() {
           </div>
           <div className="flex justify-center gap-8 mb-6">
             <Link
-              to="/privacy"
+              to="/privacy-policy"
               className="text-white/60 hover:text-white transition-colors text-sm"
             >
               Privacy Policy
             </Link>
             <Link
-              to="/terms"
+              to="/terms-of-service"
               className="text-white/60 hover:text-white transition-colors text-sm"
             >
               Terms of Service
             </Link>
             <Link
-              to="/cookies"
+              to="/cookie-policy"
               className="text-white/60 hover:text-white transition-colors text-sm"
             >
               Cookie Policy
