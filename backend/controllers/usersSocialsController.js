@@ -100,7 +100,9 @@ exports.getUserSocials = (req, res) => {
       us.portfolio_url,
       us.profile_picture_url,
       u.blue_tick_status,
-      u.blue_tick_verified
+      u.blue_tick_verified,
+      u.green_tick_verified,
+      u.golden_tick_verified
     FROM users u
     LEFT JOIN users_socials us ON us.user_id = u.id
     WHERE u.id = ?

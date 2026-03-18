@@ -33,6 +33,8 @@ import AdminBadges from "./admin/pages/AdminBadges";
 import IdeaLab from "./pages/IdeaLab";
 import IdeaLabPopup from "./pages/IdeaLabPopup";
 import QuickJobPopup from "./pages/QuickJobPopup";
+import FreelancerReviews from "./pages/FreelancerReviews";
+import GlobalChatOverlay from "./components/GlobalChatOverlay";
 
 function App() {
   const userRole   = localStorage.getItem("user_type") || null;
@@ -79,6 +81,7 @@ function App() {
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
         <Route path="/jobposting" element={<ViewJobPosting />} />
+        <Route path="/freelancer-reviews" element={<FreelancerReviews />} />  
 
         {/* ✅ ADMIN ROUTES — no Navbar/Footer, uses AdminLayout */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -89,6 +92,7 @@ function App() {
       </Routes>
         {isLoggedIn && (
         <>
+          <GlobalChatOverlay userId={userId} />
           <SmartChatbot userRole={userRole} userId={userId} />
           <IdeaLabPopup userId={userId} />
           {userRole === 'founder' && <QuickJobPopup userId={userId} />}

@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const badgeService = require("../services/badgeService");
 
 /* =========================
    APPLY TO JOB
@@ -152,7 +153,7 @@ exports.updateApplicantStatus = (req, res) => {
     `[UPDATE STATUS] job_id=${job_id}, user_id=${user_id}, status=${status}`,
   );
 
-  if (!["pending", "accepted", "rejected"].includes(status)) {
+  if (!["pending", "accepted", "rejected", "completed"].includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
   }
 
@@ -166,6 +167,12 @@ exports.updateApplicantStatus = (req, res) => {
         console.error("[UPDATE STATUS ERROR]", err);
         return res.status(500).json({ error: err.message });
       }
+
+      // ── TRIGGER GREEN TICK EVALUATION ──
+      if (status === "completed") {
+        badgeService.evaluateGreenTick(user_id);
+      }
+
       console.log(`[UPDATE STATUS RESULT] affectedRows=${result.affectedRows}`);
       res.json({
         success: true,

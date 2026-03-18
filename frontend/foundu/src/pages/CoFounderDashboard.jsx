@@ -2,20 +2,24 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Chatbox from "./Chatbox";
 import {
   FaShieldAlt,
   FaMedal,
   FaAward,
 } from "react-icons/fa";
+import blueBadge from '../assets/blue-badge.png';
+import goldenBadge from '../assets/golden-badge.png';
+import greenBadge from '../assets/green-badge.png';
 
 const API_URL = "http://localhost:4000/api";
 
 const CoFounderDashboard = () => {
-  const [activeTab, setActiveTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("applications");
   const [applications, setApplications] = useState([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [badgeData, setBadgeData] = useState(null);
+  const [credibilityData, setCredibilityData] = useState(null);
 
   const userId = localStorage.getItem("user_id");
 
@@ -26,7 +30,6 @@ const CoFounderDashboard = () => {
 
   // Tab config with icons
   const tabs = [
-    { key: "chats", label: "My Chats", icon: "💬" },
     { key: "applications", label: "Applications", icon: "📂" },
     { key: "badges", label: "My Badges", icon: "🏅" },
   ];
@@ -37,6 +40,19 @@ const CoFounderDashboard = () => {
       fetchApplications();
     }
   }, [activeTab, userId]);
+
+  // Fetch badge statuses and credibility score
+  useEffect(() => {
+    if (userId) {
+      axios.get(`${API_URL}/user-socials/${userId}`)
+        .then(res => setBadgeData(res.data.data))
+        .catch(err => console.error("Error fetching badges:", err));
+
+      axios.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: userId })
+        .then(res => setCredibilityData(res.data))
+        .catch(err => console.error("Error fetching credibility:", err));
+    }
+  }, [userId]);
 
   const fetchApplications = async () => {
     setLoadingApps(true);
@@ -112,16 +128,8 @@ const CoFounderDashboard = () => {
 
         {/* Content Area */}
         <div
-          className={`bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl ${activeTab === "chats" ? "p-0 overflow-hidden" : "p-8"
-            } min-h-[500px]`}
+          className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-8 min-h-[500px]"
         >
-          {/* ═══════════ YOUR CHATS TAB ═══════════ */}
-          {activeTab === "chats" && (
-            <div className="h-[600px]">
-              <Chatbox />
-            </div>
-          )}
-
           {/* ═══════════ APPLICATIONS TAB ═══════════ */}
           {activeTab === "applications" && (
             <div>
@@ -218,140 +226,91 @@ const CoFounderDashboard = () => {
 
           {/* ═══════════ BADGES TAB ═══════════ */}
           {activeTab === "badges" && (
-            <div className="space-y-12">
-              {/* Badges You Have Obtained */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                  Badges You Have Obtained
-                </h2>
-                <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-8">
-                  <p className="text-gray-400 text-center py-8">
-                    No badges obtained yet. Keep applying to earn your first
-                    badge!
-                  </p>
-                </div>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-8">
+                Badges Achieved
+              </h2>
 
-              {/* Badges You Can Claim */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                  Badges You Can Claim
-                </h2>
-
-                {/* Verification Badge Category */}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-semibold text-blue-300 mb-4">
+              {/* Verification Badges */}
+              {(badgeData?.blue_tick_verified === 1 || badgeData?.blue_tick_verified === true || 
+                badgeData?.golden_tick_verified === 1 || badgeData?.golden_tick_verified === true || 
+                badgeData?.green_tick_verified === 1 || badgeData?.green_tick_verified === true) && (
+                <div className="mb-12">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-6 pl-3 border-l-4 border-blue-500">
                     Verification Badge
                   </h3>
-                  <div className="flex flex-wrap gap-4">
-                    {/* Blue Tech Badge */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-blue-500 rounded-xl p-6 flex items-center gap-4 min-w-[200px] hover:border-blue-400 transition-all duration-300">
-                      <FaShieldAlt className="text-blue-500 text-4xl" />
-                      <div>
-                        <p className="text-white font-semibold text-lg">
-                          Blue Tech
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          Verification Badge
-                        </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {(badgeData?.blue_tick_verified === 1 || badgeData?.blue_tick_verified === true) && (
+                      <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-blue-500/30 hover:border-blue-400 transition-all group">
+                        <img src={blueBadge} alt="Blue Badge" className=" object-cover w-20 h-20 mb-2" />
+                        <p className="font-bold text-blue-400 text-lg">Identity Verified</p>
+                        <p className="text-sm text-gray-400 text-center mt-2">Blue Tick Check</p>
                       </div>
-                    </div>
-
-                    {/* Golden Tech Badge */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-yellow-500 rounded-xl p-6 flex items-center gap-4 min-w-[200px] hover:border-yellow-400 transition-all duration-300">
-                      <FaMedal className="text-yellow-500 text-4xl" />
-                      <div>
-                        <p className="text-white font-semibold text-lg">
-                          Golden Tech
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          Verification Badge
-                        </p>
+                    )}
+                    {(badgeData?.golden_tick_verified === 1 || badgeData?.golden_tick_verified === true) && (
+                      <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-yellow-500/30 hover:border-yellow-400 transition-all group">
+                        <img src={goldenBadge} alt="Golden Badge" className=" object-cover w-20 h-20 mb-2" />
+                        <p className="font-bold text-yellow-400 text-lg">Skill Verified</p>
+                        <p className="text-sm text-gray-400 text-center mt-2">Golden Tick Check</p>
                       </div>
-                    </div>
+                    )}
+                    {(badgeData?.green_tick_verified === 1 || badgeData?.green_tick_verified === true) && (
+                      <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-green-500/30 hover:border-green-400 transition-all group">
+                        <img src={greenBadge} alt="Green Badge" className=" object-cover w-20 h-20 mb-2" />
+                        <p className="font-bold text-green-400 text-lg">Payment Verified</p>
+                        <p className="text-sm text-gray-400 text-center mt-2">Green Tick Check</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+              )}
 
-                {/* Credibility Score Badge Category */}
+              {/* Credibility Score Badges */}
+              {credibilityData && (
                 <div>
-                  <h3 className="text-2xl font-semibold text-blue-300 mb-4">
+                  <h3 className="text-lg font-semibold text-red-300 mb-6 pl-3 border-l-4 border-red-500">
                     Credibility Score Badge
                   </h3>
-                  <div className="space-y-4">
-                    {/* 92-95 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-600 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-600 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              92-95 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Excellent Credibility
-                            </p>
-                          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {credibilityData.badge === 'Exceptional' && (
+                      <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-colors">
+                        <div className="text-3xl font-bold text-red-500 mb-2">{credibilityData.credibility_score}%</div>
+                        <p className="text-sm text-gray-300">Top Rated (Exceptional)</p>
+                        <div className="mt-4 w-full bg-gray-600 rounded-full h-2">
+                          <div className="bg-red-600 h-2 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]" style={{ width: `${credibilityData.credibility_score}%` }}></div>
                         </div>
-                        <div className="w-32 h-4 bg-red-600 rounded-full"></div>
                       </div>
-                    </div>
-
-                    {/* 85-90 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-500 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-500 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              85-90 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Very Good Credibility
-                            </p>
-                          </div>
+                    )}
+                    {credibilityData.badge === 'Excellent' && (
+                      <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-colors">
+                        <div className="text-3xl font-bold text-red-400 mb-2">{credibilityData.credibility_score}%</div>
+                        <p className="text-sm text-gray-300">Highly Credible (Excellent)</p>
+                        <div className="mt-4 w-full bg-gray-600 rounded-full h-2">
+                          <div className="bg-red-400 h-2 rounded-full shadow-[0_0_10px_rgba(248,113,113,0.5)]" style={{ width: `${credibilityData.credibility_score}%` }}></div>
                         </div>
-                        <div className="w-32 h-4 bg-red-500 rounded-full"></div>
                       </div>
-                    </div>
-
-                    {/* 82-85 Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-400 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-400 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              82-85 Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Good Credibility
-                            </p>
-                          </div>
+                    )}
+                    {credibilityData.badge === 'Very Good' && (
+                      <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-colors">
+                        <div className="text-3xl font-bold text-red-300 mb-2">{credibilityData.credibility_score}%</div>
+                        <p className="text-sm text-gray-300">Credible (Very Good)</p>
+                        <div className="mt-4 w-full bg-gray-600 rounded-full h-2">
+                          <div className="bg-red-300 h-2 rounded-full shadow-[0_0_10px_rgba(252,165,165,0.5)]" style={{ width: `${credibilityData.credibility_score}%` }}></div>
                         </div>
-                        <div className="w-32 h-4 bg-red-400 rounded-full"></div>
                       </div>
-                    </div>
-
-                    {/* 80 Below Range */}
-                    <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-red-300 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <FaAward className="text-red-300 text-3xl" />
-                          <div>
-                            <p className="text-white font-semibold text-lg">
-                              80 Below Score Range
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                              Basic Credibility
-                            </p>
-                          </div>
+                    )}
+                    {credibilityData.badge === 'Growing' && (
+                      <div className="bg-gray-700/30 p-6 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-colors">
+                        <div className="text-3xl font-bold text-red-200 mb-2">{credibilityData.credibility_score || '< 80'}%</div>
+                        <p className="text-sm text-gray-300">Growing</p>
+                        <div className="mt-4 w-full bg-gray-600 rounded-full h-2">
+                          <div className="bg-red-200 h-2 rounded-full shadow-[0_0_10px_rgba(254,202,202,0.5)]" style={{ width: `${credibilityData.credibility_score}%` }}></div>
                         </div>
-                        <div className="w-32 h-4 bg-red-300 rounded-full"></div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

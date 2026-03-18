@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { CheckCircle, Award, Star, ShieldCheck, X, Loader2, Building2 } from 'lucide-react';
+import { X, Loader2, Building2, Star, CheckCircle } from 'lucide-react';
+import blueBadge from '../assets/blue-badge.jpg';
+import greenBadge from '../assets/green-badge.jpg';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,7 +17,7 @@ const gradientBlackToBlue = {
 const BlueTickStatusBadge = ({ status, verified }) => {
     if (verified) return (
         <span className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/50 text-blue-300 text-xs font-bold px-3 py-1 rounded-full">
-            <CheckCircle size={12} /> Blue Tick Verified 
+            <img src={blueBadge} alt="Blue Check" className="w-3 h-3 rounded-full" /> Blue Tick Verified 
         </span>
     );
     if (status === 'pending') return (
@@ -36,6 +38,7 @@ const FounderBadges = () => {
     const [submitting, setSubmitting]         = useState(false);
     const [blueTickStatus, setBlueTickStatus] = useState(null);
     const [blueTickVerified, setBlueTickVerified] = useState(false);
+    const [greenTickVerified, setGreenTickVerified] = useState(false);
 
     // Founder-specific fields
     const [formData, setFormData] = useState({
@@ -60,6 +63,7 @@ const FounderBadges = () => {
                     });
                     setBlueTickStatus(d.blue_tick_status);
                     setBlueTickVerified(!!d.blue_tick_verified);
+                    setGreenTickVerified(!!d.green_tick_verified);
                 }
             })
             .catch(() => {});
@@ -113,8 +117,8 @@ const FounderBadges = () => {
                     {/* Blue Tick Badge */}
                     <div className="bg-gray-800/40 backdrop-blur-md border border-blue-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-blue-400 transition-all">
                         <div className="flex-shrink-0">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg ${blueTickVerified ? 'bg-blue-500 shadow-blue-500/50' : 'bg-gray-700'}`}>
-                                <CheckCircle size={32} className="text-white" />
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${blueTickVerified ? 'bg-blue-500 shadow-blue-500/50 border-blue-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
+                                <img src={blueBadge} alt="Blue Badge" className={`w-full h-full object-cover ${!blueTickVerified && 'opacity-40 grayscale'}`} />
                             </div>
                         </div>
                         <div className="flex-grow text-center md:text-left">
@@ -147,8 +151,8 @@ const FounderBadges = () => {
                     {/* Green Tick Badge */}
                     <div className="bg-gray-800/40 backdrop-blur-md border border-green-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-green-400 transition-all">
                         <div className="flex-shrink-0">
-                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
-                                <ShieldCheck size={32} className="text-white" />
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${greenTickVerified ? 'bg-green-500 shadow-green-500/50 border-green-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
+                                <img src={greenBadge} alt="Green Badge" className={`w-full h-full object-cover ${!greenTickVerified && 'opacity-40 grayscale'}`} />
                             </div>
                         </div>
                         <div className="flex-grow text-center md:text-left">
@@ -156,7 +160,15 @@ const FounderBadges = () => {
                             <p className="text-gray-300">Automatically awarded when you have posted 3 or more jobs on the platform. Shows reliability to candidates.</p>
                         </div>
                         <div className="flex-shrink-0">
-                            <button disabled className="bg-green-500/20 border border-green-500/30 text-green-400 px-8 py-3 rounded-lg font-semibold cursor-not-allowed text-sm">🤖 Auto-Awarded</button>
+                            {greenTickVerified ? (
+                                <button disabled className="bg-green-500/30 border border-green-400/30 text-green-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">
+                                    ✅ Awarded
+                                </button>
+                            ) : (
+                                <button disabled className="bg-green-500/20 border border-green-500/30 text-green-400 px-8 py-3 rounded-lg font-semibold cursor-not-allowed text-sm">
+                                    🤖 Auto-Awarded
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

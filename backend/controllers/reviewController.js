@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const geminiService = require("../services/geminiService");
 
 /* CREATE REVIEW */
 exports.createReview = (req, res) => {
@@ -99,51 +100,87 @@ exports.recalculateCredibility = (req, res) => {
     return res.status(400).json({ message: "user_id is required" });
   }
 
-  db.query(
-    `SELECT AVG(stars) AS avg_stars, COUNT(*) AS review_count 
-     FROM reviews WHERE user_id = ?`,
-    [user_id],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+  // 1. Fetch user data (stars, badges, review text)
+  const userQuery = `
+    SELECT 
+      u.blue_tick_verified, 
+      u.green_tick_verified, 
+      u.golden_tick_verified,
+      AVG(r.stars) as avg_stars,
+      COUNT(r.review_id) as review_count
+    FROM users u
+    LEFT JOIN reviews r ON r.user_id = u.id
+    WHERE u.id = ?
+    GROUP BY u.id
+  `;
 
-      const { avg_stars, review_count } = rows[0];
+  db.query(userQuery, [user_id], (err, userRows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!userRows.length) return res.status(404).json({ message: "User not found" });
 
-      // Credibility score formula: weighted average of stars (0-5) mapped to 0-100
-      // Plus bonus for review count
-      let score = 0;
-      let badge = 'Growing';
+    const { 
+      blue_tick_verified, 
+      green_tick_verified, 
+      golden_tick_verified, 
+      avg_stars, 
+      review_count 
+    } = userRows[0];
 
-      if (review_count > 0) {
-        const starScore = (avg_stars / 5) * 80; // Max 80 from stars
-        const countBonus = Math.min(review_count * 2, 20); // Max 20 from count
-        score = Math.round(starScore + countBonus);
-        score = Math.min(score, 100);
-      }
+    // Fetch all review texts for AI analysis
+    db.query(
+      "SELECT stars, review_text FROM reviews WHERE user_id = ?",
+      [user_id],
+      async (err, reviews) => {
+        if (err) return res.status(500).json({ error: err.message });
 
-      if (score >= 90) badge = 'Exceptional';
-      else if (score >= 85) badge = 'Excellent';
-      else if (score >= 80) badge = 'Very Good';
-      else badge = 'Growing';
-
-      // Update credibility score in user table
-      db.query(
-        `UPDATE users SET credibility_score = ? WHERE id = ?`,
-        [score, user_id],
-        (updateErr) => {
-          // Don't fail if column doesn't exist yet
-          if (updateErr) console.log('Note: credibility_score column may not exist yet');
-
-          res.json({
-            success: true,
-            credibility_score: score,
-            badge,
-            avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : '0.0',
-            review_count: review_count || 0
-          });
+        let aiAnalysis = { qualityScore: 50, summary: "No reviews to analyze." };
+        if (reviews.length > 0) {
+          aiAnalysis = await geminiService.analyzeReviews(reviews);
         }
-      );
-    }
-  );
+
+        /* ── CALCULATE SCORE (45/45/10) ── */
+        
+        // 1. Rating Stars (45 pts max)
+        const starScore = avg_stars ? (avg_stars / 5) * 45 : 0;
+
+        // 2. Reviews (45 pts max)
+        // AI Quality Score (weighted 35) + Count Bonus (weighted 10)
+        const qualityWeight = (aiAnalysis.qualityScore / 100) * 35;
+        const countBonus = Math.min(review_count * 2, 10);
+        const reviewScore = qualityWeight + countBonus;
+
+        // 3. Badges (10 pts max)
+        const blueBonus   = blue_tick_verified   ? 4 : 0;
+        const greenBonus  = green_tick_verified  ? 3 : 0;
+        const goldenBonus = golden_tick_verified ? 3 : 0;
+        const badgeScore  = blueBonus + greenBonus + goldenBonus;
+
+        const totalScore = Math.round(starScore + reviewScore + badgeScore);
+        const finalScore = Math.min(Math.max(totalScore, 0), 100);
+
+        // Determine Badge
+        let badge = 'Growing';
+        if (finalScore >= 90) badge = 'Exceptional';
+        else if (finalScore >= 85) badge = 'Excellent';
+        else if (finalScore >= 80) badge = 'Very Good';
+
+        // Return results directly (No DB save as requested - Option B)
+        res.json({
+          success: true,
+          credibility_score: finalScore,
+          badge,
+          avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : '0.0',
+          review_count,
+          ai_summary: aiAnalysis.summary,
+          breakdown: {
+            stars: Math.round(starScore),
+            reviews: Math.round(reviewScore),
+            badges: badgeScore
+          }
+        });
+      }
+    );
+  });
 };
 
 /* GET ALL REVIEWS */

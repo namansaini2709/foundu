@@ -70,79 +70,115 @@ const QuickJobPopup = ({ userId }) => {
         }
     };
 
-    const runAISummary = () => {
+    const runAISummary = async () => {
         setLoading(true);
         setPhase("loading");
 
-        // SIMULATE AI FILLING ALL FIELDS (Gemini logic later)
-        setTimeout(() => {
-            const desc = inputs.description.toLowerCase();
-            const isTechnical = desc.includes("dev") || desc.includes("engineer") || desc.includes("code") || desc.includes("stack") || inputs.roleType?.includes("Technical");
+        try {
+            const response = await axios.post("http://localhost:4000/api/ai/enrich-job", {
+                role: hiringType,
+                inputs: inputs
+            });
 
-            const mockData = {
-                domain: "SaaS / B2B",
-                job_title: isTechnical ? (hiringType === 'freelancer' ? "Senior Full Stack Dev" : "Technical Co-Founder (CTO)") : "Marketing Operations Lead",
-                job_level: "High level",
-                urgency: "ASAP (within 7 days)",
-                job_requirements: [
-                    "Strong background in relevant domain",
-                    "Self-driven and autonomous work style",
-                    "Proven track record of delivering high-quality results"
-                ],
-                // AI generated for Cofounder since not asked
-                commitment: "Full-time",
-                priorities: ["Technical skills", "Domain expertise", "Startup experience"],
-                responsibilities: [
-                    "Lead product vision and execution",
-                    "Build and manage core team",
-                    "Contribute to GTM strategy"
-                ],
-                aiJD: "We are looking for a strategic partner to join our journey. As a co-founder, you will have a significant impact on the product direction and company culture. We value ownership, agility, and a shared passion for our mission."
+            if (response.data.success) {
+                const aiData = response.data.data;
+                
+                if (hiringType === 'freelancer') {
+                    setPreviewData({
+                        hiringType: 'freelancer',
+                        common: {
+                            domain: aiData.sector || "Tech / General",
+                            roleCategories: [aiData.jobLevel || "Mid-Level"]
+                        },
+                        freelancer: {
+                            jobTitle: aiData.jobTitle,
+                            workType: inputs.workType,
+                            duration: "1–3 months",
+                            budget: inputs.budget,
+                            urgency: "ASAP (within 7 days)",
+                            jobLevel: aiData.jobLevel,
+                            jobType: inputs.jobType,
+                            jobDescription: inputs.description,
+                            requirements: Array.isArray(aiData.requirements) ? aiData.requirements : [aiData.requirements],
+                            responsibilities: Array.isArray(aiData.responsibilities) ? aiData.responsibilities : [aiData.responsibilities]
+                        }
+                    });
+                } else {
+                    setPreviewData({
+                        hiringType: 'cofounder',
+                        common: { domain: aiData.sector || "General Startup" },
+                        cofounder: {
+                            jobTitle: aiData.jobTitle,
+                            roleType: inputs.roleType,
+                            compensation: inputs.compensation,
+                            commitment: aiData.commitment,
+                            priorities: Array.isArray(aiData.priorities) ? aiData.priorities : [aiData.priorities],
+                            jobLevel: aiData.jobLevel,
+                            jobType: inputs.jobType,
+                            urgency: "ASAP (within 7 days)",
+                            jobDescription: aiData.jobDescription,
+                            requirements: Array.isArray(aiData.requirements) ? aiData.requirements : [aiData.requirements],
+                            responsibilities: Array.isArray(aiData.responsibilities) ? aiData.responsibilities : [aiData.responsibilities]
+                        }
+                    });
+                }
+                toast.success("AI Generation Complete! ✨");
+            } else {
+                throw new Error("API responded with failure");
+            }
+        } catch (error) {
+            console.error("AI Enrichment Error:", error);
+            toast.error("AI calculation failed. Using fallback preview.");
+            
+            // Minimal Fallback
+            const fallbackData = {
+                jobTitle: inputs.description?.substring(0, 30) + " Role",
+                sector: "Tech / Strategy",
+                jobLevel: "Mid-Level",
+                jobDescription: inputs.description || "Exciting role at a growing startup.",
+                requirements: ["Relevant Experience"],
+                responsibilities: ["Lead key initiatives"]
             };
 
             if (hiringType === 'freelancer') {
                 setPreviewData({
                     hiringType: 'freelancer',
-                    common: {
-                        domain: mockData.domain,
-                        roleCategories: [isTechnical ? "Engineering / Development" : "Marketing / Growth"]
-                    },
+                    common: { domain: fallbackData.sector, roleCategories: [fallbackData.jobLevel] },
                     freelancer: {
-                        jobTitle: mockData.job_title,
+                        jobTitle: fallbackData.jobTitle,
                         workType: inputs.workType,
-                        duration: "1–3 months",
+                        duration: "Flexible",
                         budget: inputs.budget,
-                        urgency: mockData.urgency,
-                        jobLevel: mockData.job_level,
+                        urgency: "Immediate",
+                        jobLevel: fallbackData.jobLevel,
                         jobType: inputs.jobType,
-                        jobDescription: inputs.description,
-                        requirements: mockData.job_requirements
+                        jobDescription: fallbackData.jobDescription,
+                        requirements: fallbackData.requirements
                     }
                 });
             } else {
                 setPreviewData({
                     hiringType: 'cofounder',
-                    common: { domain: mockData.domain },
+                    common: { domain: fallbackData.sector },
                     cofounder: {
-                        jobTitle: mockData.job_title,
+                        jobTitle: fallbackData.jobTitle,
                         roleType: inputs.roleType,
                         compensation: inputs.compensation,
-                        commitment: mockData.commitment,
-                        priorities: mockData.priorities,
-                        jobLevel: mockData.job_level,
+                        commitment: "Full-time",
+                        priorities: ["Growth", "Innovation"],
+                        jobLevel: fallbackData.jobLevel,
                         jobType: inputs.jobType,
-                        urgency: mockData.urgency,
-                        jobDescription: mockData.aiJD,
-                        requirements: mockData.job_requirements,
-                        responsibilities: mockData.responsibilities
+                        urgency: "Immediate",
+                        jobDescription: fallbackData.jobDescription,
+                        requirements: fallbackData.requirements,
+                        responsibilities: fallbackData.responsibilities
                     }
                 });
             }
-
+        } finally {
             setPhase("preview");
             setLoading(false);
-            toast.success("AI Generation Complete! ✨");
-        }, 2000);
+        }
     };
 
     const handleSubmit = async () => {
