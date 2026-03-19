@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ProfilePreview from "../components/ProfilePreview";
 
 const getUserId = () => {
   return localStorage.getItem("user_id");
@@ -17,6 +18,10 @@ const CoFounderProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("edit"); // "edit" or "view"
+  const [profileData, setProfileData] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [userBasicInfo, setUserBasicInfo] = useState(null);
 
   const gradientBlue = {
     background:
@@ -83,7 +88,17 @@ const CoFounderProfile = () => {
     }
     fetchUserData(userId);
     fetchProfile(userId);
+    fetchReviews(userId);
   }, [navigate]);
+
+  const fetchReviews = async (userId) => {
+    try {
+      const res = await axios.get(`http://localhost:4000/api/reviews/user/${userId}`);
+      setReviews(res.data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
 
   // Fetch user data to populate name
   const fetchUserData = async (userId) => {
@@ -92,7 +107,7 @@ const CoFounderProfile = () => {
         `http://localhost:4000/api/users/${userId}`
       );
       const user = response.data;
-
+      setUserBasicInfo(user);
       const name = user.full_name?.split(" ") || [];
       setFormData((prev) => ({
         ...prev,
@@ -150,6 +165,7 @@ const CoFounderProfile = () => {
         equityMinimum: profile.equity_minimum || "",
         vibeKeywords: profile.vibe_keywords || "",
       });
+      setProfileData(profile);
       toast.success("Profile loaded successfully");
     } catch (err) {
       // Profile doesn't exist yet, which is fine
@@ -409,937 +425,969 @@ const CoFounderProfile = () => {
       <Navbar />
 
       {/* Main Content */}
-      <div className="pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Step Indicator */}
-          <div className="mb-6">
-            <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">
-              {[1, 2, 3, 4, 5, 6].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                      currentStep >= step
+      <div className="pt-24 pb-8 flex flex-col items-center">
+
+        {/* View/Edit Toggle Bar */}
+        <div className="w-[85%] max-w-7xl mb-8">
+          <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
+            <button
+              onClick={() => setViewMode("edit")}
+              className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'edit' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
+            >
+              EDIT PROFILE
+            </button>
+            <button
+              onClick={() => setViewMode("view")}
+              className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'view' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
+            >
+              VIEW PROFILE
+            </button>
+          </div>
+        </div>
+
+        {viewMode === "view" ? (
+          <ProfilePreview
+            user={{
+              ...userBasicInfo,
+              role: profileData?.primary_identity === 'other' ? profileData?.primary_identity_other : profileData?.primary_identity,
+              description: profileData ? `${profileData.superpower1}, ${profileData.superpower2}, ${profileData.superpower3}. ${profileData.vibe_keywords}` : "",
+              avg_stars: reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.stars, 0) / reviews.length).toFixed(1) : 0,
+              review_count: reviews.length,
+              isOpenToWork: true // Default to true
+            }}
+            reviews={reviews}
+            type="cofounder"
+          />
+        ) : (
+          <div className="max-w-7xl w-full px-4 sm:px-6 lg:px-8">
+            {/* Step Indicator */}
+            <div className="mb-6">
+              <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">
+                {[1, 2, 3, 4, 5, 6].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${currentStep >= step
                         ? "bg-blue-500 text-white"
                         : "bg-gray-700/50 text-gray-400"
-                    }`}
-                  >
-                    {step}
+                        }`}
+                    >
+                      {step}
+                    </div>
+                    {step < 6 && (
+                      <div
+                        className={`w-8 h-1 ${currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
+                          }`}
+                      ></div>
+                    )}
                   </div>
-                  {step < 6 && (
-                    <div
-                      className={`w-8 h-1 ${
-                        currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
-                      }`}
-                    ></div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 text-center">
+                Complete Your Co-Founder Profile
+              </h1>
+              <p className="text-blue-200 text-sm text-center">
+                Step {currentStep} of 6 - Fill in your details to find the perfect
+                co-founder
+              </p>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 text-center">
-              Complete Your Co-Founder Profile
-            </h1>
-            <p className="text-blue-200 text-sm text-center">
-              Step {currentStep} of 6 - Fill in your details to find the perfect
-              co-founder
-            </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Step 1: The Trust & Reputation Layer */}
-            {currentStep === 1 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        The Trust & Reputation Layer
-                      </h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Step 1: The Trust & Reputation Layer */}
+              {currentStep === 1 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          The Trust & Reputation Layer
+                        </h2>
 
-                      <div>
-                        <label
-                          htmlFor="fullLegalName"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Full Legal Name (Verified against Government ID){" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="fullLegalName"
-                          name="fullLegalName"
-                          value={formData.fullLegalName}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Enter your full legal name"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="linkedin"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          LinkedIn Profile <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="url"
-                          id="linkedin"
-                          name="linkedin"
-                          value={formData.linkedin}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="https://linkedin.com/in/yourprofile"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="githubBehance"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          GitHub/Behance Profile
-                        </label>
-                        <input
-                          type="url"
-                          id="githubBehance"
-                          name="githubBehance"
-                          value={formData.githubBehance}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="https://github.com/username or https://behance.net/username"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="referenceContact"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Reference Contact (Past colleague or mentor)
-                        </label>
-                        <input
-                          type="text"
-                          id="referenceContact"
-                          name="referenceContact"
-                          value={formData.referenceContact}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Name and contact information"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="primaryIdentity"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Primary Identity (Domain Expertise){" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="primaryIdentity"
-                          name="primaryIdentity"
-                          value={formData.primaryIdentity}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
-                        >
-                          <option value="">Select primary identity</option>
-                          <option value="technical">
-                            Technical: Engineering, AI, Hardware, Architecture
-                          </option>
-                          <option value="operations">
-                            Operations: Supply Chain, Manufacturing, Logistics,
-                            Process
-                          </option>
-                          <option value="growth">
-                            Growth: Marketing, Performance Sales, Viral Loops, PR
-                          </option>
-                          <option value="product-design">
-                            Product/Design: UI/UX, Service Design, Industrial
-                            Design
-                          </option>
-                          <option value="strategy-finance">
-                            Strategy/Finance: Fundraising, M&A, Legal, Compliance
-                          </option>
-                          <option value="other">Other</option>
-                        </select>
-                        {formData.primaryIdentity === "other" && (
+                        <div>
+                          <label
+                            htmlFor="fullLegalName"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Full Legal Name (Verified against Government ID){" "}
+                            <span className="text-red-500">*</span>
+                          </label>
                           <input
                             type="text"
-                            id="primaryIdentityOther"
-                            name="primaryIdentityOther"
-                            value={formData.primaryIdentityOther}
+                            id="fullLegalName"
+                            name="fullLegalName"
+                            value={formData.fullLegalName}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mt-3"
-                            placeholder="Specify your primary identity"
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Enter your full legal name"
                           />
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="currentOccupationalStatus"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Current Occupational Status{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="currentOccupationalStatus"
-                          name="currentOccupationalStatus"
-                          value={formData.currentOccupationalStatus}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
-                        >
-                          <option value="">Select status</option>
-                          <option value="full-time-employee">
-                            Full-time Employee
-                          </option>
-                          <option value="student">Student</option>
-                          <option value="freelancer">Freelancer</option>
-                          <option value="full-time-builder">
-                            Full-time Builder
-                          </option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="pedigreeScore"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The Pedigree Score <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="pedigreeScore"
-                          name="pedigreeScore"
-                          value={formData.pedigreeScore}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
-                        >
-                          <option value="">Select pedigree score</option>
-                          <option value="ex-founder">Ex-Founder</option>
-                          <option value="tier1-alumni">Tier-1 Alumni</option>
-                          <option value="industry-veteran">
-                            Industry Veteran
-                          </option>
-                          <option value="domain-specialist">
-                            Domain Specialist
-                          </option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Deep Competency & Intelligence */}
-            {currentStep === 2 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        Deep Competency & Intelligence
-                      </h2>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          The "Superpower" Hierarchy: List 3 skills where you are
-                          in the top 1% globally{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="superpower1"
-                          value={formData.superpower1}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Superpower 1"
-                        />
-                        <input
-                          type="text"
-                          name="superpower2"
-                          value={formData.superpower2}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Superpower 2"
-                        />
-                        <input
-                          type="text"
-                          name="superpower3"
-                          value={formData.superpower3}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Superpower 3"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          Multi-Domain Toolkit: List 5 tools/frameworks you master{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="tool1"
-                          value={formData.tool1}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Tool/Framework 1 (e.g., Python, SAP, Figma)"
-                        />
-                        <input
-                          type="text"
-                          name="tool2"
-                          value={formData.tool2}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Tool/Framework 2"
-                        />
-                        <input
-                          type="text"
-                          name="tool3"
-                          value={formData.tool3}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Tool/Framework 3"
-                        />
-                        <input
-                          type="text"
-                          name="tool4"
-                          value={formData.tool4}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
-                          placeholder="Tool/Framework 4"
-                        />
-                        <input
-                          type="text"
-                          name="tool5"
-                          value={formData.tool5}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Tool/Framework 5"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="domainIQ"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Domain IQ: How do you stay updated in your field?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="domainIQ"
-                          name="domainIQ"
-                          value={formData.domainIQ}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="e.g., Specific newsletters, Peer groups, Research papers"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="antiPortfolio"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The Anti-Portfolio (Crucial): Describe one professional
-                          failure and the specific technical/business lesson you
-                          extracted from it <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="antiPortfolio"
-                          name="antiPortfolio"
-                          value={formData.antiPortfolio}
-                          onChange={handleChange}
-                          rows="4"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe your failure and the lesson learned"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="quantifiableImpact"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Quantifiable Impact: "In my best project, I specifically
-                          generated [X amount of revenue / Y number of users / Z%
-                          efficiency increase]"{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="quantifiableImpact"
-                          name="quantifiableImpact"
-                          value={formData.quantifiableImpact}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe your quantifiable impact"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: The Financial & Time "Stress Test" */}
-            {currentStep === 3 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        The Financial & Time "Stress Test"
-                      </h2>
-
-                      <div>
-                        <label
-                          htmlFor="drySpellRunway"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The "Dry Spell" Runway: How many months can you work for
-                          ₹0 salary if the startup hits a funding delay?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="drySpellRunway"
-                          name="drySpellRunway"
-                          value={formData.drySpellRunway}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="e.g., 3 months, 6 months, 12 months+"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="currentBurnRequirement"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Current Burn Requirement: What is the absolute minimum
-                          monthly survival stipend you need?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="currentBurnRequirement"
-                          name="currentBurnRequirement"
-                          value={formData.currentBurnRequirement}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Enter minimum monthly stipend"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-3">
-                          Bandwidth Reality <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-3">
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="bandwidthReality"
-                              value="side-hustle"
-                              checked={
-                                formData.bandwidthReality === "side-hustle"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              "Side-hustle" (10-20 hrs/week)
-                            </span>
-                          </label>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="bandwidthReality"
-                              value="transitioning"
-                              checked={
-                                formData.bandwidthReality === "transitioning"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              "Transitioning" (Looking to quit current job in
-                              30-60 days)
-                            </span>
-                          </label>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="bandwidthReality"
-                              value="all-in"
-                              checked={formData.bandwidthReality === "all-in"}
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              "All-In" (Ready to start 80 hrs/week tomorrow)
-                            </span>
-                          </label>
                         </div>
-                      </div>
 
-                      <div>
-                        <label
-                          htmlFor="moonlightPolicy"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The "Moonlight" Policy: Will you be working on any other
-                          side-projects or consulting gigs simultaneously?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="moonlightPolicy"
-                          name="moonlightPolicy"
-                          value={formData.moonlightPolicy}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Transparency for trust - describe any side projects or consulting work"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: The Ego & Psychology Match */}
-            {currentStep === 4 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        The Ego & Psychology Match (The Oracle's Core)
-                      </h2>
-
-                      <div>
-                        <label
-                          htmlFor="decisionHierarchy"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Decision Hierarchy: In a 50/50 split, who has the final
-                          say on [Product Design] vs [Business Strategy]?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="decisionHierarchy"
-                          name="decisionHierarchy"
-                          value={formData.decisionHierarchy}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Explain your decision-making approach"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="conflictSimulation"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Conflict Simulation: "We have 1 month of runway left and
-                          no investors. Do we pivot, take a loan, or shut down?"{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="conflictSimulation"
-                          name="conflictSimulation"
-                          value={formData.conflictSimulation}
-                          onChange={handleChange}
-                          rows="4"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe how you would handle this situation"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="feedbackLoop"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The Feedback Loop: How do you prefer to receive
-                          criticism? <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="feedbackLoop"
-                          name="feedbackLoop"
-                          value={formData.feedbackLoop}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
-                        >
-                          <option value="">Select preference</option>
-                          <option value="direct-blunt">Direct/Blunt</option>
-                          <option value="private-constructive">
-                            Private/Constructive
-                          </option>
-                          <option value="data-led">Data-led only</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-3">
-                          Work Environment <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-3">
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="workEnvironment"
-                              value="high-pressure-office"
-                              checked={
-                                formData.workEnvironment ===
-                                "high-pressure-office"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              High-Pressure Office (Face-to-face)
-                            </span>
+                        <div>
+                          <label
+                            htmlFor="linkedin"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            LinkedIn Profile <span className="text-red-500">*</span>
                           </label>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="workEnvironment"
-                              value="deep-work-remote"
-                              checked={
-                                formData.workEnvironment === "deep-work-remote"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              Deep-Work Remote (Asynchronous)
-                            </span>
-                          </label>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="workEnvironment"
-                              value="hybrid"
-                              checked={formData.workEnvironment === "hybrid"}
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              Hybrid (Flexibility is key)
-                            </span>
-                          </label>
+                          <input
+                            type="url"
+                            id="linkedin"
+                            name="linkedin"
+                            value={formData.linkedin}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="https://linkedin.com/in/yourprofile"
+                          />
                         </div>
-                      </div>
 
-                      <div>
-                        <label
-                          htmlFor="riskAppetite"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Risk Appetite: On a scale of 1-10, how comfortable are
-                          you with "breaking things to move fast"?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="number"
-                          id="riskAppetite"
-                          name="riskAppetite"
-                          value={formData.riskAppetite}
-                          onChange={handleChange}
-                          min="1"
-                          max="10"
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="Enter a number between 1-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Ethics & Value Alignment */}
-            {currentStep === 5 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        Ethics & Value Alignment
-                      </h2>
-
-                      <div>
-                        <label
-                          htmlFor="exitVision"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Exit Vision: What is the "Win" for you?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="exitVision"
-                          name="exitVision"
-                          value={formData.exitVision}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
-                        >
-                          <option value="">Select exit vision</option>
-                          <option value="build-to-sell">
-                            Build to sell in 2 years
-                          </option>
-                          <option value="ipo-10-years">IPO in 10 years</option>
-                          <option value="lifestyle-business">
-                            Build a profitable Lifestyle business
-                          </option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="redLine"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The Red Line: What is one industry or business practice
-                          you would NEVER work on for ethical reasons?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="redLine"
-                          name="redLine"
-                          value={formData.redLine}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe your ethical red line"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-3">
-                          Diversity of Thought: Do you prefer a partner who thinks
-                          exactly like you, or someone who constantly challenges
-                          your logic? <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-3">
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="diversityOfThought"
-                              value="thinks-like-me"
-                              checked={
-                                formData.diversityOfThought === "thinks-like-me"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              Prefers partner who thinks exactly like me
-                            </span>
+                        <div>
+                          <label
+                            htmlFor="githubBehance"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            GitHub/Behance Profile
                           </label>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="radio"
-                              name="diversityOfThought"
-                              value="challenges-me"
-                              checked={
-                                formData.diversityOfThought === "challenges-me"
-                              }
-                              onChange={handleChange}
-                              className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-white">
-                              Prefers partner who constantly challenges my logic
-                            </span>
+                          <input
+                            type="url"
+                            id="githubBehance"
+                            name="githubBehance"
+                            value={formData.githubBehance}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="https://github.com/username or https://behance.net/username"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="referenceContact"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Reference Contact (Past colleague or mentor)
                           </label>
+                          <input
+                            type="text"
+                            id="referenceContact"
+                            name="referenceContact"
+                            value={formData.referenceContact}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Name and contact information"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="primaryIdentity"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Primary Identity (Domain Expertise){" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="primaryIdentity"
+                            name="primaryIdentity"
+                            value={formData.primaryIdentity}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          >
+                            <option value="">Select primary identity</option>
+                            <option value="technical">
+                              Technical: Engineering, AI, Hardware, Architecture
+                            </option>
+                            <option value="operations">
+                              Operations: Supply Chain, Manufacturing, Logistics,
+                              Process
+                            </option>
+                            <option value="growth">
+                              Growth: Marketing, Performance Sales, Viral Loops, PR
+                            </option>
+                            <option value="product-design">
+                              Product/Design: UI/UX, Service Design, Industrial
+                              Design
+                            </option>
+                            <option value="strategy-finance">
+                              Strategy/Finance: Fundraising, M&A, Legal, Compliance
+                            </option>
+                            <option value="other">Other</option>
+                          </select>
+                          {formData.primaryIdentity === "other" && (
+                            <input
+                              type="text"
+                              id="primaryIdentityOther"
+                              name="primaryIdentityOther"
+                              value={formData.primaryIdentityOther}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mt-3"
+                              placeholder="Specify your primary identity"
+                            />
+                          )}
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="currentOccupationalStatus"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Current Occupational Status{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="currentOccupationalStatus"
+                            name="currentOccupationalStatus"
+                            value={formData.currentOccupationalStatus}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          >
+                            <option value="">Select status</option>
+                            <option value="full-time-employee">
+                              Full-time Employee
+                            </option>
+                            <option value="student">Student</option>
+                            <option value="freelancer">Freelancer</option>
+                            <option value="full-time-builder">
+                              Full-time Builder
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="pedigreeScore"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The Pedigree Score <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="pedigreeScore"
+                            name="pedigreeScore"
+                            value={formData.pedigreeScore}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          >
+                            <option value="">Select pedigree score</option>
+                            <option value="ex-founder">Ex-Founder</option>
+                            <option value="tier1-alumni">Tier-1 Alumni</option>
+                            <option value="industry-veteran">
+                              Industry Veteran
+                            </option>
+                            <option value="domain-specialist">
+                              Domain Specialist
+                            </option>
+                          </select>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 6: Targeted Requirement Filters */}
-            {currentStep === 6 && (
-              <div className="flex justify-center">
-                <div className="w-[85%]">
-                  <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        Targeted Requirement Filters
-                      </h2>
+              {/* Step 2: Deep Competency & Intelligence */}
+              {currentStep === 2 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          Deep Competency & Intelligence
+                        </h2>
 
-                      <div>
-                        <label
-                          htmlFor="missingHalfProfile"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The "Missing Half" Profile: "I am looking for a Founder
-                          who is [Skillset] because I am [Skillset]"{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="missingHalfProfile"
-                          name="missingHalfProfile"
-                          value={formData.missingHalfProfile}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="e.g., I am looking for a Founder who is a Sales machine because I am a shy Engineer"
-                        />
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">
+                            The "Superpower" Hierarchy: List 3 skills where you are
+                            in the top 1% globally{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="superpower1"
+                            value={formData.superpower1}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Superpower 1"
+                          />
+                          <input
+                            type="text"
+                            name="superpower2"
+                            value={formData.superpower2}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Superpower 2"
+                          />
+                          <input
+                            type="text"
+                            name="superpower3"
+                            value={formData.superpower3}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Superpower 3"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">
+                            Multi-Domain Toolkit: List 5 tools/frameworks you master{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="tool1"
+                            value={formData.tool1}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Tool/Framework 1 (e.g., Python, SAP, Figma)"
+                          />
+                          <input
+                            type="text"
+                            name="tool2"
+                            value={formData.tool2}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Tool/Framework 2"
+                          />
+                          <input
+                            type="text"
+                            name="tool3"
+                            value={formData.tool3}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Tool/Framework 3"
+                          />
+                          <input
+                            type="text"
+                            name="tool4"
+                            value={formData.tool4}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mb-2"
+                            placeholder="Tool/Framework 4"
+                          />
+                          <input
+                            type="text"
+                            name="tool5"
+                            value={formData.tool5}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Tool/Framework 5"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="domainIQ"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Domain IQ: How do you stay updated in your field?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="domainIQ"
+                            name="domainIQ"
+                            value={formData.domainIQ}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="e.g., Specific newsletters, Peer groups, Research papers"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="antiPortfolio"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The Anti-Portfolio (Crucial): Describe one professional
+                            failure and the specific technical/business lesson you
+                            extracted from it <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="antiPortfolio"
+                            name="antiPortfolio"
+                            value={formData.antiPortfolio}
+                            onChange={handleChange}
+                            rows="4"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Describe your failure and the lesson learned"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="quantifiableImpact"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Quantifiable Impact: "In my best project, I specifically
+                            generated [X amount of revenue / Y number of users / Z%
+                            efficiency increase]"{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="quantifiableImpact"
+                            name="quantifiableImpact"
+                            value={formData.quantifiableImpact}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Describe your quantifiable impact"
+                          />
+                        </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-3">
-                          Industry Specificity (Select up to 3)
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {[
-                            "FinTech",
-                            "D2C",
-                            "AgriTech",
-                            "SaaS",
-                            "DeepTech",
-                            "EdTech",
-                            "HealthTech",
-                            "PropTech",
-                            "FoodTech",
-                          ].map((industry) => (
-                            <label
-                              key={industry}
-                              className="flex items-center cursor-pointer"
-                            >
+              {/* Step 3: The Financial & Time "Stress Test" */}
+              {currentStep === 3 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          The Financial & Time "Stress Test"
+                        </h2>
+
+                        <div>
+                          <label
+                            htmlFor="drySpellRunway"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The "Dry Spell" Runway: How many months can you work for
+                            ₹0 salary if the startup hits a funding delay?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="drySpellRunway"
+                            name="drySpellRunway"
+                            value={formData.drySpellRunway}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="e.g., 3 months, 6 months, 12 months+"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="currentBurnRequirement"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Current Burn Requirement: What is the absolute minimum
+                            monthly survival stipend you need?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="currentBurnRequirement"
+                            name="currentBurnRequirement"
+                            value={formData.currentBurnRequirement}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Enter minimum monthly stipend"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-3">
+                            Bandwidth Reality <span className="text-red-500">*</span>
+                          </label>
+                          <div className="space-y-3">
+                            <label className="flex items-center cursor-pointer">
                               <input
-                                type="checkbox"
-                                checked={formData.industrySpecificity.includes(
-                                  industry.toLowerCase(),
-                                )}
-                                onChange={() =>
-                                  handleIndustryChange(industry.toLowerCase())
+                                type="radio"
+                                name="bandwidthReality"
+                                value="side-hustle"
+                                checked={
+                                  formData.bandwidthReality === "side-hustle"
                                 }
-                                disabled={
-                                  formData.industrySpecificity.length >= 3 &&
-                                  !formData.industrySpecificity.includes(
-                                    industry.toLowerCase(),
-                                  )
-                                }
-                                className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
                               />
                               <span className="ml-2 text-sm text-white">
-                                {industry}
+                                "Side-hustle" (10-20 hrs/week)
                               </span>
                             </label>
-                          ))}
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="bandwidthReality"
+                                value="transitioning"
+                                checked={
+                                  formData.bandwidthReality === "transitioning"
+                                }
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                "Transitioning" (Looking to quit current job in
+                                30-60 days)
+                              </span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="bandwidthReality"
+                                value="all-in"
+                                checked={formData.bandwidthReality === "all-in"}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                "All-In" (Ready to start 80 hrs/week tomorrow)
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-300 mt-2">
-                          Selected: {formData.industrySpecificity.length}/3
-                        </p>
-                      </div>
 
-                      <div>
-                        <label
-                          htmlFor="equityMinimum"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Equity Minimum: What is the lowest equity % you would
-                          accept for your "Dream Project"?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="equityMinimum"
-                          name="equityMinimum"
-                          value={formData.equityMinimum}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="e.g., 20%, 30%, 50%"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="vibeKeywords"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          The Vibe Keywords{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="vibeKeywords"
-                          name="vibeKeywords"
-                          value={formData.vibeKeywords}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="e.g., Radical Transparency, Hustle, Intellectual, Chill, Professional"
-                        />
+                        <div>
+                          <label
+                            htmlFor="moonlightPolicy"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The "Moonlight" Policy: Will you be working on any other
+                            side-projects or consulting gigs simultaneously?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="moonlightPolicy"
+                            name="moonlightPolicy"
+                            value={formData.moonlightPolicy}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Transparency for trust - describe any side projects or consulting work"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="px-8 py-3 rounded-lg font-semibold text-lg border-2 border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white transition-all duration-200"
-                >
-                  Back
-                </button>
+              {/* Step 4: The Ego & Psychology Match */}
+              {currentStep === 4 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          The Ego & Psychology Match (The Oracle's Core)
+                        </h2>
+
+                        <div>
+                          <label
+                            htmlFor="decisionHierarchy"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Decision Hierarchy: In a 50/50 split, who has the final
+                            say on [Product Design] vs [Business Strategy]?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="decisionHierarchy"
+                            name="decisionHierarchy"
+                            value={formData.decisionHierarchy}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Explain your decision-making approach"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="conflictSimulation"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Conflict Simulation: "We have 1 month of runway left and
+                            no investors. Do we pivot, take a loan, or shut down?"{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="conflictSimulation"
+                            name="conflictSimulation"
+                            value={formData.conflictSimulation}
+                            onChange={handleChange}
+                            rows="4"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Describe how you would handle this situation"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="feedbackLoop"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The Feedback Loop: How do you prefer to receive
+                            criticism? <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="feedbackLoop"
+                            name="feedbackLoop"
+                            value={formData.feedbackLoop}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          >
+                            <option value="">Select preference</option>
+                            <option value="direct-blunt">Direct/Blunt</option>
+                            <option value="private-constructive">
+                              Private/Constructive
+                            </option>
+                            <option value="data-led">Data-led only</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-3">
+                            Work Environment <span className="text-red-500">*</span>
+                          </label>
+                          <div className="space-y-3">
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="workEnvironment"
+                                value="high-pressure-office"
+                                checked={
+                                  formData.workEnvironment ===
+                                  "high-pressure-office"
+                                }
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                High-Pressure Office (Face-to-face)
+                              </span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="workEnvironment"
+                                value="deep-work-remote"
+                                checked={
+                                  formData.workEnvironment === "deep-work-remote"
+                                }
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                Deep-Work Remote (Asynchronous)
+                              </span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="workEnvironment"
+                                value="hybrid"
+                                checked={formData.workEnvironment === "hybrid"}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                Hybrid (Flexibility is key)
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="riskAppetite"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Risk Appetite: On a scale of 1-10, how comfortable are
+                            you with "breaking things to move fast"?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="riskAppetite"
+                            name="riskAppetite"
+                            value={formData.riskAppetite}
+                            onChange={handleChange}
+                            min="1"
+                            max="10"
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="Enter a number between 1-10"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
-              <div className="flex-1"></div>
-              {currentStep < 6 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] bg-blue-500 hover:bg-blue-600"
-                >
-                  Save and Next
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600"
-                >
-                  {loading ? "Saving..." : "Save Details"}
-                </button>
+
+              {/* Step 5: Ethics & Value Alignment */}
+              {currentStep === 5 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          Ethics & Value Alignment
+                        </h2>
+
+                        <div>
+                          <label
+                            htmlFor="exitVision"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Exit Vision: What is the "Win" for you?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="exitVision"
+                            name="exitVision"
+                            value={formData.exitVision}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-800/50 text-white cursor-pointer text-sm"
+                          >
+                            <option value="">Select exit vision</option>
+                            <option value="build-to-sell">
+                              Build to sell in 2 years
+                            </option>
+                            <option value="ipo-10-years">IPO in 10 years</option>
+                            <option value="lifestyle-business">
+                              Build a profitable Lifestyle business
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="redLine"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The Red Line: What is one industry or business practice
+                            you would NEVER work on for ethical reasons?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="redLine"
+                            name="redLine"
+                            value={formData.redLine}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="Describe your ethical red line"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-3">
+                            Diversity of Thought: Do you prefer a partner who thinks
+                            exactly like you, or someone who constantly challenges
+                            your logic? <span className="text-red-500">*</span>
+                          </label>
+                          <div className="space-y-3">
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="diversityOfThought"
+                                value="thinks-like-me"
+                                checked={
+                                  formData.diversityOfThought === "thinks-like-me"
+                                }
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                Prefers partner who thinks exactly like me
+                              </span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="diversityOfThought"
+                                value="challenges-me"
+                                checked={
+                                  formData.diversityOfThought === "challenges-me"
+                                }
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                              />
+                              <span className="ml-2 text-sm text-white">
+                                Prefers partner who constantly challenges my logic
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
-            </div>
-          </form>
-        </div>
+
+              {/* Step 6: Targeted Requirement Filters */}
+              {currentStep === 6 && (
+                <div className="flex justify-center">
+                  <div className="w-[85%]">
+                    <div
+                      className="rounded-lg p-[2px] transition-all duration-300"
+                      style={gradientBlue}
+                    >
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
+                          Targeted Requirement Filters
+                        </h2>
+
+                        <div>
+                          <label
+                            htmlFor="missingHalfProfile"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The "Missing Half" Profile: "I am looking for a Founder
+                            who is [Skillset] because I am [Skillset]"{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="missingHalfProfile"
+                            name="missingHalfProfile"
+                            value={formData.missingHalfProfile}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                            placeholder="e.g., I am looking for a Founder who is a Sales machine because I am a shy Engineer"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-3">
+                            Industry Specificity (Select up to 3)
+                          </label>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              "FinTech",
+                              "D2C",
+                              "AgriTech",
+                              "SaaS",
+                              "DeepTech",
+                              "EdTech",
+                              "HealthTech",
+                              "PropTech",
+                              "FoodTech",
+                            ].map((industry) => (
+                              <label
+                                key={industry}
+                                className="flex items-center cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={formData.industrySpecificity.includes(
+                                    industry.toLowerCase(),
+                                  )}
+                                  onChange={() =>
+                                    handleIndustryChange(industry.toLowerCase())
+                                  }
+                                  disabled={
+                                    formData.industrySpecificity.length >= 3 &&
+                                    !formData.industrySpecificity.includes(
+                                      industry.toLowerCase(),
+                                    )
+                                  }
+                                  className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
+                                />
+                                <span className="ml-2 text-sm text-white">
+                                  {industry}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-300 mt-2">
+                            Selected: {formData.industrySpecificity.length}/3
+                          </p>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="equityMinimum"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            Equity Minimum: What is the lowest equity % you would
+                            accept for your "Dream Project"?{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="equityMinimum"
+                            name="equityMinimum"
+                            value={formData.equityMinimum}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="e.g., 20%, 30%, 50%"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="vibeKeywords"
+                            className="block text-sm font-medium text-white mb-2"
+                          >
+                            The Vibe Keywords{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="vibeKeywords"
+                            name="vibeKeywords"
+                            value={formData.vibeKeywords}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="e.g., Radical Transparency, Hustle, Intellectual, Chill, Professional"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-6">
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-8 py-3 rounded-lg font-semibold text-lg border-2 border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white transition-all duration-200"
+                  >
+                    Back
+                  </button>
+                )}
+                <div className="flex-1"></div>
+                {currentStep < 6 ? (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] bg-blue-500 hover:bg-blue-600"
+                  >
+                    Save and Next
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600"
+                  >
+                    {loading ? "Saving..." : "Save Details"}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

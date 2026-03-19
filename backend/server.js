@@ -26,9 +26,9 @@ app.use(
     saveUninitialized: true, // Force session to be saved
     name: "foundu_sid", // Custom name to avoid conflicts
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000,
       secure: false, // Must be false for localhost HTTP
-      sameSite: 'lax' 
+      sameSite: "lax",
     },
   }),
 );
@@ -56,6 +56,7 @@ const jobApplicantsRoutes = require("./routes/jobApplicantsRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const ideaRoutes = require("./routes/ideaRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -89,6 +90,7 @@ app.use("/api", jobApplicantsRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api", ideaRoutes);
 
 /* =========================
    HEALTH CHECK

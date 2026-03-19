@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight } from 'lucide-react';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -130,8 +131,6 @@ function HomePage() {
 
   // Trusted By Section (Blue to Black)
   const TrustedBy = () => {
-    const [hoveredRow1, setHoveredRow1] = useState(false);
-    const [hoveredRow2, setHoveredRow2] = useState(false);
 
     const logos = [
       { name: "Google", logo: "G" },
@@ -154,154 +153,193 @@ function HomePage() {
 
         <div className="relative">
           {/* Row 1 - Left to Right */}
-          <div
-            className={`flex gap-8 mb-4 ${hoveredRow1 ? "animate-none" : "animate-scroll-right"}`}
-            onMouseEnter={() => setHoveredRow1(true)}
-            onMouseLeave={() => setHoveredRow1(false)}
-          >
-            {logos.map((company, idx) => (
-              <div
-                key={`row1-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-              >
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    {company.logo}
+          <div className="flex w-max mb-4 animate-scroll-right hover:[animation-play-state:paused]">
+            <div className="flex shrink-0 gap-8 pr-8">
+              {logos.map((company, idx) => (
+                <div
+                  key={`row1-${idx}`}
+                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                >
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-white mb-2">
+                      {company.logo}
+                    </div>
+                    <div className="text-gray-300 text-sm">{company.name}</div>
                   </div>
-                  <div className="text-gray-300 text-sm">{company.name}</div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
             {/* Duplicate for seamless loop */}
-            {logos.map((company, idx) => (
-              <div
-                key={`row1-dup-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-              >
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-white mb-2">
-                    {company.logo}
+            <div className="flex shrink-0 gap-8 pr-8">
+              {logos.map((company, idx) => (
+                <div
+                  key={`row1-dup-${idx}`}
+                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                >
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-white mb-2">
+                      {company.logo}
+                    </div>
+                    <div className="text-gray-300 text-sm">{company.name}</div>
                   </div>
-                  <div className="text-gray-300 text-sm">{company.name}</div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Row 2 - Right to Left */}
-          <div
-            className={`flex gap-8 ${hoveredRow2 ? "animate-none" : "animate-scroll-left"}`}
-            onMouseEnter={() => setHoveredRow2(true)}
-            onMouseLeave={() => setHoveredRow2(false)}
-          >
-            {logos
-              .slice()
-              .reverse()
-              .map((company, idx) => (
-                <div
-                  key={`row2-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-                >
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.logo}
+          <div className="flex w-max animate-scroll-left hover:[animation-play-state:paused]">
+            <div className="flex shrink-0 gap-8 pr-8">
+              {logos
+                .slice()
+                .reverse()
+                .map((company, idx) => (
+                  <div
+                    key={`row2-${idx}`}
+                    className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-white mb-2">
+                        {company.logo}
+                      </div>
+                      <div className="text-gray-300 text-sm">{company.name}</div>
                     </div>
-                    <div className="text-gray-300 text-sm">{company.name}</div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
             {/* Duplicate for seamless loop */}
-            {logos
-              .slice()
-              .reverse()
-              .map((company, idx) => (
-                <div
-                  key={`row2-dup-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-                >
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.logo}
+            <div className="flex shrink-0 gap-8 pr-8">
+              {logos
+                .slice()
+                .reverse()
+                .map((company, idx) => (
+                  <div
+                    key={`row2-dup-${idx}`}
+                    className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-white mb-2">
+                        {company.logo}
+                      </div>
+                      <div className="text-gray-300 text-sm">{company.name}</div>
                     </div>
-                    <div className="text-gray-300 text-sm">{company.name}</div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         </div>
       </section>
     );
   };
 
-  // Users We Cater Section (Black to Blue)
+  // Users We Cater Section (Blue to Black)
   const UsersWeCater = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const userTypes = [
+      {
+        title: "Startups",
+        description: "Find the perfect co-founders and freelancers to bring your vision to life with AI-driven talent acquisition.",
+        icon: <Rocket className="w-8 h-8" />,
+        accentClass: "blue",
+        bgColor: "from-blue-600/20 to-blue-900/10",
+        borderColor: "border-blue-500/30",
+        hoverBorder: "hover:border-blue-400",
+        btnColor: "bg-blue-600 hover:bg-blue-500",
+        shadowColor: "group-hover:shadow-blue-500/20",
+        iconContainer: "bg-blue-500/20 text-blue-300 border-blue-500/30 shadow-blue-500/10",
+        titleGradient: "group-hover:from-white group-hover:to-blue-200",
+        glowColor: "group-hover:bg-blue-500/20",
+        buttonText: "Add a New Job",
+        route: "/login-signup"
+      },
+      {
+        title: "Freelancers",
+        description: "Discover exciting projects and collaborate with innovative startups on projects that matter.",
+        icon: <Search className="w-8 h-8" />,
+        accentClass: "indigo",
+        bgColor: "from-indigo-600/20 to-indigo-900/10",
+        borderColor: "border-indigo-500/30",
+        hoverBorder: "hover:border-indigo-400",
+        btnColor: "bg-indigo-600 hover:bg-indigo-500",
+        shadowColor: "group-hover:shadow-indigo-500/20",
+        iconContainer: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 shadow-indigo-500/10",
+        titleGradient: "group-hover:from-white group-hover:to-indigo-200",
+        glowColor: "group-hover:bg-indigo-500/20",
+        buttonText: "View Jobs",
+        route: "/freelancer-jobs"
+      },
+      {
+        title: "Co-founders",
+        description: "Connect with startups looking for your unique skills and shared passion to build something great.",
+        icon: <Handshake className="w-8 h-8" />,
+        accentClass: "purple",
+        bgColor: "from-purple-600/20 to-purple-900/10",
+        borderColor: "border-purple-500/30",
+        hoverBorder: "hover:border-purple-400",
+        btnColor: "bg-purple-600 hover:bg-purple-500",
+        shadowColor: "group-hover:shadow-purple-500/20",
+        iconContainer: "bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-purple-500/10",
+        titleGradient: "group-hover:from-white group-hover:to-purple-200",
+        glowColor: "group-hover:bg-purple-500/20",
+        buttonText: "View Jobs",
+        route: "/cofounder-jobs"
+      },
+    ];
 
-  const userTypes = [
-    {
-      title: "Startups",
-      description: "Find the perfect co-founders and freelancers to bring your vision to life",
-      bgColor: "bg-blue-600/20",
-      borderColor: "border-blue-400",
-      textColor: "text-blue-300",
-      buttonText: "Add a New Job",
-      buttonColor: "bg-blue-500 hover:bg-blue-600",
-      route: "/login-signup"
-    },
-    {
-      title: "Freelancers",
-      description: "Discover exciting projects and collaborate with innovative startups",
-      bgColor: "bg-indigo-600/20",
-      borderColor: "border-indigo-400",
-      textColor: "text-indigo-300",
-      buttonText: "View Jobs",
-      buttonColor: "bg-indigo-500 hover:bg-indigo-600",
-      route: "/freelancer-jobs"
-    },
-    {
-      title: "Co-founders",
-      description: "Connect with startups looking for your skills and expertise to grow",
-      bgColor: "bg-purple-600/20",
-      borderColor: "border-purple-400",
-      textColor: "text-purple-300",
-      buttonText: "View Jobs",
-      buttonColor: "bg-purple-500 hover:bg-purple-600",
-      route: "/cofounder-jobs"
-    },
-  ];
+    return (
+      <section className="py-40 px-4 relative overflow-hidden" style={gradientBlackToBlue}>
+        {/* Background Ambient Effects */}
+        <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-  return (
-    <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
-      <h2 className="text-center text-4xl md:text-6xl font-bold mb-16 relative z-10">
-        <span className="text-white">TYPES OF USERS </span>
-        <span className="text-blue-300">WE CATER</span>
-      </h2>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {userTypes.map((userType, index) => (
-            <div
-              key={index}
-              className={`${userType.bgColor} backdrop-blur-sm border-2 ${userType.borderColor} rounded-xl p-8 h-full transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col`}
-            >
-              <h3 className={`text-3xl font-bold mb-4 ${userType.textColor}`}>
-                {userType.title}
-              </h3>
-              <p className="text-gray-300 text-lg leading-relaxed mb-6 flex-grow">
-                {userType.description}
-              </p>
-              <button
-                onClick={() => navigate(userType.route)}
-                className={`${userType.buttonColor} text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg w-full`}
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col items-center mb-20">
+            <h2 className="text-center text-4xl md:text-7xl font-bold mb-6">
+              <span className="text-white">TYPES OF USERS </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">WE CATER</span>
+            </h2>
+            <div className="h-1.5 w-24 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {userTypes.map((type, index) => (
+              <div
+                key={index}
+                className={`group relative bg-gradient-to-b ${type.bgColor} backdrop-blur-xl border ${type.borderColor} ${type.hoverBorder} rounded-3xl p-10 h-full transition-all duration-500 hover:-translate-y-4 hover:shadow-2xl ${type.shadowColor} flex flex-col items-start`}
               >
-                {userType.buttonText}
-              </button>
-            </div>
-          ))}
+                {/* Icon Circle */}
+                <div className={`w-16 h-16 rounded-2xl ${type.iconContainer} flex items-center justify-center mb-8 border group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg`}>
+                  {type.icon}
+                </div>
+
+                <h3 className={`text-3xl font-bold text-white mb-6 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r ${type.titleGradient} transition-all duration-300`}>
+                  {type.title}
+                </h3>
+
+                <p className="text-gray-300 text-lg leading-relaxed mb-10 flex-grow font-light">
+                  {type.description}
+                </p>
+
+                <button
+                  onClick={() => navigate(type.route)}
+                  className={`${type.btnColor} text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 transform group-hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2 group/btn w-full justify-center overflow-hidden relative`}
+                >
+                  <span className="relative z-10">{type.buttonText}</span>
+                  <Zap className="w-4 h-4 relative z-10 group-hover/btn:translate-x-1 transition-transform" />
+                  
+                  {/* Button Shine Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </button>
+                
+                {/* Decorative Elements */}
+                <div className={`absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl ${type.glowColor} transition-all duration-500`}></div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 
   // Steps Section (Blue to Black - alternating from previous)
@@ -415,59 +453,59 @@ function HomePage() {
     );
   };
 
-  // What You Are Looking For Section (Blue to Black) - Before Numbers
-  const WhatYouLookingFor = () => {
-    const topics = [
-      { text: "AI content", highlighted: false },
-      { text: "Video editing", highlighted: false },
-      { text: "AI product ads", highlighted: true },
-      { text: "Designing", highlighted: false },
-      { text: "Content", highlighted: true },
-      { text: "AI agents", highlighted: false },
-      { text: "And Many More", highlighted: true },
-    ];
-
+  // What is Foundu Section
+  const WhatIsFoundu = () => {
+    const navigate = useNavigate();
     return (
       <section
-        className="py-32 px-4 relative min-h-screen flex items-center"
-        style={gradientBlackToBlue}
+        className="py-32 px-4 relative min-h-screen flex items-center overflow-hidden"
+        style={gradientBlueToBlack}
       >
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto w-full relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Image placeholder */}
+            {/* Left side - Visual placeholder */}
             <div className="hidden lg:block">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-blue-700/50">
-                <div className="w-full h-96 bg-gradient-to-br from-blue-900/50 to-gray-800/50 rounded-xl flex items-center justify-center">
-                  <span className="text-6xl">👨‍💻</span>
+              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-blue-700/50 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-hover:bg-blue-500/15 transition-all duration-700"></div>
+                <div className="w-full h-96 bg-gradient-to-br from-blue-900/40 to-gray-800/40 rounded-xl flex items-center justify-center relative z-10 border border-white/5 shadow-2xl">
+                  <div className="relative">
+                    <div className="absolute -inset-8 bg-blue-500/20 blur-3xl rounded-full animate-pulse"></div>
+                    <Rocket className="w-32 h-32 text-blue-300 relative z-10 transform -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Right side - Content */}
-            <div>
-              <h2 className="text-5xl md:text-7xl font-bold mb-12 leading-tight">
-                <span className="text-white">WHAT YOU ARE </span>
-                <span className="text-blue-300">LOOKING FOR</span>
-                <span className="text-white"> ?</span>
+            <div className="relative">
+              <h2 className="text-5xl md:text-7xl font-bold mb-10 leading-tight">
+                <span className="text-white">WHAT IS </span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">FOUNDU</span>
+                <span className="text-white">?</span>
               </h2>
-
-              {/* Topic Bubbles */}
-              <div className="relative">
-                <div className="flex flex-wrap gap-4 items-center">
-                  {topics.map((topic, index) => (
-                    <button
-                      key={index}
-                      className={`px-6 py-3 rounded-full font-medium text-lg transition-all duration-300 transform hover:scale-110 ${
-                        topic.highlighted
-                          ? "bg-blue-400 text-white shadow-lg shadow-blue-400/50"
-                          : "bg-gray-800/50 text-gray-300 border border-blue-700/50 hover:border-blue-400"
-                      }`}
-                    >
-                      {topic.text}
-                    </button>
-                  ))}
-                </div>
+              
+              <div className="space-y-6 mb-12">
+                <p className="text-gray-200 text-xl md:text-2xl leading-relaxed font-light">
+                  Foundu is the premier AI-driven ecosystem where innovation meets execution.
+                </p>
+                <p className="text-gray-400 text-lg md:text-xl leading-relaxed font-light">
+                  We bridge the gap between ambitious startups and elite talent, using advanced matching technology to build teams that win.
+                </p>
               </div>
+
+              <button 
+                onClick={() => navigate('/about-details')}
+                className="group relative px-10 py-5 bg-blue-600 rounded-2xl font-bold text-white overflow-hidden transition-all duration-500 hover:scale-105 hover:bg-blue-500 shadow-2xl shadow-blue-500/30 active:scale-95"
+              >
+                <span className="relative z-10 flex items-center gap-3 text-lg">
+                  Learn More
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-500" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              </button>
             </div>
           </div>
         </div>
@@ -480,12 +518,12 @@ function HomePage() {
     const stats = [
       { number: 1506, suffix: "+", label: "Startups" },
       { number: 9692, suffix: "+", label: "Freelancers" },
-      { number: 245, suffix: "+", label: "Gigs Published" },
+      { number: 245, suffix: "+", label: "Co-Founders" },
       { number: 98, suffix: "%", label: "Match Accuracy" },
     ];
 
     return (
-      <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
+      <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
         <h2 className="text-center text-4xl md:text-6xl font-bold mb-4 relative z-10">
           <span className="text-white">OUR </span>
           <span className="text-blue-300">ACHIEVEMENT</span>
@@ -521,8 +559,6 @@ function HomePage() {
 
   // Testimonials Section (Blue to Black)
   const Testimonials = () => {
-    const [hoveredIndex, setHoveredIndex] = useState(null);
-    const [isAnyHovered, setIsAnyHovered] = useState(false);
 
     const testimonials = [
       {
@@ -570,76 +606,70 @@ function HomePage() {
             through our AI-powered matching platform.
           </p>
 
-          <div
-            className={`flex gap-6 ${isAnyHovered ? "animate-none" : "animate-scroll-right"}`}
-            onMouseLeave={() => {
-              setIsAnyHovered(false);
-              setHoveredIndex(null);
-            }}
-          >
-            {testimonials.map((testimonial, idx) => (
-              <div
-                key={idx}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all"
-                onMouseEnter={() => {
-                  setIsAnyHovered(true);
-                  setHoveredIndex(idx);
-                }}
-              >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold">
-                      {testimonial.name}
+          <div className="flex w-max animate-scroll-right hover:[animation-play-state:paused]">
+            <div className="flex shrink-0 gap-6 pr-6">
+              {testimonials.map((testimonial, idx) => (
+                <div
+                  key={idx}
+                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">
+                      {testimonial.name.charAt(0)}
                     </div>
-                    <div className="text-gray-300 text-sm">
-                      {testimonial.affiliation}
+                    <div>
+                      <div className="text-white font-semibold">
+                        {testimonial.name}
+                      </div>
+                      <div className="text-gray-300 text-sm">
+                        {testimonial.affiliation}
+                      </div>
                     </div>
                   </div>
+                  <div className="flex mb-3">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <span key={i} className="text-yellow-400">
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-white mb-3">{testimonial.review}</p>
+                  <p className="text-blue-300 text-sm">{testimonial.tagline}</p>
                 </div>
-                <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <span key={i} className="text-yellow-400">
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <p className="text-white mb-3">{testimonial.review}</p>
-                <p className="text-blue-300 text-sm">{testimonial.tagline}</p>
-              </div>
-            ))}
+              ))}
+            </div>
             {/* Duplicate for seamless loop */}
-            {testimonials.map((testimonial, idx) => (
-              <div
-                key={`dup-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all"
-              >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold">
-                      {testimonial.name}
+            <div className="flex shrink-0 gap-6 pr-6">
+              {testimonials.map((testimonial, idx) => (
+                <div
+                  key={`dup-${idx}`}
+                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3">
+                      {testimonial.name.charAt(0)}
                     </div>
-                    <div className="text-gray-300 text-sm">
-                      {testimonial.affiliation}
+                    <div>
+                      <div className="text-white font-semibold">
+                        {testimonial.name}
+                      </div>
+                      <div className="text-gray-300 text-sm">
+                        {testimonial.affiliation}
+                      </div>
                     </div>
                   </div>
+                  <div className="flex mb-3">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <span key={i} className="text-yellow-400">
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-white mb-3">{testimonial.review}</p>
+                  <p className="text-blue-300 text-sm">{testimonial.tagline}</p>
                 </div>
-                <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <span key={i} className="text-yellow-400">
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <p className="text-white mb-3">{testimonial.review}</p>
-                <p className="text-blue-300 text-sm">{testimonial.tagline}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -652,11 +682,11 @@ function HomePage() {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
-      <TrustedBy />
+      <WhatIsFoundu />
       <UsersWeCater />
       <StepsSection />
-      <WhatYouLookingFor />
       <NumbersSection />
+      <TrustedBy />
       <Testimonials />
       <Footer />
     </div>

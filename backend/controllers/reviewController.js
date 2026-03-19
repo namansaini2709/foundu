@@ -34,7 +34,7 @@ exports.createReview = (req, res) => {
         cofounder_id = user_id;
       } else {
         return res.status(400).json({
-          message: "Reviews are allowed only for freelancers or cofounders"
+          message: "Reviews are allowed only for freelancers or cofounders",
         });
       }
 
@@ -43,28 +43,20 @@ exports.createReview = (req, res) => {
         `INSERT INTO reviews 
          (user_id, reviewer_id, freelancer_id, cofounder_id, review_text, stars)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          user_id,
-          reviewer_id,
-          freelancer_id,
-          cofounder_id,
-          review_text,
-          stars
-        ],
+        [user_id, reviewer_id, freelancer_id, cofounder_id, review_text, stars],
         (err, result) => {
           if (err) return res.status(500).json({ error: err.message });
 
           res.json({
             success: true,
             message: "Review added successfully",
-            review_id: result.insertId
+            review_id: result.insertId,
           });
-        }
+        },
       );
-    }
+    },
   );
 };
-
 
 /* GET REVIEWS BY USER ID */
 exports.getReviewsByUserId = (req, res) => {
@@ -116,14 +108,15 @@ exports.recalculateCredibility = (req, res) => {
 
   db.query(userQuery, [user_id], (err, userRows) => {
     if (err) return res.status(500).json({ error: err.message });
-    if (!userRows.length) return res.status(404).json({ message: "User not found" });
+    if (!userRows.length)
+      return res.status(404).json({ message: "User not found" });
 
-    const { 
-      blue_tick_verified, 
-      green_tick_verified, 
-      golden_tick_verified, 
-      avg_stars, 
-      review_count 
+    const {
+      blue_tick_verified,
+      green_tick_verified,
+      golden_tick_verified,
+      avg_stars,
+      review_count,
     } = userRows[0];
 
     // Fetch all review texts for AI analysis
@@ -133,13 +126,15 @@ exports.recalculateCredibility = (req, res) => {
       async (err, reviews) => {
         if (err) return res.status(500).json({ error: err.message });
 
-        let aiAnalysis = { qualityScore: 50, summary: "No reviews to analyze." };
+        let aiAnalysis = {
+          qualityScore: 50,
+          summary: "No reviews to analyze.",
+        };
         if (reviews.length > 0) {
           aiAnalysis = await geminiService.analyzeReviews(reviews);
         }
 
         /* ── CALCULATE SCORE (45/45/10) ── */
-        
         // 1. Rating Stars (45 pts max)
         const starScore = avg_stars ? (avg_stars / 5) * 45 : 0;
 
@@ -150,48 +145,54 @@ exports.recalculateCredibility = (req, res) => {
         const reviewScore = qualityWeight + countBonus;
 
         // 3. Badges (10 pts max)
-        const blueBonus   = blue_tick_verified   ? 4 : 0;
-        const greenBonus  = green_tick_verified  ? 3 : 0;
+        const blueBonus = blue_tick_verified ? 4 : 0;
+        const greenBonus = green_tick_verified ? 3 : 0;
         const goldenBonus = golden_tick_verified ? 3 : 0;
-        const badgeScore  = blueBonus + greenBonus + goldenBonus;
+        const badgeScore = blueBonus + greenBonus + goldenBonus;
 
         const totalScore = Math.round(starScore + reviewScore + badgeScore);
         const finalScore = Math.min(Math.max(totalScore, 0), 100);
 
-        // Determine Badge
-        let badge = 'Growing';
-        if (finalScore >= 90) badge = 'Exceptional';
-        else if (finalScore >= 85) badge = 'Excellent';
-        else if (finalScore >= 80) badge = 'Very Good';
+        // Determine Badge ENUM: '90-95', '85-90', '80-85', 'below-80'
+        let badgeValue = "below-80";
+        if (finalScore >= 90) badgeValue = "90-95";
+        else if (finalScore >= 85) badgeValue = "85-90";
+        else if (finalScore >= 80) badgeValue = "80-85";
 
-        // Return results directly (No DB save as requested - Option B)
-        res.json({
-          success: true,
-          credibility_score: finalScore,
-          badge,
-          avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : '0.0',
-          review_count,
-          ai_summary: aiAnalysis.summary,
-          breakdown: {
-            stars: Math.round(starScore),
-            reviews: Math.round(reviewScore),
-            badges: badgeScore
-          }
-        });
-      }
+        // UPDATE users table with score and badge
+        db.query(
+          "UPDATE users SET credibility_score = ?, credibility_badge = ? WHERE id = ?",
+          [finalScore, badgeValue, user_id],
+          (updateErr) => {
+            if (updateErr)
+              console.error("Error updating user credibility:", updateErr);
+
+            res.json({
+              success: true,
+              credibility_score: finalScore,
+              badge: badgeValue,
+              avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : "0.0",
+              review_count,
+              ai_summary: aiAnalysis.summary,
+              breakdown: {
+                stars: Math.round(starScore),
+                reviews: Math.round(reviewScore),
+                badges: badgeScore,
+              },
+            });
+          },
+        );
+      },
     );
   });
 };
 
 /* GET ALL REVIEWS */
 exports.getAllReviews = (req, res) => {
-  db.query(
-    "SELECT * FROM reviews ORDER BY created_at DESC",
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    }
-  );
+  db.query("SELECT * FROM reviews ORDER BY created_at DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 };
 
 /* GET REVIEW BY ID */
@@ -205,7 +206,7 @@ exports.getReviewById = (req, res) => {
         return res.status(404).json({ message: "Review not found" });
 
       res.json(rows[0]);
-    }
+    },
   );
 };
 
@@ -220,6 +221,6 @@ exports.deleteReview = (req, res) => {
         return res.status(404).json({ message: "Review not found" });
 
       res.json({ success: true, message: "Review deleted" });
-    }
+    },
   );
 };

@@ -169,7 +169,7 @@ exports.updateApplicantStatus = (req, res) => {
       }
 
       // ── TRIGGER GREEN TICK EVALUATION ──
-      if (status === "completed") {
+      if (status === "accepted" || status === "completed") {
         badgeService.evaluateGreenTick(user_id);
       }
 

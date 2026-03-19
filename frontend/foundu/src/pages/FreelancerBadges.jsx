@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { X, Loader2, TrendingUp, Star, CheckCircle } from "lucide-react";
-import blueBadge from "../assets/blue-badge.jpg";
-import greenBadge from "../assets/green-badge.jpg";
-import goldenBadge from "../assets/golden.jpg";
-import red1 from "../assets/red1.jpeg";
-import red2 from "../assets/red2.jpeg";
-import red3 from "../assets/red3.jpeg";
-import red4 from "../assets/red4.jpeg";
+import blueBadge from "../assets/bluebadge.png";
+import greenBadge from "../assets/greenbadge.png";
+import goldenBadge from "../assets/goldenbadge.png";
+import red1 from "../assets/9095.png";
+import red2 from "../assets/8590.png";
+import red3 from "../assets/8085.png";
+import red4 from "../assets/below80.png";
 
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -422,10 +422,11 @@ const FreelancerBadges = () => {
                 color: "text-red-300",
                 bgGradient: "bg-red-500/15",
                 border: "border-red-400/40",
-                criteria: "Maintains an exceptional 4.9+ average rating across 50+ thoroughly verified client reviews on FoundU.",
+                criteria:
+                  "Maintains an exceptional 4.9+ average rating across 50+ thoroughly verified client reviews on FoundU.",
                 perks: "Top 1% Search Ranking",
                 icon: red1,
-                iconBorder: "border-red-300"
+                iconBorder: "border-red-300",
               },
               {
                 range: "85-90",
@@ -433,10 +434,11 @@ const FreelancerBadges = () => {
                 color: "text-red-400",
                 bgGradient: "bg-red-600/15",
                 border: "border-red-500/40",
-                criteria: "Maintains an excellent 4.7+ average rating across 30+ verified client reviews on FoundU.",
+                criteria:
+                  "Maintains an excellent 4.7+ average rating across 30+ verified client reviews on FoundU.",
                 perks: "Highlighted Profile",
                 icon: red2,
-                iconBorder: "border-red-400"
+                iconBorder: "border-red-400",
               },
               {
                 range: "80-85",
@@ -444,10 +446,11 @@ const FreelancerBadges = () => {
                 color: "text-red-500",
                 bgGradient: "bg-red-700/15",
                 border: "border-red-600/40",
-                criteria: "Maintains a very good 4.5+ average rating across 15+ verified client reviews on FoundU.",
+                criteria:
+                  "Maintains a very good 4.5+ average rating across 15+ verified client reviews on FoundU.",
                 perks: "Verified Status",
                 icon: red3,
-                iconBorder: "border-red-500"
+                iconBorder: "border-red-500",
               },
               {
                 range: "Below 80",
@@ -455,10 +458,11 @@ const FreelancerBadges = () => {
                 color: "text-red-600",
                 bgGradient: "bg-red-800/15",
                 border: "border-red-700/40",
-                criteria: "Maintains a solid 4.0+ average rating across 5+ verified client reviews on FoundU.",
+                criteria:
+                  "Maintains a solid 4.0+ average rating across 5+ verified client reviews on FoundU.",
                 perks: "Standard Access",
                 icon: red4,
-                iconBorder: "border-red-600"
+                iconBorder: "border-red-600",
               },
             ].map((item, index) => (
               <div
@@ -469,7 +473,11 @@ const FreelancerBadges = () => {
                   <div
                     className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${item.iconBorder}`}
                   >
-                    <img src={item.icon} alt="Credibility Red Badge" className="w-full h-full object-cover" />
+                    <img
+                      src={item.icon}
+                      alt="Credibility Red Badge"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </div>
                 <div className="flex-grow flex flex-col md:flex-row justify-between items-center gap-4 w-full">
@@ -505,7 +513,7 @@ const FreelancerBadges = () => {
                     disabled
                     className="bg-gray-700/40 border border-gray-600/40 text-gray-400 px-6 py-3 rounded-lg font-semibold cursor-not-allowed text-sm whitespace-nowrap"
                   >
-                    🤖 Auto-Awarded
+                    Auto-Awarded
                   </button>
                 </div>
               </div>

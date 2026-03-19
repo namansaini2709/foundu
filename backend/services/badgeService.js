@@ -23,24 +23,27 @@ exports.isEligibleForBlueTick = (user_id, callback) => {
             type === "freelancer" &&
             s.linkedin_url &&
             (s.github_url || s.portfolio_url)
-          ) return callback(true);
+          )
+            return callback(true);
 
           if (
             type === "founder" &&
             s.company_linkedin_url &&
             s.company_registration_number
-          ) return callback(true);
+          )
+            return callback(true);
 
           if (
             type === "cofounder" &&
             s.linkedin_url &&
             (s.portfolio_url || s.past_work_proof)
-          ) return callback(true);
+          )
+            return callback(true);
 
           callback(false);
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -59,16 +62,16 @@ exports.evaluateGreenTick = (user_id) => {
       // ── FREELANCERS & CO-FOUNDERS: Completed Jobs ──
       if (type === "freelancer" || type === "cofounder") {
         db.query(
-          "SELECT COUNT(*) as cnt FROM job_applicants WHERE user_id = ? AND status='completed'",
+          "SELECT COUNT(*) as cnt FROM job_applicants WHERE user_id = ? AND status IN ('accepted', 'completed')",
           [user_id],
           (err, res) => {
-            if (!err && res[0].cnt >= 3) {
+            if (!err && res[0].cnt >= 1) {
               db.query(
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
-                [user_id]
+                [user_id],
               );
             }
-          }
+          },
         );
       }
 
@@ -78,16 +81,16 @@ exports.evaluateGreenTick = (user_id) => {
           "SELECT COUNT(*) as cnt FROM foundu_jobs WHERE founder_id = ?",
           [user_id],
           (err, res) => {
-            if (!err && res[0].cnt >= 3) {
+            if (!err && res[0].cnt >= 1) {
               db.query(
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
-                [user_id]
+                [user_id],
               );
             }
-          }
+          },
         );
       }
-    }
+    },
   );
 };
 
@@ -113,17 +116,17 @@ exports.evaluateGoldenTick = (user_id) => {
           if (res[0].cnt >= 20) {
             db.query(
               "UPDATE users SET golden_tick_verified = true WHERE id = ?",
-              [user_id]
+              [user_id],
             );
           } else {
             db.query(
               "UPDATE users SET golden_tick_verified = false WHERE id = ?",
-              [user_id]
+              [user_id],
             );
           }
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -132,8 +135,8 @@ exports.evaluateGoldenTick = (user_id) => {
 ========================= */
 exports.evaluateCredibilityBadge = (user_id) => {
   const dummy = "85-90";
-  db.query(
-    "UPDATE users SET credibility_badge = ? WHERE id = ?",
-    [dummy, user_id]
-  );
+  db.query("UPDATE users SET credibility_badge = ? WHERE id = ?", [
+    dummy,
+    user_id,
+  ]);
 };

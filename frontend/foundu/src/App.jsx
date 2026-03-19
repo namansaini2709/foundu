@@ -22,23 +22,28 @@ import CPolicy from "./pages/CPolicy";
 import AddJobs from "./pages/AddJobs";
 import ScrollToTop from "./components/ScrollToTop";
 import LandingPage from "./pages/LandingPage";
-import FreelancerBadges from './pages/FreelancerBadges'
-import CoFounderBadges from './pages/CoFounderBadges'
-import FounderBadges from './pages/FounderBadges'
+import FreelancerBadges from "./pages/FreelancerBadges";
+import CoFounderBadges from "./pages/CoFounderBadges";
+import FounderBadges from "./pages/FounderBadges";
 import Chatbox from "./pages/Chatbox";
 import ViewJobPosting from "./pages/ViewJobPosting";
 import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
-import IdeaLab from "./pages/IdeaLab";
-import IdeaLabPopup from "./pages/IdeaLabPopup";
-import QuickJobPopup from "./pages/QuickJobPopup";
+import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
-import GlobalChatOverlay from "./components/GlobalChatOverlay";
+import LiveUserFeed from "./pages/LiveUserFeed";
+import IdeaLabPopup from "./pages/IdeaLabPopup";
+
+// import IdeaLab from "./pages/IdeaLab";
+import QuickJobPopup from "./pages/QuickJobPopup";
+import ResetPassword from "./pages/ResetPassword";
+import Notifications from "./pages/Notifications";
+import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 
 function App() {
-  const userRole   = localStorage.getItem("user_type") || null;
-  const userId     = localStorage.getItem("user_id")   || null;
+  const userRole = localStorage.getItem("user_type") || null;
+  const userId = localStorage.getItem("user_id") || null;
   const isLoggedIn = !!userId;
   return (
     <Router>
@@ -81,24 +86,25 @@ function App() {
         <Route path="/founder-badges" element={<FounderBadges />} />
         <Route path="/chatbox" element={<Chatbox />} />
         <Route path="/jobposting" element={<ViewJobPosting />} />
-        <Route path="/freelancer-reviews" element={<FreelancerReviews />} />  
+        <Route path="/reviews" element={<FreelancerReviews />} />
+        <Route path="/live-feed" element={<LiveUserFeed />} />
 
-        {/* ✅ ADMIN ROUTES — no Navbar/Footer, uses AdminLayout */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/badges"    element={<AdminBadges />} />
-        <Route path="/idea-lab"        element={<IdeaLab />} />
+        <Route path="/admin/badges" element={<AdminBadges />} />
+        {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
-        
+        <Route path="/about-details" element={<AboutDetails />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
-        {isLoggedIn && (
+      {isLoggedIn && (
         <>
           <GlobalChatOverlay userId={userId} />
           <SmartChatbot userRole={userRole} userId={userId} />
           <IdeaLabPopup userId={userId} />
-          {userRole === 'founder' && <QuickJobPopup userId={userId} />}
+          {userRole === "founder" && <QuickJobPopup userId={userId} />}
         </>
       )}
-
     </Router>
   );
 }

@@ -20,50 +20,6 @@ function FreelancerJobs() {
   const [availableJobs, setAvailableJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // AI Matched Jobs (dummy data)
-  const aiMatchedJobs = [
-    {
-      id: 1,
-      logo: "FD",
-      name: "Frontend Developer",
-      info: "Build responsive web applications using React and Next.js",
-      stipend: "$3,500",
-      match: 95,
-    },
-    {
-      id: 2,
-      logo: "UX",
-      name: "UI/UX Designer",
-      info: "Create stunning user interfaces for mobile and web platforms",
-      stipend: "$2,800",
-      match: 88,
-    },
-    {
-      id: 3,
-      logo: "MA",
-      name: "Mobile App Developer",
-      info: "Develop cross-platform mobile apps using React Native",
-      stipend: "$4,200",
-      match: 92,
-    },
-    {
-      id: 4,
-      logo: "AI",
-      name: "AI/ML Engineer",
-      info: "Design and implement machine learning models for startups",
-      stipend: "$5,500",
-      match: 87,
-    },
-    {
-      id: 5,
-      logo: "DA",
-      name: "Data Analyst",
-      info: "Analyze business data and create insightful visualizations",
-      stipend: "$2,500",
-      match: 90,
-    },
-  ];
-
   // Fetch available jobs from API
   useEffect(() => {
     const fetchJobs = async () => {
@@ -199,14 +155,21 @@ function FreelancerJobs() {
       <Navbar />
       <section className="pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
+          <center>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            <span className="text-white">Available </span>
+            <span className="text-blue-300">Jobs</span>
+          </h2>
+          </center>
+  
           {/* AI Matched Jobs Heading */}
-          <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
+          {/* <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
             <span className="text-white">AI </span>
             <span className="text-blue-300">Matched Jobs</span>
-          </h1>
+          </h1> */}
 
           {/* AI Matched Jobs - 5 Columns */}
-          <div className="relative mb-16">
+          {/* <div className="relative mb-16">
             <div className="absolute top-0 left-0 -translate-y-1/2 bg-gray-900/70 border border-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
               AI Match: 92%
             </div>
@@ -221,7 +184,7 @@ function FreelancerJobs() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Filters Box */}
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-6 md:p-8 mb-12">
@@ -320,10 +283,7 @@ function FreelancerJobs() {
           </div>
 
           {/* Available Jobs Heading */}
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            <span className="text-white">Available </span>
-            <span className="text-blue-300">Jobs</span>
-          </h2>
+         
 
           {/* Loading State */}
           {loading ? (
