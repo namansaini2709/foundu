@@ -4,6 +4,7 @@ import axios from "axios";
 import { Bell } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { socket } from "../socket";
 
 
 
@@ -47,6 +48,7 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch user data if logged in
   useEffect(() => {
@@ -57,6 +59,16 @@ function Navbar() {
         try {
           const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
           setUser(response.data);
+
+          // Connect Socket purely for notifications
+          socket.connect();
+          socket.emit("register", userId);
+
+          // Get initial unread count
+          const notifRes = await axios.get("http://localhost:4000/api/notifications", { withCredentials: true });
+          if(notifRes.data.success) {
+            setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
+          }
         } catch (error) {
           console.error("Error fetching user data:", error);
           // If error fetching user, clear localStorage
@@ -68,6 +80,25 @@ function Navbar() {
     };
 
     fetchUserData();
+
+    // Listen for live socket notifications
+    const handleNewNotification = (notification) => {
+      setUnreadCount((prev) => prev + 1);
+      toast.info(`🔔 ${notification.title}`, { theme: "dark" });
+    };
+
+    socket.on("new_notification", handleNewNotification);
+
+    // Listen for read events from Notifications page
+    const handleRead = () => {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    };
+    window.addEventListener("notification_read", handleRead);
+
+    return () => {
+      socket.off("new_notification", handleNewNotification);
+      window.removeEventListener("notification_read", handleRead);
+    };
   }, []);
 
   useEffect(() => {
@@ -100,13 +131,15 @@ function Navbar() {
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
+      setUnreadCount(0);
+      socket.disconnect();
 
       toast.success("Logged out successfully!", { theme: "dark" });
-
-      // Redirect after a short delay
+      
+      // Full reload to clear all states and socket connections
       setTimeout(() => {
-        navigate("/");
-      }, 1500);
+        window.location.href = "/";
+      }, 1000);
     } catch (error) {
       console.error("Error logging out:", error);
       // Still clear local data even if API fails
@@ -117,8 +150,8 @@ function Navbar() {
       toast.success("Logged out successfully!", { theme: "dark" });
 
       setTimeout(() => {
-        navigate("/");
-      }, 1500);
+        window.location.href = "/";
+      }, 1000);
     }
   };
 
@@ -278,9 +311,11 @@ function Navbar() {
                 className="relative p-2 text-gray-400 hover:text-white transition-all duration-300 group"
               >
                 <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             )}
 

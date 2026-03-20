@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const db = require("../config/db");
 const mailService = require("../services/mailService");
 const { generateToken } = require("../utils/token");
+const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 const resetTokens = {}; // temporary (move to DB/Redis later)
 
@@ -92,6 +94,23 @@ exports.signup = async (req, res) => {
       cofounder_id
     });
 
+    // Send Welcome Notification
+    notificationService.sendNotification(
+      result.insertId,
+      "Welcome to FoundU! 🎉",
+      "Your account has been successfully created. Complete your profile to get started.",
+      "welcome",
+      "/profile"
+    );
+
+    // Send Welcome Email
+    emailNotificationService.sendEmailNotification(
+      result.insertId,
+      "Welcome to FoundU! 🎉",
+      "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
+      "Complete Your Profile",
+      "http://localhost:5173/profile"
+    );
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ error: error.message });
@@ -162,7 +181,7 @@ exports.login = async (req, res) => {
           u.golden_tick_verified,
           u.golden_tick_month,
           DATE_FORMAT(CURDATE(), '%Y-%m') AS current_month,
-          COUNT(la.id) AS login_days_this_month
+          COUNT(la.user_id) AS login_days_this_month
          FROM users u
          LEFT JOIN login_audit la 
            ON la.user_id = u.id 
@@ -174,6 +193,7 @@ exports.login = async (req, res) => {
         (checkErr, checkRows) => {
           if (!checkErr && checkRows.length) {
             const row = checkRows[0];
+            console.log("Golden Tick Debug - User 4 Stats:", row);
             const eligible =
               row.blue_tick_verified == 1 &&
               row.login_days_this_month >= 20;
@@ -187,6 +207,16 @@ exports.login = async (req, res) => {
                  SET golden_tick_verified = 1, golden_tick_month = DATE_FORMAT(CURDATE(), '%Y-%m')
                  WHERE id = ?`,
                 [user.id]
+              );
+              
+              // Push live Golden Tick notification
+              const notificationService = require("../services/notificationService");
+              notificationService.sendNotification(
+                user.id,
+                "Golden Tick Awarded! 🟡",
+                "Amazing! You've logged in for 20 days this month and unlocked the Golden Tick.",
+                "badge",
+                "/dashboard"
               );
             }
           }
@@ -207,6 +237,15 @@ exports.login = async (req, res) => {
           cofounder_id: user.cofounder_id
         }
       });
+
+      // Send Login Notification
+      notificationService.sendNotification(
+        user.id,
+        "New Login Detected",
+        "You successfully logged in to FoundU.",
+        "security",
+        "/profile"
+      );
     });
 
   } catch (error) {
@@ -263,6 +302,15 @@ exports.forgotPassword = async (req, res) => {
     await mailService.sendEmail(email, subject, text, html);
 
     res.json({ success: true, message: "A reset password link has been sent to your email address." });
+
+    // Send Notification
+    notificationService.sendNotification(
+      rows[0].id,
+      "Password Reset Requested",
+      "We received a request to reset your password. Check your email for instructions.",
+      "security",
+      "#"
+    );
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ error: "Failed to send reset link. Please try again later." });

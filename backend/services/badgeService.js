@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const notificationService = require("./notificationService");
+const emailNotificationService = require("./emailNotificationService");
 
 /* =========================
    BLUE TICK ELIGIBILITY
@@ -70,6 +72,22 @@ exports.evaluateGreenTick = (user_id) => {
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
                 [user_id],
               );
+              notificationService.sendNotification(
+                user_id,
+                "Green Tick Awarded! ✅",
+                "You successfully completed a job and earned a Green Tick on your profile.",
+                "badge",
+                "/profile"
+              );
+
+              // 🔥 Email Notification
+              emailNotificationService.sendEmailNotification(
+                user_id,
+                "Badge Achieved: Green Tick! ✅",
+                "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully completing a job on FoundU, proving your reliability to the community.",
+                "View Your Badge",
+                "http://localhost:5173/profile"
+              );
             }
           },
         );
@@ -85,6 +103,22 @@ exports.evaluateGreenTick = (user_id) => {
               db.query(
                 "UPDATE users SET green_tick_verified = true WHERE id = ?",
                 [user_id],
+              );
+              notificationService.sendNotification(
+                user_id,
+                "Green Tick Awarded! ✅",
+                "You successfully posted a job and earned a Green Tick on your profile.",
+                "badge",
+                "/profile"
+              );
+
+              // 🔥 Email Notification
+              emailNotificationService.sendEmailNotification(
+                user_id,
+                "Badge Achieved: Green Tick! ✅",
+                "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully posting a job on FoundU, proving your reliability to the community.",
+                "View Your Badge",
+                "http://localhost:5173/profile"
               );
             }
           },
@@ -108,15 +142,32 @@ exports.evaluateGoldenTick = (user_id) => {
 
       db.query(
         `SELECT COUNT(*) as cnt 
-         FROM login_activity 
+         FROM login_audit 
          WHERE user_id = ? 
-         AND MONTH(created_at) = MONTH(CURRENT_DATE())`,
+         AND MONTH(login_date) = MONTH(CURRENT_DATE())
+         AND YEAR(login_date) = YEAR(CURRENT_DATE())`,
         [user_id],
         (err, res) => {
-          if (res[0].cnt >= 20) {
+          if (!err && res[0] && res[0].cnt >= 20) {
             db.query(
               "UPDATE users SET golden_tick_verified = true WHERE id = ?",
               [user_id],
+            );
+            notificationService.sendNotification(
+              user_id,
+              "Golden Tick Awarded! 🏆",
+              "You've logged in 20 times this month and earned a Golden Tick!",
+              "badge",
+              "/profile"
+            );
+
+            // 🔥 Email Notification
+            emailNotificationService.sendEmailNotification(
+              user_id,
+              "Milestone Badge: Golden Tick! 🏆",
+              "Congratulations! Your consistent activity on FoundU has earned you the prestigious Golden Tick badge. This represents your commitment and regular engagement with the platform.",
+              "View Your Badge",
+              "http://localhost:5173/profile"
             );
           } else {
             db.query(

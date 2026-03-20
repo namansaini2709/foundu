@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 /* ===============================
    POST FREELANCER JOB
@@ -117,8 +119,25 @@ exports.createFreelancerJob = (req, res) => {
                     message: "Freelancer job posted successfully",
                     freelancer_job_id,
                   });
-                }
-              );
+
+                  // Notify Founder
+                  notificationService.sendNotification(
+                    user_id,
+                    "Job Posted Successfully",
+                  `Your job listing for "${job_title}" is now live!`,
+                  "success",
+                  `/job/${freelancer_job_id}`
+                );
+
+                // 🔥 Email Notification
+                emailNotificationService.sendEmailNotification(
+                  user_id,
+                  "Your Job is Live! 🚀",
+                  `Congratulations! Your job listing for "${job_title}" has been successfully posted and is now visible to thousands of potential matches on FoundU.`,
+                  "View Job Listing",
+                  `http://localhost:5173/job/${freelancer_job_id}`
+                );
+              }); // This closes the (err) => { ... } callback for the INSERT query
             }
           );
         }
@@ -238,6 +257,15 @@ exports.createCofounderJob = (req, res) => {
                     message: "Cofounder job posted successfully",
                     cofounder_job_id
                   });
+
+                  // Notify Founder
+                  notificationService.sendNotification(
+                    user_id,
+                    "Cofounder Request Posted",
+                    `Your cofounder request "${job_title || 'Untitled'}" is now live.`,
+                    "job",
+                    `/jobs/${cofounder_job_id}`
+                  );
                 }
               );
             }

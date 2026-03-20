@@ -40,6 +40,7 @@ import QuickJobPopup from "./pages/QuickJobPopup";
 import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
+import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 
 function App() {
   const userRole = localStorage.getItem("user_type") || null;
@@ -96,6 +97,7 @@ function App() {
         <Route path="/about-details" element={<AboutDetails />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/influencer-marketplace" element={<InfluencerMarketplace />} />
       </Routes>
       {isLoggedIn && (
         <>

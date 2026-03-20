@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
 
 /* CREATE COFOUNDER PROFILE */
 exports.createProfile = (req, res) => {
@@ -159,7 +160,19 @@ exports.getByUserId = (req, res) => {
     [req.params.userId],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
-      return rows.length ? res.json(rows[0]) : res.sendStatus(404);
+      
+      if (rows.length) {
+        notificationService.sendNotification(
+          req.params.userId,
+          "New Profile View 👀",
+          "Someone just visited your co-founder profile.",
+          "profile",
+          "/dashboard"
+        );
+        return res.json(rows[0]);
+      } else {
+        return res.sendStatus(404);
+      }
     }
   );
 };

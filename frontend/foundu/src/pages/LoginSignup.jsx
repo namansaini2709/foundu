@@ -93,9 +93,15 @@ function LoginSignup() {
         localStorage.setItem('user_type', res.data.user.user_type)
 
         toast.success('Login successful', { theme: 'dark' })
-
-        // Redirect to jobs/services pages on login
-        redirectByTypeOnLogin(res.data.user.user_type)
+        
+        // Full reload to target page to ensure clean state
+        setTimeout(() => {
+          const type = res.data.user.user_type.toLowerCase();
+          if (type === 'freelancer') window.location.href = '/freelancer-jobs';
+          else if (type === 'cofounder') window.location.href = '/cofounder-jobs';
+          else if (type === 'founder') window.location.href = '/startup-services';
+          else window.location.href = '/';
+        }, 1000);
       } else {
         // Ensure userType is one of the valid enum values
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
@@ -120,8 +126,14 @@ function LoginSignup() {
 
         toast.success('Signup successful', { theme: 'dark' })
 
-        // Redirect to profile pages on signup
-        redirectByTypeOnSignup(loginRes.data.user.user_type)
+        // Full reload to target page to ensure clean state
+        setTimeout(() => {
+          const type = loginRes.data.user.user_type.toLowerCase();
+          if (type === 'freelancer') window.location.href = '/freelancer-profile';
+          else if (type === 'cofounder') window.location.href = '/cofounder-profile';
+          else if (type === 'founder') window.location.href = '/startup-profile';
+          else window.location.href = '/';
+        }, 1000);
       }
     } catch (err) {
       console.error('Login/Signup error:', err)

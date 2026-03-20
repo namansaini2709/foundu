@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
 
 exports.addUserSocials = (req, res) => {
   const {
@@ -10,7 +11,7 @@ exports.addUserSocials = (req, res) => {
     company_social_url,
     company_registration_number,
     past_work_proof,
-    profile_picture_url,
+    profile_picture_url
   } = req.body;
 
   if (!user_id) {
@@ -71,17 +72,30 @@ exports.addUserSocials = (req, res) => {
           company_social_url,
           company_registration_number,
           past_work_proof,
-          profile_picture_url,
+          profile_picture_url
         ],
         (err) => {
           if (err) return res.status(500).json({ error: err.message });
+          
+          // Keep admin panel in sync by explicitly setting status to pending
+          db.query("UPDATE users SET blue_tick_status = 'pending' WHERE id = ?", [user_id]);
+
           res.json({
             success: true,
-            message: "User socials saved successfully",
+            message: "User socials saved successfully"
           });
-        },
+
+          // Inform user that application is received
+          notificationService.sendNotification(
+            user_id,
+            "Blue Tick Application Received",
+            "Your profile details have been securely submitted. Please allow 24-48 hours for verification.",
+            "badge",
+            "/dashboard"
+          );
+        }
       );
-    },
+    }
   );
 };
 
@@ -101,10 +115,7 @@ exports.getUserSocials = (req, res) => {
       us.profile_picture_url,
       u.blue_tick_status,
       u.blue_tick_verified,
-      u.green_tick_verified,
-      u.golden_tick_verified,
-      u.credibility_badge,
-      u.credibility_score
+      u.green_tick_verified
     FROM users u
     LEFT JOIN users_socials us ON us.user_id = u.id
     WHERE u.id = ?
@@ -112,9 +123,8 @@ exports.getUserSocials = (req, res) => {
     [user_id],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (!rows.length)
-        return res.status(404).json({ message: "User not found" });
+      if (!rows.length) return res.status(404).json({ message: "User not found" });
       res.json({ success: true, data: rows[0] });
-    },
+    }
   );
 };

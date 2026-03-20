@@ -1,5 +1,7 @@
 const db = require("../config/db");
 const geminiService = require("../services/geminiService");
+const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 /* CREATE REVIEW */
 exports.createReview = (req, res) => {
@@ -52,6 +54,24 @@ exports.createReview = (req, res) => {
             message: "Review added successfully",
             review_id: result.insertId,
           });
+
+          // Send notification to the reviewed user
+          notificationService.sendNotification(
+            user_id,
+            "New Profile Review",
+            `You received a new ${stars}-star review. Your credibility score will update shortly.`,
+            "review",
+            "/profile"
+          );
+
+          // 🔥 Email Notification
+          emailNotificationService.sendEmailNotification(
+            user_id,
+            "New Review Received! ⭐",
+            `A user on FoundU has just left you a new ${stars}-star review. This feedback helps build your credibility within the community.`,
+            "Read Your Reviews",
+            "http://localhost:5173/profile"
+          );
         },
       );
     },
@@ -166,6 +186,15 @@ exports.recalculateCredibility = (req, res) => {
           (updateErr) => {
             if (updateErr)
               console.error("Error updating user credibility:", updateErr);
+
+            // Notify user about score refresh
+            notificationService.sendNotification(
+              user_id,
+              "Credibility Score Updated!",
+              `Your credibility score has been recalculated. Your current score is: ${finalScore}/100.`,
+              "review",
+              "/profile"
+            );
 
             res.json({
               success: true,

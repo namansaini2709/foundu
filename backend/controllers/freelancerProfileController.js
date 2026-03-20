@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
 
 /* CREATE FREELANCER PROFILE */
 exports.createProfile = (req, res) => {
@@ -124,7 +125,19 @@ exports.getByUserId = (req, res) => {
         console.error("Get profile error:", err);
         return res.status(500).json({ error: err.message });
       }
-      rows.length ? res.json(rows[0]) : res.status(404).json({ message: "Profile not found" });
+
+      if (rows.length) {
+        notificationService.sendNotification(
+          req.params.userId,
+          "New Profile View 👀",
+          "Someone just visited your freelancer profile.",
+          "profile",
+          "/dashboard"
+        );
+        res.json(rows[0]);
+      } else {
+        res.status(404).json({ message: "Profile not found" });
+      }
     }
   );
 };

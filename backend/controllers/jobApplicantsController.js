@@ -1,5 +1,7 @@
 const db = require("../config/db");
 const badgeService = require("../services/badgeService");
+const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 /* =========================
    APPLY TO JOB
@@ -53,6 +55,51 @@ exports.applyToJob = (req, res) => {
             success: true,
             message: "Applied to job successfully",
           });
+
+          // Fetch the job owner and notify them
+          db.query(
+            "SELECT user_id as owner_id, job_title FROM foundu_jobs WHERE job_id = ?",
+            [job_id],
+            (err, resJob) => {
+              if (!err && resJob.length) {
+                // Notify Owner
+                notificationService.sendNotification(
+                  resJob[0].owner_id,
+                  "New Job Applicant",
+                  `${user.full_name || 'A user'} applied for your startup.`,
+                  "application",
+                  `/job/${job_id}`
+                );
+
+                // Notify Applicant (Confirmation)
+                notificationService.sendNotification(
+                  user_id,
+                  "Application Submitted! 🚀",
+                  `Your application for "${resJob[0].job_title}" has been successfully sent.`,
+                  "success",
+                  "/dashboard"
+                );
+
+                // 🔥 Email Notification (Owner)
+                emailNotificationService.sendEmailNotification(
+                  resJob[0].owner_id,
+                  "New Candidate Applied! 👤",
+                  `A new candidate has recently applied for your job listing "${resJob[0].job_title}". Log in to your dashboard to review their profile and experience.`,
+                  "Review Applications",
+                  `http://localhost:5173/job/${job_id}`
+                );
+
+                // 🔥 Email Notification (Applicant Confirmation)
+                emailNotificationService.sendEmailNotification(
+                  user_id,
+                  "Application Received 🤝",
+                  `Your application for "${resJob[0].job_title}" has been successfully submitted to the founder. We will notify you once they review your profile.`,
+                  "Go to Dashboard",
+                  "http://localhost:5173/dashboard"
+                );
+              }
+            }
+          );
         },
       );
     },
@@ -179,6 +226,24 @@ exports.updateApplicantStatus = (req, res) => {
         message: "Applicant status updated",
         affectedRows: result.affectedRows,
       });
+
+      // Send status update notification to the applicant
+      notificationService.sendNotification(
+        user_id,
+        "Application Updated",
+        `Your job application status was updated to: ${status.toUpperCase()}.`,
+        "application",
+        "/dashboard"
+      );
+
+      // 🔥 Email Notification (Status Update)
+      emailNotificationService.sendEmailNotification(
+        user_id,
+        "Application Status Update 📢",
+        `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
+        "View Application Status",
+        "http://localhost:5173/dashboard"
+      );
     },
   );
 };

@@ -5,6 +5,10 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const http = require("http");
+const { Server } = require("socket.io");
+const notificationService = require("./services/notificationService");
+
 const app = express();
 
 /* =========================
@@ -28,7 +32,7 @@ app.use(
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       secure: false, // Must be false for localhost HTTP
-      sameSite: "lax",
+      sameSite: 'lax'
     },
   }),
 );
@@ -57,6 +61,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -71,6 +76,7 @@ console.log("ROUTES TYPE CHECK 👉", {
   usersSocialsRoutes: typeof usersSocialsRoutes,
   badgeRoutes: typeof badgeRoutes,
   jobApplicantsRoutes: typeof jobApplicantsRoutes,
+  notificationRoutes: typeof notificationRoutes,
 });
 
 /* =========================
@@ -91,6 +97,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", ideaRoutes);
+app.use("/api", notificationRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -104,6 +111,22 @@ app.get("/health", (req, res) => {
 ========================= */
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+notificationService.setIO(io);
+
+io.on("connection", (socket) => {
+  console.log("New socket connection:", socket.id);
+  notificationService.handleSocketConnection(socket);
+});
+
+server.listen(PORT, () => {
   console.log(`🚀 FoundU backend running on ${PORT}`);
 });
