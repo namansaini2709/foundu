@@ -108,14 +108,15 @@ const CoFounderProfile = () => {
       );
       const user = response.data;
       setUserBasicInfo(user);
-      const name = user.full_name?.split(" ") || [];
+      
+      // Only pre-fill if formData is currently empty to avoid overwriting existing profile data
       setFormData((prev) => ({
         ...prev,
-        fullLegalName: user.full_name || "",
+        fullLegalName: prev.fullLegalName || user.full_name || "",
+        email: prev.email || user.email || "",
       }));
     } catch (error) {
       console.error("Error fetching user data:", error);
-      toast.error("Failed to fetch user data");
     }
   };
 

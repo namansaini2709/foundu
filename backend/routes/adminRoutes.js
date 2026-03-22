@@ -11,5 +11,6 @@ router.get("/admin/badges/pending",   adminController.getPendingBlueTickRequests
 router.get("/admin/badges/all",       adminController.getAllBlueTickRequests);
 router.post("/admin/badges/approve",  adminController.approveBlueTick);
 router.post("/admin/badges/reject",   adminController.rejectBlueTick);
+router.post("/admin/broadcast",       adminController.sendBulkNotification);
 
 module.exports = router;

@@ -9,7 +9,7 @@ const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [credibility, setCredibility] = useState({ 
         credibility_score: 0, 
-        badge: 'Growing', 
+        badge: 'below-80', 
         avg_stars: '0.0', 
         review_count: 0,
         ai_summary: '',
@@ -27,7 +27,7 @@ const FreelancerReviews = () => {
     useEffect(() => {
         if (userId) {
             fetchReviews();
-            fetchCredibility();
+            fetchCredibility(false); // Fetch stored data on load (No notification)
         }
     }, [userId]);
 
@@ -41,9 +41,16 @@ const FreelancerReviews = () => {
         setLoading(false);
     };
 
-    const fetchCredibility = async () => {
+    const fetchCredibility = async (isRecalculate = false) => {
         try {
-            const res = await axios.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: parseInt(userId) });
+            let res;
+            if (isRecalculate) {
+                // EXPLICIT RECALCULATION: This triggers AI analysis and user notification
+                res = await axios.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: parseInt(userId) });
+            } else {
+                // INITIAL LOAD: Fetch stored score/badge (No AI, No notification)
+                res = await axios.get(`${API_URL}/reviews/credibility/${userId}`);
+            }
             setCredibility(res.data);
         } catch (err) {
             console.error('Error fetching credibility:', err);
@@ -52,7 +59,7 @@ const FreelancerReviews = () => {
 
     const handleRecalculate = async () => {
         setRecalculating(true);
-        await fetchCredibility();
+        await fetchCredibility(true); // Explicitly trigger recalculation and notification
         setTimeout(() => setRecalculating(false), 800);
     };
 
@@ -68,9 +75,9 @@ const FreelancerReviews = () => {
     // Get badge color scheme
     const getBadgeColors = (badge) => {
         switch (badge) {
-            case 'Exceptional': return { bg: 'from-purple-600 to-indigo-600', border: 'border-purple-500/50', text: 'text-purple-300', glow: 'shadow-purple-500/30' };
-            case 'Excellent': return { bg: 'from-blue-600 to-cyan-600', border: 'border-blue-500/50', text: 'text-blue-300', glow: 'shadow-blue-500/30' };
-            case 'Very Good': return { bg: 'from-emerald-600 to-teal-600', border: 'border-emerald-500/50', text: 'text-emerald-300', glow: 'shadow-emerald-500/30' };
+            case '90-95': return { bg: 'from-purple-600 to-indigo-600', border: 'border-purple-500/50', text: 'text-purple-300', glow: 'shadow-purple-500/30' };
+            case '85-90': return { bg: 'from-blue-600 to-cyan-600', border: 'border-blue-500/50', text: 'text-blue-300', glow: 'shadow-blue-500/30' };
+            case '80-85': return { bg: 'from-emerald-600 to-teal-600', border: 'border-emerald-500/50', text: 'text-emerald-300', glow: 'shadow-emerald-500/30' };
             default: return { bg: 'from-gray-600 to-slate-600', border: 'border-gray-500/50', text: 'text-gray-300', glow: 'shadow-gray-500/30' };
         }
     };
@@ -280,7 +287,7 @@ const FreelancerReviews = () => {
                                                     <div className="flex-shrink-0">
                                                         {review.reviewer_photo ? (
                                                             <img
-                                                                src={review.reviewer_photo}
+                                                                src={review.reviewer_photo.startsWith('http') ? review.reviewer_photo : `http://localhost:4000${review.reviewer_photo}`}
                                                                 alt={review.reviewer_name}
                                                                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-700 group-hover:border-blue-500/50 transition-colors"
                                                             />

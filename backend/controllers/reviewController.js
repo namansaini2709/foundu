@@ -104,6 +104,54 @@ exports.getReviewsByUserId = (req, res) => {
   });
 };
 
+/* GET BASIC CREDIBILITY DATA (No recalculation, no notification) */
+exports.getCredibility = (req, res) => {
+  const { user_id } = req.params;
+
+  if (!user_id) {
+    return res.status(400).json({ message: "user_id is required" });
+  }
+
+  // 1. Fetch stored score and badge from users table
+  // 2. Calculate current avg_stars and review_count from reviews table
+  const query = `
+    SELECT 
+      u.credibility_score, 
+      u.credibility_badge,
+      COALESCE(r_stats.avg_stars, 0) as avg_stars,
+      COALESCE(r_stats.review_count, 0) as review_count
+    FROM users u
+    LEFT JOIN (
+      SELECT user_id, AVG(stars) as avg_stars, COUNT(review_id) as review_count
+      FROM reviews
+      WHERE user_id = ?
+      GROUP BY user_id
+    ) r_stats ON u.id = r_stats.user_id
+    WHERE u.id = ?
+  `;
+
+  db.query(query, [user_id, user_id], (err, rows) => {
+    if (err) {
+      console.error("[DEBUG] Error fetching credibility:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (!rows.length) return res.status(404).json({ message: "User not found" });
+
+    const row = rows[0];
+    console.log(`[DEBUG] Fetching credibility for user ${user_id}. Stored Score: ${row.credibility_score}`);
+
+    res.json({
+      success: true,
+      credibility_score: row.credibility_score !== null ? row.credibility_score : 0,
+      badge: row.credibility_badge || "Below 80",
+      avg_stars: row.avg_stars ? parseFloat(row.avg_stars).toFixed(1) : "0.0",
+      review_count: row.review_count || 0,
+      ai_summary: null,
+      breakdown: null
+    });
+  });
+};
+
 /* RECALCULATE CREDIBILITY SCORE */
 exports.recalculateCredibility = (req, res) => {
   const { user_id } = req.body;
@@ -146,71 +194,71 @@ exports.recalculateCredibility = (req, res) => {
       async (err, reviews) => {
         if (err) return res.status(500).json({ error: err.message });
 
-        let aiAnalysis = {
-          qualityScore: 50,
-          summary: "No reviews to analyze.",
-        };
-        if (reviews.length > 0) {
-          aiAnalysis = await geminiService.analyzeReviews(reviews);
+        try {
+          let aiAnalysis = {
+            qualityScore: 50,
+            summary: "No reviews to analyze.",
+          };
+          if (reviews.length > 0) {
+            aiAnalysis = await geminiService.analyzeReviews(reviews);
+          }
+
+          /* ── CALCULATE SCORE (45/45/10) ── */
+          const starScore = avg_stars ? (avg_stars / 5) * 45 : 0;
+          const qualityWeight = (aiAnalysis.qualityScore / 100) * 35;
+          const countBonus = Math.min(review_count * 2, 10);
+          const reviewScore = qualityWeight + countBonus;
+          const blueBonus = blue_tick_verified ? 4 : 0;
+          const greenBonus = green_tick_verified ? 3 : 0;
+          const goldenBonus = golden_tick_verified ? 3 : 0;
+          const badgeScore = blueBonus + greenBonus + goldenBonus;
+
+          const totalScore = Math.round(starScore + reviewScore + badgeScore);
+          const finalScore = Math.min(Math.max(totalScore, 0), 100);
+
+          let badgeValue = "below-80";
+          if (finalScore >= 90) badgeValue = "90-95";
+          else if (finalScore >= 85) badgeValue = "85-90";
+          else if (finalScore >= 80) badgeValue = "80-85";
+
+          // UPDATE users table with score and badge
+          db.query(
+            "UPDATE users SET credibility_score = ?, credibility_badge = ? WHERE id = ?",
+            [finalScore, badgeValue, user_id],
+            (updateErr, result) => {
+              if (updateErr) {
+                console.error("[DEBUG] DB Update Error:", updateErr);
+                return res.status(500).json({ success: false, message: "Database update failed", error: updateErr.message });
+              }
+
+              // Notify user about score refresh
+              notificationService.sendNotification(
+                user_id,
+                "Credibility Score Updated!",
+                `Your credibility score has been recalculated. Your current score is: ${finalScore}/100.`,
+                "review",
+                "/profile"
+              ).catch(e => console.error("Notification Error:", e));
+
+              res.json({
+                success: true,
+                credibility_score: finalScore,
+                badge: badgeValue,
+                avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : "0.0",
+                review_count,
+                ai_summary: aiAnalysis.summary,
+                breakdown: {
+                  stars: Math.round(starScore),
+                  reviews: Math.round(reviewScore),
+                  badges: badgeScore,
+                },
+              });
+            },
+          );
+        } catch (error) {
+          console.error("[DEBUG] Recalculate Error:", error);
+          res.status(500).json({ success: false, message: "Internal server error during recalculation", error: error.message });
         }
-
-        /* ── CALCULATE SCORE (45/45/10) ── */
-        // 1. Rating Stars (45 pts max)
-        const starScore = avg_stars ? (avg_stars / 5) * 45 : 0;
-
-        // 2. Reviews (45 pts max)
-        // AI Quality Score (weighted 35) + Count Bonus (weighted 10)
-        const qualityWeight = (aiAnalysis.qualityScore / 100) * 35;
-        const countBonus = Math.min(review_count * 2, 10);
-        const reviewScore = qualityWeight + countBonus;
-
-        // 3. Badges (10 pts max)
-        const blueBonus = blue_tick_verified ? 4 : 0;
-        const greenBonus = green_tick_verified ? 3 : 0;
-        const goldenBonus = golden_tick_verified ? 3 : 0;
-        const badgeScore = blueBonus + greenBonus + goldenBonus;
-
-        const totalScore = Math.round(starScore + reviewScore + badgeScore);
-        const finalScore = Math.min(Math.max(totalScore, 0), 100);
-
-        // Determine Badge ENUM: '90-95', '85-90', '80-85', 'below-80'
-        let badgeValue = "below-80";
-        if (finalScore >= 90) badgeValue = "90-95";
-        else if (finalScore >= 85) badgeValue = "85-90";
-        else if (finalScore >= 80) badgeValue = "80-85";
-
-        // UPDATE users table with score and badge
-        db.query(
-          "UPDATE users SET credibility_score = ?, credibility_badge = ? WHERE id = ?",
-          [finalScore, badgeValue, user_id],
-          (updateErr) => {
-            if (updateErr)
-              console.error("Error updating user credibility:", updateErr);
-
-            // Notify user about score refresh
-            notificationService.sendNotification(
-              user_id,
-              "Credibility Score Updated!",
-              `Your credibility score has been recalculated. Your current score is: ${finalScore}/100.`,
-              "review",
-              "/profile"
-            );
-
-            res.json({
-              success: true,
-              credibility_score: finalScore,
-              badge: badgeValue,
-              avg_stars: avg_stars ? parseFloat(avg_stars).toFixed(1) : "0.0",
-              review_count,
-              ai_summary: aiAnalysis.summary,
-              breakdown: {
-                stars: Math.round(starScore),
-                reviews: Math.round(reviewScore),
-                badges: badgeScore,
-              },
-            });
-          },
-        );
       },
     );
   });

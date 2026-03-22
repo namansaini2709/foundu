@@ -57,7 +57,7 @@ function Navbar() {
 
       if (userId) {
         try {
-          const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
+          const response = await axios.get(`http://localhost:4000/api/users/${userId}`, { withCredentials: true });
           setUser(response.data);
 
           // Connect Socket purely for notifications
@@ -71,9 +71,12 @@ function Navbar() {
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-          // If error fetching user, clear localStorage
-          localStorage.removeItem("user_id");
-          localStorage.removeItem("user_type");
+          // Only clear session if it's a 401 Unauthorized or 403 Forbidden
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("user_type");
+            setUser(null);
+          }
         }
       }
       setLoading(false);

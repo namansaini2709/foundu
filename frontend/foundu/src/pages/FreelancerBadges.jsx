@@ -64,7 +64,7 @@ const FreelancerBadges = () => {
     linkedin: "",
     github: "",
     portfolio: "",
-    profilePhoto: "",
+    profilePhoto: null // Now holds File or URL string
   });
 
   const userId = localStorage.getItem("user_id");
@@ -81,7 +81,8 @@ const FreelancerBadges = () => {
             linkedin: d.linkedin_url || "",
             github: d.github_url || "",
             portfolio: d.portfolio_url || "",
-            profilePhoto: d.profile_picture_url || "",
+            profilePhoto: d.profile_picture_url || null,
+            pastWorkProof: d.past_work_proof || null,
           });
           setBlueTickStatus(d.blue_tick_status);
           setBlueTickVerified(!!d.blue_tick_verified);
@@ -102,6 +103,13 @@ const FreelancerBadges = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    }
+  };
+
   /* ── Save & Submit ────────────────────────────────────────── */
   const handleSave = async () => {
     if (!formData.linkedin) {
@@ -118,17 +126,29 @@ const FreelancerBadges = () => {
 
     setSubmitting(true);
     try {
-      // Step 1 — Save social URLs to users_socials table
+      // Create FormData for multipart submission
+      const data = new FormData();
+      data.append("user_id", userId);
+      data.append("linkedin_url", formData.linkedin);
+      data.append("github_url", formData.github);
+      data.append("portfolio_url", formData.portfolio);
+      
+      // If profilePhoto is a File object, append as 'profile_picture'
+      if (formData.profilePhoto instanceof File) {
+        data.append("profile_picture", formData.profilePhoto);
+      } else if (typeof formData.profilePhoto === 'string') {
+        data.append("profile_picture_url", formData.profilePhoto);
+      }
+
+
+      // Step 1 — Save social data to users_socials table
       await axios.post(
         `${API}/user-socials`,
-        {
-          user_id: userId,
-          linkedin_url: formData.linkedin,
-          github_url: formData.github,
-          portfolio_url: formData.portfolio,
-          profile_picture_url: formData.profilePhoto,
+        data,
+        { 
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
         },
-        { withCredentials: true },
       );
 
       // Step 2 — Apply for Blue Tick (sets blue_tick_status = 'pending')
@@ -591,17 +611,28 @@ const FreelancerBadges = () => {
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
-                  Profile Photo URL
+                  Profile Photo <span className="text-gray-500 font-normal">(Upload File)</span>
                 </label>
-                <input
-                  type="url"
-                  name="profilePhoto"
-                  value={formData.profilePhoto}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
-                  placeholder="https://..."
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    name="profilePhoto"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  />
+                  {formData.profilePhoto && (
+                    <div className="w-10 h-10 rounded-full border border-gray-600 overflow-hidden shrink-0">
+                      <img 
+                        src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
+
             </div>
 
             <div className="mt-8 flex gap-3">

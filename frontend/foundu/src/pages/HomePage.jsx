@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight } from 'lucide-react';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
 
 // Gradient styles - alternating
 const gradientBlackToBlue = {
@@ -689,6 +690,7 @@ function HomePage() {
       <TrustedBy />
       <Testimonials />
       <Footer />
+      <CookieBanner />
     </div>
   );
 }

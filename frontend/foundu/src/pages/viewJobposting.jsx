@@ -196,7 +196,9 @@ export default function JobApplicationsDashboard() {
             match: 85, // Dummy match
             status: app.status || "pending",
             rawStatus: app.status || "pending",
-            image: app.profile_picture_url || "👤",
+            image: app.profile_picture_url 
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
+              : "👤",
             badges: ["verified"],
             details: {
               experience: app.experience || (isFreelancer ? "N/A" : "Expert"),
@@ -440,7 +442,13 @@ export default function JobApplicationsDashboard() {
       className="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-blue-500 transition-all cursor-pointer group"
     >
       <div className="flex items-start gap-3">
-        <div className="text-4xl">{applicant.image}</div>
+        <div className="w-12 h-12 flex items-center justify-center shrink-0">
+          {applicant.image.length > 5 ? (
+            <img src={applicant.image} alt={applicant.name} className="w-full h-full rounded-full object-cover border border-gray-700" />
+          ) : (
+            <div className="text-4xl">{applicant.image}</div>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-white font-semibold truncate group-hover:text-blue-400 transition-colors">
             {applicant.name}
@@ -509,7 +517,9 @@ export default function JobApplicationsDashboard() {
             match: 85,
             status: app.status || 'pending',
             rawStatus: app.status || 'pending',
-            image: app.profile_picture_url || '👤',
+            image: app.profile_picture_url 
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
+              : "👤",
             badges: ['verified'],
             details: {
               experience: app.experience || (isFreelancer ? 'N/A' : 'Expert'),
@@ -563,7 +573,13 @@ export default function JobApplicationsDashboard() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6 flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="text-6xl">{applicant.image}</div>
+            <div className="w-16 h-16 flex items-center justify-center shrink-0">
+              {applicant.image.length > 5 ? (
+                <img src={applicant.image} alt={applicant.name} className="w-full h-full rounded-full object-cover border-2 border-blue-500/30 shadow-lg" />
+              ) : (
+                <div className="text-6xl">{applicant.image}</div>
+              )}
+            </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">
                   {applicant.name}

@@ -58,8 +58,7 @@ const CoFounderBadges = () => {
   const [formData, setFormData] = useState({
     linkedin: "",
     portfolio: "",
-    pastWork: "",
-    profilePhoto: "",
+    profilePhoto: null,
   });
 
   const userId = localStorage.getItem("user_id");
@@ -75,8 +74,7 @@ const CoFounderBadges = () => {
           setFormData({
             linkedin: d.linkedin_url || "",
             portfolio: d.portfolio_url || "",
-            pastWork: d.past_work_proof || "",
-            profilePhoto: d.profile_picture_url || "",
+            profilePhoto: d.profile_picture_url || null,
           });
           setBlueTickStatus(d.blue_tick_status);
           setBlueTickVerified(!!d.blue_tick_verified);
@@ -97,6 +95,13 @@ const CoFounderBadges = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.linkedin)
       return toast.error("LinkedIn URL is required", { theme: "dark" });
@@ -108,17 +113,21 @@ const CoFounderBadges = () => {
 
     setSubmitting(true);
     try {
-      await axios.post(
-        `${API}/user-socials`,
-        {
-          user_id: userId,
-          linkedin_url: formData.linkedin,
-          portfolio_url: formData.portfolio,
-          past_work_proof: formData.pastWork,
-          profile_picture_url: formData.profilePhoto,
-        },
-        { withCredentials: true },
-      );
+      const data = new FormData();
+      data.append("user_id", userId);
+      data.append("linkedin_url", formData.linkedin);
+      data.append("portfolio_url", formData.portfolio);
+
+      if (formData.profilePhoto instanceof File) {
+        data.append("profile_picture", formData.profilePhoto);
+      } else if (formData.profilePhoto) {
+        data.append("profile_picture_url", formData.profilePhoto);
+      }
+
+      await axios.post(`${API}/user-socials`, data, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       await axios.post(
         `${API}/badges/apply/blue`,
@@ -179,7 +188,7 @@ const CoFounderBadges = () => {
               </div>
               <p className="text-gray-300 text-sm">
                 Get verified by linking your professional profiles. Requires
-                LinkedIn URL, Portfolio or Past Work Experience Certificate.
+                LinkedIn URL and Portfolio.
               </p>
               {blueTickStatus === "pending" && (
                 <p className="text-yellow-400/80 text-xs mt-1">
@@ -563,29 +572,26 @@ const CoFounderBadges = () => {
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
-                  Past Work / Certificate URL
+                  Profile Photo <span className="text-gray-500 font-normal">(Upload File)</span>
                 </label>
-                <input
-                  type="url"
-                  name="pastWork"
-                  value={formData.pastWork}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
-                  placeholder="https://drive.google.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">
-                  Profile Photo URL
-                </label>
-                <input
-                  type="url"
-                  name="profilePhoto"
-                  value={formData.profilePhoto}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
-                  placeholder="https://..."
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    name="profilePhoto"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white"
+                  />
+                  {formData.profilePhoto && (
+                    <div className="w-10 h-10 rounded-full border border-gray-600 overflow-hidden shrink-0">
+                      <img 
+                        src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
