@@ -6,6 +6,7 @@ const API = "http://localhost:4000/api";
 
 const navItems = [
   { label: "Dashboard",   icon: "📊", path: "/admin/dashboard" },
+  { label: "Broadcast",   icon: "📣", path: "/admin/broadcast" },
   { label: "Blue Tick",   icon: "✅", path: "/admin/badges",   badge: true },
   { label: "Users",       icon: "👥", path: "/admin/users",    soon: true },
   { label: "Jobs",        icon: "💼", path: "/admin/jobs",     soon: true },

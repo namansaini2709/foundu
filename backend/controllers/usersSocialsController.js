@@ -14,6 +14,19 @@ exports.addUserSocials = (req, res) => {
     profile_picture_url
   } = req.body;
 
+  // 📂 Handle File Uploads (if any)
+  let updatedProfilePictureUrl = profile_picture_url;
+  let updatedPastWorkProof = past_work_proof;
+
+  if (req.files) {
+    if (req.files.profile_picture && req.files.profile_picture[0]) {
+      updatedProfilePictureUrl = `/uploads/${req.files.profile_picture[0].filename}`;
+    }
+    if (req.files.past_work_proof && req.files.past_work_proof[0]) {
+      updatedPastWorkProof = `/uploads/${req.files.past_work_proof[0].filename}`;
+    }
+  }
+
   if (!user_id) {
     return res.status(400).json({ message: "user_id is required" });
   }
@@ -71,8 +84,8 @@ exports.addUserSocials = (req, res) => {
           company_linkedin_url,
           company_social_url,
           company_registration_number,
-          past_work_proof,
-          profile_picture_url
+          updatedPastWorkProof,
+          updatedProfilePictureUrl
         ],
         (err) => {
           if (err) return res.status(500).json({ error: err.message });
@@ -113,6 +126,7 @@ exports.getUserSocials = (req, res) => {
       us.github_url,
       us.portfolio_url,
       us.profile_picture_url,
+      us.past_work_proof,
       u.blue_tick_status,
       u.blue_tick_verified,
       u.green_tick_verified

@@ -30,6 +30,7 @@ import ViewJobPosting from "./pages/ViewJobPosting";
 import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
+import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -92,6 +93,7 @@ function App() {
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/badges" element={<AdminBadges />} />
+        <Route path="/admin/broadcast" element={<AdminBroadcast />} />
         {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
         <Route path="/about-details" element={<AboutDetails />} />

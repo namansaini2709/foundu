@@ -67,17 +67,19 @@ const FreelancerProfile = () => {
   const fetchUser = async (userId) => {
     try {
       const res = await axios.get(`http://localhost:4000/api/users/${userId}`);
+      const user = res.data;
       setUserBasicInfo(user);
       const name = user.full_name?.split(" ") || [];
+      
+      // Only pre-fill if formData is currently empty to avoid overwriting existing profile data
       setFormData((prev) => ({
         ...prev,
-        firstName: name[0] || "",
-        lastName: name.slice(1).join(" ") || "",
-        email: user.email || "",
+        firstName: prev.firstName || name[0] || "",
+        lastName: prev.lastName || name.slice(1).join(" ") || "",
+        email: prev.email || user.email || "",
       }));
     } catch (error) {
       console.error("Error fetching user:", error);
-      toast.error("Failed to fetch user data");
     }
   };
 

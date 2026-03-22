@@ -44,7 +44,8 @@ const FounderBadges = () => {
     const [formData, setFormData] = useState({
         companyLinkedin: '',
         companySocial:   '',
-        dpiitNumber:     ''
+        dpiitNumber:     '',
+        profilePhoto:    null
     });
 
     const userId = localStorage.getItem('user_id');
@@ -59,7 +60,8 @@ const FounderBadges = () => {
                     setFormData({
                         companyLinkedin: d.company_linkedin_url         || '',
                         companySocial:   d.company_social_url           || '',
-                        dpiitNumber:     d.company_registration_number  || ''
+                        dpiitNumber:     d.company_registration_number  || '',
+                        profilePhoto:    d.profile_picture_url          || null
                     });
                     setBlueTickStatus(d.blue_tick_status);
                     setBlueTickVerified(!!d.blue_tick_verified);
@@ -74,6 +76,13 @@ const FounderBadges = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleFileChange = (e) => {
+        const { name, files } = e.target;
+        if (files && files[0]) {
+            setFormData(prev => ({ ...prev, [name]: files[0] }));
+        }
+    };
+
     const handleSave = async () => {
         if (!formData.companyLinkedin) return toast.error('Company LinkedIn URL is required', { theme: 'dark' });
         if (!formData.dpiitNumber)     return toast.error('DPIIT / Registration Number is required', { theme: 'dark' });
@@ -81,13 +90,23 @@ const FounderBadges = () => {
 
         setSubmitting(true);
         try {
+            const data = new FormData();
+            data.append('user_id', userId);
+            data.append('company_linkedin_url', formData.companyLinkedin);
+            data.append('company_social_url', formData.companySocial);
+            data.append('company_registration_number', formData.dpiitNumber);
+
+            if (formData.profilePhoto instanceof File) {
+                data.append('profile_picture', formData.profilePhoto);
+            } else if (formData.profilePhoto) {
+                data.append('profile_picture_url', formData.profilePhoto);
+            }
+
             // Save company social details to users_socials
-            await axios.post(`${API}/user-socials`, {
-                user_id:                      userId,
-                company_linkedin_url:         formData.companyLinkedin,
-                company_social_url:           formData.companySocial,
-                company_registration_number:  formData.dpiitNumber,
-            }, { withCredentials: true });
+            await axios.post(`${API}/user-socials`, data, { 
+                withCredentials: true,
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
             // Apply for Blue Tick
             await axios.post(`${API}/badges/apply/blue`, { user_id: userId }, { withCredentials: true });
@@ -245,6 +264,21 @@ const FounderBadges = () => {
                                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
                                     placeholder="e.g. DIPP12345 or CIN number" />
                             </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-1">Founder Profile Photo</label>
+                                <div className="flex items-center gap-3">
+                                    <input type="file" name="profilePhoto" accept="image/*" onChange={handleFileChange}
+                                        className="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white" />
+                                    {formData.profilePhoto && (
+                                        <div className="w-10 h-10 rounded-full border border-gray-600 overflow-hidden shrink-0">
+                                            <img src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`} 
+                                                alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                         </div>
 
                         <div className="mt-8 flex gap-3">

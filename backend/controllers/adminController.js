@@ -266,3 +266,77 @@ exports.rejectBlueTick = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/* =========================
+   SEND BULK NOTIFICATION (BROADCAST)
+========================= */
+exports.sendBulkNotification = async (req, res) => {
+  const { targetType, title, message } = req.body;
+
+  if (!targetType || !title || !message) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    // 1️⃣ Fetch users based on category
+    let query = "SELECT id, full_name, email FROM users";
+    let params = [];
+
+    if (targetType !== "all") {
+      query += " WHERE user_type = ?";
+      params.push(targetType);
+    }
+
+    const [recipients] = await db.promise().query(query, params);
+
+    if (!recipients.length) {
+      return res.status(404).json({ message: `No users found for category: ${targetType}` });
+    }
+
+    // 2️⃣ Send notifications & emails in a loop
+    const results = {
+      total: recipients.length,
+      success: 0,
+      failed: 0,
+    };
+
+    const actionText = "View Dashboard";
+    const actionLink = "http://localhost:5173/dashboard";
+
+    for (const user of recipients) {
+      try {
+        // Platform Notification
+        await notificationService.sendNotification(
+          user.id,
+          title,
+          message,
+          "broadcast",
+          "/dashboard"
+        );
+
+        // Email Notification
+        await emailNotificationService.sendEmailNotification(
+          user.id,
+          title,
+          message,
+          actionText,
+          actionLink
+        );
+
+        results.success++;
+      } catch (err) {
+        console.error(`Failed to notify user ${user.id}:`, err);
+        results.failed++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Broadcast sent to ${results.success} users successfully.`,
+      results,
+    });
+  } catch (error) {
+    console.error("Bulk notification error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

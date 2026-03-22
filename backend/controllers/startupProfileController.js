@@ -61,7 +61,7 @@ exports.createProfile = (req, res) => {
         user_id,
         founder_id,
         startup_name || null,
-        startup_logo_url || null,
+        req.file ? `/uploads/${req.file.filename}` : (startup_logo_url || null),
         founderType || null,
         whyBuilding || null,
         superpower || null,

@@ -118,17 +118,22 @@ function LoginSignup() {
         const loginRes = await axios.post('http://localhost:4000/api/login', {
           email,
           password
-        })
+        }, { withCredentials: true })
+
+        const userData = loginRes.data.user;
+        if (!userData || !userData.id) {
+          throw new Error("Invalid response from server");
+        }
 
         // Store user_id and user_type in localStorage
-        localStorage.setItem('user_id', loginRes.data.user.id)
-        localStorage.setItem('user_type', loginRes.data.user.user_type)
+        localStorage.setItem('user_id', userData.id)
+        localStorage.setItem('user_type', userData.user_type || userType)
 
         toast.success('Signup successful', { theme: 'dark' })
 
         // Full reload to target page to ensure clean state
         setTimeout(() => {
-          const type = loginRes.data.user.user_type.toLowerCase();
+          const type = (userData.user_type || userType).toLowerCase();
           if (type === 'freelancer') window.location.href = '/freelancer-profile';
           else if (type === 'cofounder') window.location.href = '/cofounder-profile';
           else if (type === 'founder') window.location.href = '/startup-profile';

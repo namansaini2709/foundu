@@ -51,7 +51,7 @@ const CoFounderDashboard = () => {
         .catch((err) => console.error("Error fetching badges:", err));
 
       axios
-        .post(`${API_URL}/reviews/recalculate-credibility`, { user_id: userId })
+        .get(`${API_URL}/reviews/credibility/${userId}`)
         .then((res) => setCredibilityData(res.data))
         .catch((err) => console.error("Error fetching credibility:", err));
     }
@@ -329,7 +329,7 @@ const CoFounderDashboard = () => {
                     Credibility Score Badge
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {(credibilityData?.badge === "Exceptional" ||
+                    {(credibilityData?.badge === "90-95" ||
                       badgeData?.credibility_badge === "90-95") && (
                       <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-all group">
                         <img
@@ -343,7 +343,7 @@ const CoFounderDashboard = () => {
                         </p>
                       </div>
                     )}
-                    {(credibilityData?.badge === "Excellent" ||
+                    {(credibilityData?.badge === "85-90" ||
                       badgeData?.credibility_badge === "85-90") && (
                       <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-all group">
                         <img
@@ -357,7 +357,7 @@ const CoFounderDashboard = () => {
                         </p>
                       </div>
                     )}
-                    {(credibilityData?.badge === "Very Good" ||
+                    {(credibilityData?.badge === "80-85" ||
                       badgeData?.credibility_badge === "80-85") && (
                       <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-all group">
                         <img
@@ -371,7 +371,7 @@ const CoFounderDashboard = () => {
                         </p>
                       </div>
                     )}
-                    {(credibilityData?.badge === "Growing" ||
+                    {(credibilityData?.badge === "below-80" ||
                       badgeData?.credibility_badge === "below-80") && (
                       <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-all group">
                         <img

@@ -2,14 +2,19 @@ const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 
 dotenv.config();
 
 const http = require("http");
 const { Server } = require("socket.io");
 const notificationService = require("./services/notificationService");
+const onboardingReminderService = require("./services/onboardingReminderService");
 
 const app = express();
+
+// Serve static files from the public/uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 /* =========================
    MIDDLEWARES
@@ -121,6 +126,7 @@ const io = new Server(server, {
 });
 
 notificationService.setIO(io);
+onboardingReminderService.initOnboardingReminders();
 
 io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);

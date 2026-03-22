@@ -18,6 +18,8 @@ const StartupProfile = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const [userBasicInfo, setUserBasicInfo] = useState(null);
+
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -27,7 +29,7 @@ const StartupProfile = () => {
   const [formData, setFormData] = useState({
     // Step 1: Founder DNA
     startupName: "",
-    startupLogoUrl: "",
+    startupLogo: null, // Now holds File or URL string
     founderType: "",
     whyBuilding: "",
     superpower: "",
@@ -78,8 +80,26 @@ const StartupProfile = () => {
       navigate("/login-signup");
       return;
     }
+    fetchUserData(userId);
     fetchProfile(userId);
   }, [navigate]);
+
+  // Fetch user registration info for auto-fill
+  const fetchUserData = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
+      const user = response.data;
+      setUserBasicInfo(user);
+      
+      // Auto-fill startupName if it's currently empty
+      setFormData((prev) => ({
+        ...prev,
+        startupName: prev.startupName || user.full_name || "",
+      }));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
@@ -92,7 +112,7 @@ const StartupProfile = () => {
       // Map database fields to form fields
       setFormData({
         startupName: profile.startup_name || "",
-        startupLogoUrl: profile.startup_logo_url || "",
+        startupLogo: profile.startup_logo_url || null,
         founderType: profile.founder_type || "",
         whyBuilding: profile.why_building || "",
         superpower: profile.superpower || "",
@@ -148,11 +168,17 @@ const StartupProfile = () => {
    * Handle input changes
    */
   const handleChange = (e) => {
-    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    }
   };
 
   /**
@@ -303,40 +329,50 @@ const StartupProfile = () => {
 
     setLoading(true);
     try {
+      const data = new FormData();
+      data.append("user_id", Number(userId));
+      data.append("startup_name", formData.startupName);
+      
+      if (formData.startupLogo instanceof File) {
+        data.append("startup_logo", formData.startupLogo);
+      } else if (formData.startupLogo) {
+        data.append("startup_logo_url", formData.startupLogo);
+      }
+
+      data.append("founderType", formData.founderType);
+      data.append("whyBuilding", formData.whyBuilding);
+      data.append("superpower", formData.superpower);
+      data.append("superpowerOther", formData.superpowerOther);
+      data.append("weaknesses", JSON.stringify(formData.weaknesses));
+      data.append("hoursPerWeek", formData.hoursPerWeek);
+      data.append("cofounderType", JSON.stringify(formData.cofounderType));
+      data.append("problemSolving", formData.problemSolving);
+      data.append("whoHasProblem", formData.whoHasProblem);
+      data.append("problemImpact", formData.problemImpact);
+      data.append("solutionBuilding", formData.solutionBuilding);
+      data.append("monetization", formData.monetization);
+      data.append("unfairAdvantage", formData.unfairAdvantage);
+      data.append("monthlyInvestment", formData.monthlyInvestment);
+      data.append("survivalWithoutRevenue", formData.survivalWithoutRevenue);
+      data.append("biggestRisk", formData.biggestRisk);
+      data.append("currentNeed", formData.currentNeed);
+      data.append("outcome30Days", formData.outcome30Days);
+      data.append("executionFailures", formData.executionFailures);
+      data.append("trustFactors", JSON.stringify(formData.trustFactors));
+      data.append("useVendors", formData.useVendors);
+      data.append("vendorCategories", JSON.stringify(formData.vendorCategories));
+      data.append("vendorPreference", JSON.stringify(formData.vendorPreference));
+      data.append("currentStage", formData.currentStage);
+      data.append("growthBlocker", formData.growthBlocker);
+      data.append("magicFix", formData.magicFix);
+      data.append("dashboards", JSON.stringify(formData.dashboards));
+      data.append("currentTools", formData.currentTools);
+
       const response = await axios.post(
         "http://localhost:4000/api/startup-profiles",
+        data,
         {
-          user_id: Number(userId),
-          startup_name: formData.startupName,
-          startup_logo_url: formData.startupLogoUrl,
-          founderType: formData.founderType,
-          whyBuilding: formData.whyBuilding,
-          superpower: formData.superpower,
-          superpowerOther: formData.superpowerOther,
-          weaknesses: formData.weaknesses,
-          hoursPerWeek: formData.hoursPerWeek,
-          cofounderType: formData.cofounderType,
-          problemSolving: formData.problemSolving,
-          whoHasProblem: formData.whoHasProblem,
-          problemImpact: formData.problemImpact,
-          solutionBuilding: formData.solutionBuilding,
-          monetization: formData.monetization,
-          unfairAdvantage: formData.unfairAdvantage,
-          monthlyInvestment: formData.monthlyInvestment,
-          survivalWithoutRevenue: formData.survivalWithoutRevenue,
-          biggestRisk: formData.biggestRisk,
-          currentNeed: formData.currentNeed,
-          outcome30Days: formData.outcome30Days,
-          executionFailures: formData.executionFailures,
-          trustFactors: formData.trustFactors,
-          useVendors: formData.useVendors,
-          vendorCategories: formData.vendorCategories,
-          vendorPreference: formData.vendorPreference,
-          currentStage: formData.currentStage,
-          growthBlocker: formData.growthBlocker,
-          magicFix: formData.magicFix,
-          dashboards: formData.dashboards,
-          currentTools: formData.currentTools,
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
@@ -436,20 +472,32 @@ const StartupProfile = () => {
 
                       <div>
                         <label
-                          htmlFor="startupLogoUrl"
+                          htmlFor="startupLogo"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          Startup Logo URL
+                          Startup Logo <span className="text-blue-300 font-normal">(Upload File)</span>
                         </label>
-                        <input
-                          type="url"
-                          id="startupLogoUrl"
-                          name="startupLogoUrl"
-                          value={formData.startupLogoUrl}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                          placeholder="https://example.com/logo.png"
-                        />
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="file"
+                            id="startupLogo"
+                            name="startupLogo"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="flex-grow px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                          />
+                          {formData.startupLogo && (
+                            <div className="w-12 h-12 rounded-lg border border-blue-500/30 overflow-hidden shrink-0 bg-gray-900 flex items-center justify-center">
+                              <img 
+                                src={formData.startupLogo instanceof File 
+                                  ? URL.createObjectURL(formData.startupLogo) 
+                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `http://localhost:4000${formData.startupLogo}`)} 
+                                alt="Logo Preview" 
+                                className="max-w-full max-h-full object-contain" 
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div>
