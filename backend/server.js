@@ -36,8 +36,8 @@ app.use(
     name: "foundu_sid", // Custom name to avoid conflicts
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
-      secure: false, // Must be false for localhost HTTP
-      sameSite: 'lax'
+      secure: false, // Must be false for localhost
+      sameSite: "lax",
     },
   }),
 );
@@ -46,11 +46,11 @@ app.use(
 app.use((req, res, next) => {
   const log = `\n[${new Date().toISOString()}] [REQUEST] ${req.method} ${req.url}\nHeaders: ${JSON.stringify(req.headers)}\n`;
   console.log(log);
-  
-  const logsDir = path.join(__dirname, 'logs');
-  if (!require('fs').existsSync(logsDir)) require('fs').mkdirSync(logsDir);
-  require('fs').appendFileSync(path.join(logsDir, 'requests.txt'), log);
-  
+
+  const logsDir = path.join(__dirname, "logs");
+  if (!require("fs").existsSync(logsDir)) require("fs").mkdirSync(logsDir);
+  require("fs").appendFileSync(path.join(logsDir, "requests.txt"), log);
+
   next();
 });
 
@@ -142,10 +142,13 @@ io.on("connection", (socket) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("GLOBAL_ERROR:", err);
-  const fs = require('fs');
-  const logsDir = path.join(__dirname, 'logs');
+  const fs = require("fs");
+  const logsDir = path.join(__dirname, "logs");
   if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
-  fs.appendFileSync(path.join(logsDir, 'global_error.txt'), `\n[${new Date().toISOString()}] ${err.stack}\n`);
+  fs.appendFileSync(
+    path.join(logsDir, "global_error.txt"),
+    `\n[${new Date().toISOString()}] ${err.stack}\n`,
+  );
   res.status(500).json({ success: false, error: err.message });
 });
 
