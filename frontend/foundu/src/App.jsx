@@ -42,6 +42,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
+import CreatePost from "./pages/CreatePost";
 
 function App() {
   const userRole = localStorage.getItem("user_type") || null;
@@ -90,6 +91,7 @@ function App() {
         <Route path="/jobposting" element={<ViewJobPosting />} />
         <Route path="/reviews" element={<FreelancerReviews />} />
         <Route path="/live-feed" element={<LiveUserFeed />} />
+        <Route path="/create-post" element={<CreatePost />} />
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/badges" element={<AdminBadges />} />

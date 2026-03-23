@@ -44,9 +44,13 @@ app.use(
 
 // DEBUG: Log all requests
 app.use((req, res, next) => {
-  console.log(`\n[REQUEST] ${req.method} ${req.url}`);
-  console.log("Headers:", req.headers);
-  console.log("Session:", req.session);
+  const log = `\n[${new Date().toISOString()}] [REQUEST] ${req.method} ${req.url}\nHeaders: ${JSON.stringify(req.headers)}\n`;
+  console.log(log);
+  
+  const logsDir = path.join(__dirname, 'logs');
+  if (!require('fs').existsSync(logsDir)) require('fs').mkdirSync(logsDir);
+  require('fs').appendFileSync(path.join(logsDir, 'requests.txt'), log);
+  
   next();
 });
 
@@ -67,6 +71,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const postRoutes = require("./routes/postRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -103,6 +108,7 @@ app.use("/api", adminRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", ideaRoutes);
 app.use("/api", notificationRoutes);
+app.use("/api", postRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -131,6 +137,16 @@ onboardingReminderService.initOnboardingReminders();
 io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
   notificationService.handleSocketConnection(socket);
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("GLOBAL_ERROR:", err);
+  const fs = require('fs');
+  const logsDir = path.join(__dirname, 'logs');
+  if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+  fs.appendFileSync(path.join(logsDir, 'global_error.txt'), `\n[${new Date().toISOString()}] ${err.stack}\n`);
+  res.status(500).json({ success: false, error: err.message });
 });
 
 server.listen(PORT, () => {

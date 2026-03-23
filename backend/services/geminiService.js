@@ -83,3 +83,65 @@ exports.enrichJobDetails = async (role, initialInputs) => {
     return null;
   }
 };
+
+/**
+ * AI-powered applicant matching.
+ * Analyzes job requirements against applicant profiles and returns top 3 matches.
+ */
+exports.matchApplicants = async (jobDetails, applicants) => {
+  if (!applicants || applicants.length === 0) {
+    return [];
+  }
+
+  const applicantSummaries = applicants.map((a, i) => {
+    const isFreelancer = a.user_type === 'freelancer';
+    return `Applicant ${i + 1} (ID: ${a.user_id}):
+  Name: ${a.full_name}
+  Type: ${a.user_type}
+  Skills: ${isFreelancer ? (a.skills_description || 'N/A') : [a.superpower1, a.superpower2, a.superpower3].filter(Boolean).join(', ') || 'N/A'}
+  Experience: ${a.experience || 'N/A'}
+  Bio: ${a.describe_best || a.quantifiable_impact || 'N/A'}
+  Working Environment: ${a.working_environment || 'N/A'}`;
+  }).join('\n\n');
+
+  const prompt = `
+    You are a recruitment AI for FoundU, a professional platform.
+    Analyze the following job posting and rank the applicants by best fit.
+    Return ONLY the top 3 candidates.
+
+    JOB DETAILS:
+    Title: ${jobDetails.job_title}
+    Description: ${jobDetails.full_job_description || jobDetails.job_description || 'N/A'}
+    Requirements: ${jobDetails.job_requirements || 'N/A'}
+    Domain: ${jobDetails.domain || 'N/A'}
+    Job Type: ${jobDetails.job_type || 'N/A'}
+
+    APPLICANTS:
+    ${applicantSummaries}
+
+    Return ONLY a JSON array with exactly the top 3 (or fewer if less than 3 applicants), sorted by best match:
+    [
+      {
+        "user_id": number,
+        "match_score": number (0-100),
+        "reason": "One sentence explaining why they are a good fit"
+      }
+    ]
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    const cleanJson = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("Gemini Match Error:", error);
+    // Fallback: return first 3 applicants with default scores
+    return applicants.slice(0, 3).map((a, i) => ({
+      user_id: a.user_id,
+      match_score: 85 - (i * 5),
+      reason: "AI analysis unavailable — showing based on application order."
+    }));
+  }
+};
