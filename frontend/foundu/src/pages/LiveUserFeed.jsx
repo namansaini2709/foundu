@@ -43,7 +43,7 @@ const LiveUserFeed = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:4000/api/posts");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/posts`);
       if (response.data.success) {
         let allPosts = response.data.data;
         if (viewMode === "my-posts" && currentUserId) {
@@ -62,7 +62,7 @@ const LiveUserFeed = () => {
     setSelectedPost(post);
     // Fetch full profile details for the right side of the modal
     try {
-        const res = await axios.get(`http://localhost:4000/api/users/${post.user_id}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${post.user_id}`);
         if (res.data.success) {
             setUserDetails(res.data.data);
         }
@@ -77,7 +77,7 @@ const LiveUserFeed = () => {
       className="relative group cursor-pointer overflow-hidden rounded-[2rem] bg-gray-900/40 border border-white/5 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:border-blue-500/30 aspect-square"
     >
       <img 
-        src={`http://localhost:4000${post.image_url}`} 
+        src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${post.image_url}`} 
         alt="Post" 
         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
@@ -89,7 +89,7 @@ const LiveUserFeed = () => {
         <div className="flex items-center gap-3 translate-x-[-10px] group-hover:translate-x-0 transition-transform duration-500">
           <div className="relative">
             {post.profile_picture_url ? (
-                <img src={`http://localhost:4000${post.profile_picture_url}`} className="w-12 h-12 rounded-2xl border-2 border-blue-500/50 object-cover shadow-xl" alt={post.full_name} />
+                <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${post.profile_picture_url}`} className="w-12 h-12 rounded-2xl border-2 border-blue-500/50 object-cover shadow-xl" alt={post.full_name} />
             ) : (
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border-2 border-blue-500/50 flex items-center justify-center text-blue-400">
                     <User className="w-6 h-6" />
@@ -133,7 +133,7 @@ const LiveUserFeed = () => {
           {/* Image Section (Left 60%) */}
           <div className="md:w-[65%] bg-black flex items-center justify-center relative border-r border-white/5">
             <img 
-              src={`http://localhost:4000${post.image_url}`} 
+              src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${post.image_url}`} 
               className="w-full h-full object-contain" 
               alt="Detailed View" 
             />
@@ -147,7 +147,7 @@ const LiveUserFeed = () => {
                     <div className="text-center">
                         <div className="relative inline-block mb-6">
                             {userDetails.profile_picture_url ? (
-                                <img src={`http://localhost:4000${userDetails.profile_picture_url}`} className="w-32 h-32 rounded-[2.5rem] border-4 border-blue-500/30 object-cover shadow-2xl mx-auto" alt={userDetails.full_name} />
+                                <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${userDetails.profile_picture_url}`} className="w-32 h-32 rounded-[2.5rem] border-4 border-blue-500/30 object-cover shadow-2xl mx-auto" alt={userDetails.full_name} />
                             ) : (
                                 <div className="w-32 h-32 rounded-[2.5rem] bg-blue-500/10 border-4 border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto">
                                     <User className="w-12 h-12" />

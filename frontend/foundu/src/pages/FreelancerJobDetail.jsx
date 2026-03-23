@@ -90,7 +90,7 @@ function FreelancerJobDetail() {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/api/jobs/${jobId}/applicants/${userData.user_id}`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${jobId}/applicants/${userData.user_id}`
         );
         
         if (response.ok) {
@@ -146,7 +146,7 @@ function FreelancerJobDetail() {
         user_id: parseInt(userData.user_id),
       });
 
-      const response = await fetch("http://localhost:4000/api/jobs/apply", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +198,7 @@ function FreelancerJobDetail() {
         setLoading(true);
 
         // Fetch specific job by ID
-        const jobResponse = await fetch(`http://localhost:4000/api/jobs/${jobId}`);
+        const jobResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${jobId}`);
 
         if (!jobResponse.ok) {
           console.error(`Failed to fetch job. Status: ${jobResponse.status}`);
@@ -222,7 +222,7 @@ function FreelancerJobDetail() {
 
         // Fetch startup profile using founder_id
         if (job.founder_id) {
-          const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
           const profiles = await profilesResponse.json();
 
           console.log("=== STARTUP PROFILES ===");

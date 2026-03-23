@@ -86,7 +86,7 @@ exports.applyToJob = (req, res) => {
                   "New Candidate Applied! 👤",
                   `A new candidate has recently applied for your job listing "${resJob[0].job_title}". Log in to your dashboard to review their profile and experience.`,
                   "Review Applications",
-                  `http://localhost:5173/job/${job_id}`
+                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${job_id}`
                 );
 
                 // 🔥 Email Notification (Applicant Confirmation)
@@ -95,7 +95,7 @@ exports.applyToJob = (req, res) => {
                   "Application Received 🤝",
                   `Your application for "${resJob[0].job_title}" has been successfully submitted to the founder. We will notify you once they review your profile.`,
                   "Go to Dashboard",
-                  "http://localhost:5173/dashboard"
+                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
                 );
               }
             }
@@ -242,7 +242,7 @@ exports.updateApplicantStatus = (req, res) => {
         "Application Status Update 📢",
         `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
         "View Application Status",
-        "http://localhost:5173/dashboard"
+        `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
       );
     },
   );

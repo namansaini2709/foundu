@@ -52,7 +52,7 @@ const CreatePost = () => {
         formData.append('caption', caption);
 
         try {
-            const response = await axios.post('http://localhost:4000/api/posts', formData, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/posts`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 withCredentials: true
             });

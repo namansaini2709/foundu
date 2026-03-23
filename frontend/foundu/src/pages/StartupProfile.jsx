@@ -87,7 +87,7 @@ const StartupProfile = () => {
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
       const user = response.data;
       setUserBasicInfo(user);
       
@@ -105,7 +105,7 @@ const StartupProfile = () => {
   const fetchProfile = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/startup-profiles/user/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles/user/${userId}`
       );
       const profile = response.data;
 
@@ -369,7 +369,7 @@ const StartupProfile = () => {
       data.append("currentTools", formData.currentTools);
 
       const response = await axios.post(
-        "http://localhost:4000/api/startup-profiles",
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`,
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -491,7 +491,7 @@ const StartupProfile = () => {
                               <img 
                                 src={formData.startupLogo instanceof File 
                                   ? URL.createObjectURL(formData.startupLogo) 
-                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `http://localhost:4000${formData.startupLogo}`)} 
+                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.startupLogo}`)} 
                                 alt="Logo Preview" 
                                 className="max-w-full max-h-full object-contain" 
                               />

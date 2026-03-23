@@ -12,7 +12,7 @@ import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
 
-const API_URL = "http://localhost:4000/api";
+const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 
 const FreelancerDashboard = () => {
   const [activeTab, setActiveTab] = useState("projects");

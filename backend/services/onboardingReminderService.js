@@ -54,7 +54,7 @@ const sendOnboardingReminder = async (user, type) => {
   const title = "Boost Your Profile! 🚀";
   const message = `Hey ${full_name}, it looks like you haven't completed your ${user_type} profile yet. Profiles with details get 5x more visibility. Complete yours now to unlock all features!`;
   const actionText = "Complete Profile";
-  const actionLink = "http://localhost:5173/user-type-selection"; // Redirect to selection or direct profile
+  const actionLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/user-type-selection`; // Redirect to selection or direct profile
 
   try {
     // Send Platform Notification

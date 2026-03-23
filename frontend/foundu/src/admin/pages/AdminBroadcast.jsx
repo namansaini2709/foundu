@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { Megaphone, Users, Mail, Bell, Send, AlertTriangle, CheckCircle } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 
-const API = "http://localhost:4000/api";
+const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 
 export default function AdminBroadcast() {
   const [targetType, setTargetType] = useState("freelancer");

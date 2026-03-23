@@ -109,7 +109,7 @@ exports.signup = async (req, res) => {
       "Welcome to FoundU! 🎉",
       "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
       "Complete Your Profile",
-      "http://localhost:5173/profile"
+      `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
     );
   } catch (error) {
     console.error("Signup error:", error);

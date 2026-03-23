@@ -93,7 +93,7 @@ const CoFounderProfile = () => {
 
   const fetchReviews = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/reviews/user/${userId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -104,7 +104,7 @@ const CoFounderProfile = () => {
   const fetchUserData = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/users/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`
       );
       const user = response.data;
       setUserBasicInfo(user);
@@ -124,7 +124,7 @@ const CoFounderProfile = () => {
   const fetchProfile = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/cofounder-profiles/user/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/cofounder-profiles/user/${userId}`
       );
       const profile = response.data;
 
@@ -354,7 +354,7 @@ const CoFounderProfile = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/cofounder-profiles",
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/cofounder-profiles`,
         {
           user_id: Number(userId),
           fullLegalName: formData.fullLegalName,

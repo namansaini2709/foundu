@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import AdminLayout from "../AdminLayout";
 
-const API = "http://localhost:4000/api";
+const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 
 const STATUS_COLORS = {
   pending:  "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",

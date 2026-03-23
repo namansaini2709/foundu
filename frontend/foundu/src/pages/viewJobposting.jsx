@@ -93,7 +93,7 @@ export default function JobApplicationsDashboard() {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:4000/api/jobs");
+      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
       if (!response.ok) throw new Error("Failed to fetch jobs");
 
       const allJobs = await response.json();
@@ -154,7 +154,7 @@ export default function JobApplicationsDashboard() {
       // Fetch applicant counts for each job
       const jobsWithCounts = await Promise.all(mappedJobs.map(async (job) => {
         try {
-          const appRes = await fetch(`http://localhost:4000/api/jobs/${job.id}/applicants`);
+          const appRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${job.id}/applicants`);
           if (appRes.ok) {
             const apps = await appRes.json();
             return { ...job, applicants: apps.length };
@@ -181,7 +181,7 @@ export default function JobApplicationsDashboard() {
 
     const fetchApplicants = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/jobs/${selectedJob}/applicants`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
         if (!response.ok) throw new Error("Failed to fetch applicants");
 
         const apps = await response.json();
@@ -203,7 +203,7 @@ export default function JobApplicationsDashboard() {
             status: app.status || "pending",
             rawStatus: app.status || "pending",
             image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
               : "👤",
             badges: ["verified"],
             details: {
@@ -232,7 +232,7 @@ export default function JobApplicationsDashboard() {
     const fetchAIMatches = async () => {
       setAiLoading(true);
       try {
-        const res = await fetch(`http://localhost:4000/api/jobs/${selectedJob}/ai-matches`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/ai-matches`);
         if (res.ok) {
           const data = await res.json();
           const mapped = data.map(a => ({
@@ -245,7 +245,7 @@ export default function JobApplicationsDashboard() {
             status: a.status || 'pending',
             rawStatus: a.status || 'pending',
             image: a.profile_picture_url
-              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `http://localhost:4000${a.profile_picture_url}`)
+              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${a.profile_picture_url}`)
               : '👤',
             badges: [],
             details: {
@@ -375,14 +375,14 @@ export default function JobApplicationsDashboard() {
     console.log(`[FRONTEND] Updating status: job=${selectedJob}, applicant=${applicantId}, status=${newStatus}`);
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/jobs/${selectedJob}/applicants/${applicantId}/status`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants/${applicantId}/status`,
         { status: newStatus }
       );
       console.log('[FRONTEND] Update response:', response.data);
       toast.success(`Applicant ${newStatus === 'accepted' ? 'shortlisted' : 'rejected'} successfully!`, { theme: 'dark' });
 
       // Refresh the applicant list so the status updates in real-time
-      const refreshRes = await fetch(`http://localhost:4000/api/jobs/${selectedJob}/applicants`);
+      const refreshRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
       if (refreshRes.ok) {
         const apps = await refreshRes.json();
         const mappedApps = apps.map(app => {
@@ -402,7 +402,7 @@ export default function JobApplicationsDashboard() {
             status: app.status || 'pending',
             rawStatus: app.status || 'pending',
             image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
               : "👤",
             badges: ['verified'],
             details: {
@@ -434,7 +434,7 @@ export default function JobApplicationsDashboard() {
   const handleContact = async (applicantId) => {
     try {
       const res = await axios.post(
-        'http://localhost:4000/api/chat/create',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/chat/create`,
         { otherUserId: applicantId, userId: parseInt(localStorage.getItem('user_id')) },
         { withCredentials: true }
       );
@@ -458,7 +458,7 @@ export default function JobApplicationsDashboard() {
     useEffect(() => {
       const fetchUser = async () => {
         try {
-          const res = await axios.get(`http://localhost:4000/api/users/${applicant.id}`);
+          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${applicant.id}`);
           // getUserById returns { success: true, data: {...} }
           setUserDetails(res.data?.data || res.data);
         } catch (err) {
@@ -469,7 +469,7 @@ export default function JobApplicationsDashboard() {
       };
       const fetchPosts = async () => {
         try {
-          const res = await axios.get(`http://localhost:4000/api/posts/user/${applicant.id}`);
+          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/posts/user/${applicant.id}`);
           setUserPosts(Array.isArray(res.data) ? res.data : (res.data?.data || []));
         } catch (err) {
           console.error('Error fetching user posts:', err);
@@ -673,7 +673,7 @@ export default function JobApplicationsDashboard() {
                     <div key={post.id || i} className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/5 hover:border-blue-500/30 transition-all group">
                       {post.image_url ? (
                         <img
-                          src={post.image_url.startsWith('http') ? post.image_url : `http://localhost:4000${post.image_url}`}
+                          src={post.image_url.startsWith('http') ? post.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${post.image_url}`}
                           alt={post.caption || 'Post'}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />

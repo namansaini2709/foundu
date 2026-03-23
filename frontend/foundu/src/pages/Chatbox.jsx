@@ -7,7 +7,7 @@ import {
   FaCheckDouble,
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:4000/api/chat";
+const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/chat`;
 
 const Chatbox = () => {
   const [chats, setChats] = useState([]);
@@ -103,7 +103,7 @@ const Chatbox = () => {
         return;
       }
       try {
-        const res = await axios.get("http://localhost:4000/api/users", { withCredentials: true });
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/users`, { withCredentials: true });
         const filtered = res.data.filter(
           (u) =>
             u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) &&

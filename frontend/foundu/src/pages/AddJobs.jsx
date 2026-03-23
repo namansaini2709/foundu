@@ -237,7 +237,7 @@ export default function AddJobs() {
       const { hiringType, common, freelancer, cofounder } = formData;
 
       if (hiringType === "freelancer" || hiringType === "both") {
-        await axios.post("http://localhost:4000/api/jobs/freelancer", {
+        await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/freelancer`, {
           user_id: Number(userId),
           domain: common.domain,
           role_category: common.roleCategories.join(", "),
@@ -260,7 +260,7 @@ export default function AddJobs() {
 
 
       if (hiringType === "cofounder" || hiringType === "both") {
-        await axios.post("http://localhost:4000/api/jobs/cofounder", {
+        await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/cofounder`, {
           user_id: Number(userId),
           domain: common.domain,
           role_type: cofounder.roleType,

@@ -135,7 +135,7 @@ exports.createFreelancerJob = (req, res) => {
                   "Your Job is Live! 🚀",
                   `Congratulations! Your job listing for "${job_title}" has been successfully posted and is now visible to thousands of potential matches on FoundU.`,
                   "View Job Listing",
-                  `http://localhost:5173/job/${freelancer_job_id}`
+                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${freelancer_job_id}`
                 );
               }); // This closes the (err) => { ... } callback for the INSERT query
             }

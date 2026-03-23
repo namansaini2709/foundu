@@ -13,7 +13,7 @@ const Notifications = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await axios.get("http://localhost:4000/api/notifications", {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, {
                     withCredentials: true
                 });
                 if (res.data.success) {
@@ -44,7 +44,7 @@ const Notifications = () => {
 
     const markAsRead = async (id) => {
         try {
-            await axios.put(`http://localhost:4000/api/notifications/${id}/read`, {}, { withCredentials: true });
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}/read`, {}, { withCredentials: true });
             setNotifications(notifications.map(n =>
                 n.id === id ? { ...n, is_read: 1 } : n
             ));
@@ -57,7 +57,7 @@ const Notifications = () => {
 
     const deleteNotification = async (id, isUnread) => {
         try {
-            await axios.delete(`http://localhost:4000/api/notifications/${id}`, { withCredentials: true });
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}`, { withCredentials: true });
             setNotifications(notifications.filter(n => n.id !== id));
             if (isUnread) {
                 window.dispatchEvent(new Event("notification_read"));

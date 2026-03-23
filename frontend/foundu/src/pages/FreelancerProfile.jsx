@@ -57,7 +57,7 @@ const FreelancerProfile = () => {
 
   const fetchReviews = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/reviews/user/${userId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -66,7 +66,7 @@ const FreelancerProfile = () => {
 
   const fetchUser = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/users/${userId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
       const user = res.data;
       setUserBasicInfo(user);
       const name = user.full_name?.split(" ") || [];
@@ -86,7 +86,7 @@ const FreelancerProfile = () => {
   const fetchProfile = async (userId) => {
     try {
       const res = await axios.get(
-        `http://localhost:4000/api/freelancer-profiles/user/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/freelancer-profiles/user/${userId}`
       );
       const p = res.data;
       setProfileData(p);
@@ -270,7 +270,7 @@ const FreelancerProfile = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/freelancer-profiles",
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/freelancer-profiles`,
         {
           user_id: Number(userId),
           first_name: formData.firstName,

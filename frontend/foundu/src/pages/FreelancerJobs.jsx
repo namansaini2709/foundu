@@ -26,7 +26,7 @@ function FreelancerJobs() {
       try {
         setLoading(true);
         // Fetch all jobs
-        const jobsResponse = await fetch("http://localhost:4000/api/jobs");
+        const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
         const jobsData = await jobsResponse.json();
         
         // Debug: Log the first job to see the structure
@@ -35,7 +35,7 @@ function FreelancerJobs() {
         }
 
         // Fetch all startup profiles
-        const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+        const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
         const profilesData = await profilesResponse.json();
 
         // Create a map of founder_id to startup logo

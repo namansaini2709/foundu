@@ -3,7 +3,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
 
 const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -287,7 +287,7 @@ const FreelancerReviews = () => {
                                                     <div className="flex-shrink-0">
                                                         {review.reviewer_photo ? (
                                                             <img
-                                                                src={review.reviewer_photo.startsWith('http') ? review.reviewer_photo : `http://localhost:4000${review.reviewer_photo}`}
+                                                                src={review.reviewer_photo.startsWith('http') ? review.reviewer_photo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${review.reviewer_photo}`}
                                                                 alt={review.reviewer_name}
                                                                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-700 group-hover:border-blue-500/50 transition-colors"
                                                             />

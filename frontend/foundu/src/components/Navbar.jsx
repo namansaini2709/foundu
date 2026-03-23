@@ -57,7 +57,7 @@ function Navbar() {
 
       if (userId) {
         try {
-          const response = await axios.get(`http://localhost:4000/api/users/${userId}`, { withCredentials: true });
+          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`, { withCredentials: true });
           setUser(response.data);
 
           // Connect Socket purely for notifications
@@ -65,7 +65,7 @@ function Navbar() {
           socket.emit("register", userId);
 
           // Get initial unread count
-          const notifRes = await axios.get("http://localhost:4000/api/notifications", { withCredentials: true });
+          const notifRes = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, { withCredentials: true });
           if(notifRes.data.success) {
             setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
           }
@@ -130,7 +130,7 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       toast.info("Logging out...", { theme: "dark" });
-      await axios.post("http://localhost:4000/api/logout");
+      await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/logout`);
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
@@ -164,7 +164,7 @@ function Navbar() {
     try {
       toast.info("Deleting account...", { theme: "dark" });
       const userId = localStorage.getItem("user_id");
-      await axios.delete(`http://localhost:4000/api/users/${userId}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);

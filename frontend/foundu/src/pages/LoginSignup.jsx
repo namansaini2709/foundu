@@ -83,7 +83,7 @@ function LoginSignup() {
           return
         }
         // ── NORMAL LOGIN ────────────────────────────────────
-        const res = await axios.post('http://localhost:4000/api/login', {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
           email,
           password
         }, { withCredentials: true })
@@ -108,14 +108,14 @@ function LoginSignup() {
           ? userType
           : 'freelancer'
 
-        await axios.post('http://localhost:4000/api/signup', {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/signup`, {
           full_name: fullName,
           email,
           password,
           user_type: validUserType
         })
 
-        const loginRes = await axios.post('http://localhost:4000/api/login', {
+        const loginRes = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
           email,
           password
         }, { withCredentials: true })
@@ -160,7 +160,7 @@ function LoginSignup() {
     }
 
     try {
-      await axios.post('http://localhost:4000/api/forgot-password', {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/forgot-password`, {
         email: resetEmail
       })
 

@@ -70,7 +70,7 @@ exports.createReview = (req, res) => {
             "New Review Received! ⭐",
             `A user on FoundU has just left you a new ${stars}-star review. This feedback helps build your credibility within the community.`,
             "Read Your Reviews",
-            "http://localhost:5173/profile"
+            `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
           );
         },
       );
