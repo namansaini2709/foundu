@@ -28,6 +28,9 @@ app.use(
 
 app.use(express.json());
 
+app.set("trust proxy", 1);
+const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME;
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "foundu_secret",
@@ -36,8 +39,8 @@ app.use(
     name: "foundu_sid", // Custom name to avoid conflicts
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
-      secure: false, // Must be false for localhost
-      sameSite: "lax",
+      secure: isProduction ? true : false, // Must be true for cross-site
+      sameSite: isProduction ? "none" : "lax", // 'none' for cross-domain
     },
   }),
 );
