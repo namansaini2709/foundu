@@ -75,6 +75,7 @@ const aiRoutes = require("./routes/aiRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const postRoutes = require("./routes/postRoutes");
+const testEmailRoutes = require("./routes/testEmailRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -112,6 +113,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api", ideaRoutes);
 app.use("/api", notificationRoutes);
 app.use("/api", postRoutes);
+app.use("/api", testEmailRoutes);
 
 /* =========================
    HEALTH CHECK

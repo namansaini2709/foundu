@@ -21,7 +21,14 @@ const sendEmail = async (to, subject, text, html = "") => {
         console.log("Email sent: " + info.response);
         return info;
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.error("Error sending email! FULL SMTP ERROR DETAILS:", {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            response: error.response,
+            responseCode: error.responseCode,
+            stack: error.stack
+        });
         throw error;
     }
 };
