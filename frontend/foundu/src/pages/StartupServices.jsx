@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 // Gradient styles
 const gradientBlackToBlue = {
   background:
@@ -12,10 +10,8 @@ const gradientBlueToBlack = {
   background:
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
-
 function StartupServices() {
   const navigate = useNavigate();
-
   // First Section - Foundu Startup Dashboard
   const DashboardIntro = () => (
     <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
@@ -34,7 +30,6 @@ function StartupServices() {
               </div>
             </div>
           </div>
-
           {/* Right - Text Content */}
           <div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -62,7 +57,6 @@ function StartupServices() {
       </div>
     </section>
   );
-
   // Second Section - Our MVPs
   const OurMVPs = () => {
     const aiFeatures = [
@@ -72,7 +66,6 @@ function StartupServices() {
       "Burn Reality Checker",
       "AI Founder Simulator",
     ];
-
     const buyPortalFeatures = [
       "Hiring & Talent Portal",
       "CRM System",
@@ -80,7 +73,6 @@ function StartupServices() {
       "Vendor Management",
       "Project Tracking",
     ];
-
     const manualFeatures = [
       "Custom Job Templates",
       "Applicant Screening",
@@ -88,7 +80,6 @@ function StartupServices() {
       "Offer Management",
       "Onboarding Tools",
     ];
-
     const pitchFeatures = [
       "AI Template Selection",
       "Content Auto-Generation",
@@ -96,14 +87,12 @@ function StartupServices() {
       "Investor Insights",
       "Export & Sharing",
     ];
-
     return (
       <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
         <h2 className="text-center text-4xl md:text-6xl font-bold mb-16">
           <span className="text-white">OUR </span>
           <span className="text-blue-300">MVPs</span>
         </h2>
-
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Buy Portal Card */}
@@ -145,7 +134,6 @@ function StartupServices() {
                 View Portals
               </button>
             </div>
-
             {/* Manual Job Card */}
             <div className="bg-gray-800/40 backdrop-blur-sm border-2 border-blue-400 rounded-xl p-8 hover:border-blue-300 transition-all duration-300">
               <div className="flex items-center mb-4">
@@ -182,7 +170,6 @@ function StartupServices() {
                 Post a Job
               </button>
             </div>
-
             {/* AI Insights Card */}
             <div className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border-2 border-green-400 rounded-xl p-8 hover:scale-105 transition-all duration-300">
               <div className="flex items-center mb-4">
@@ -217,7 +204,6 @@ function StartupServices() {
                 Explore AI Features
               </button>
             </div>
-
             {/* Pitch Deck Card */}
             <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400 rounded-xl p-8 hover:scale-105 transition-all duration-300">
               <div className="flex items-center mb-4">
@@ -259,11 +245,9 @@ function StartupServices() {
       </section>
     );
   };
-
   // Third Section - 4 Simple Steps of Matching (with roadmap animation)
   const MatchingSteps = () => {
     const [activeStep, setActiveStep] = useState(0);
-
     const steps = [
       {
         number: "01",
@@ -287,21 +271,18 @@ function StartupServices() {
         description: "Connect with matches and start building your dream team",
       },
     ];
-
     useEffect(() => {
       const interval = setInterval(() => {
         setActiveStep((prev) => (prev + 1) % steps.length);
       }, 3000);
       return () => clearInterval(interval);
     }, []);
-
     return (
       <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
         <h2 className="text-center text-4xl md:text-6xl font-bold mb-16">
           <span className="text-white">4 SIMPLE STEPS OF </span>
           <span className="text-blue-300">MATCHING</span>
         </h2>
-
         <div className="max-w-7xl mx-auto">
           {/* Roadmap Line */}
           <div className="relative mb-12">
@@ -313,7 +294,6 @@ function StartupServices() {
               }}
             />
           </div>
-
           {/* Steps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {steps.map((step, index) => (
@@ -367,7 +347,6 @@ function StartupServices() {
       </section>
     );
   };
-
   // Fourth Section - Why Users Trust Foundu
   const WhyTrustFoundu = () => {
     const trustPoints = [
@@ -405,7 +384,6 @@ function StartupServices() {
         description: "Cutting-edge AI and tools designed for modern startups",
       },
     ];
-
     return (
       <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
         <h2 className="text-center text-4xl md:text-6xl font-bold mb-4">
@@ -416,7 +394,6 @@ function StartupServices() {
           Join thousands of startups that rely on Foundu for intelligent
           matching and growth acceleration.
         </p>
-
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {trustPoints.map((point, index) => (
@@ -438,7 +415,6 @@ function StartupServices() {
       </section>
     );
   };
-
   // Footer (same as homepage)
   const Footer = () => (
     <footer className="relative py-16 px-4" style={gradientBlackToBlue}>
@@ -653,10 +629,8 @@ function StartupServices() {
       </div>
     </footer>
   );
-
   return (
     <div className="min-h-screen">
-      <Navbar />
       <DashboardIntro />
       <OurMVPs />
       <MatchingSteps />
@@ -665,5 +639,4 @@ function StartupServices() {
     </div>
   );
 }
-
 export default StartupServices;

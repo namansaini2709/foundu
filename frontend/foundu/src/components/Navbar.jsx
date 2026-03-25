@@ -58,7 +58,8 @@ function Navbar() {
       if (userId) {
         try {
           const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`, { withCredentials: true });
-          setUser(response.data);
+          const userData = response.data.success ? response.data.data : response.data;
+          setUser(userData);
 
           // Connect Socket purely for notifications
           socket.connect();

@@ -13,7 +13,7 @@ const QuickJobPopup = ({ userId }) => {
     const [phase, setPhase] = useState("selection"); // selection, questions, loading, preview
     const [hiringType, setHiringType] = useState(null); // freelancer, cofounder
     const [qStep, setQStep] = useState(0); 
-    
+
     const [inputs, setInputs] = useState({
         budget: "",        // Freelancer
         workType: "",      // Freelancer (Work Type)
@@ -82,7 +82,7 @@ const QuickJobPopup = ({ userId }) => {
 
             if (response.data.success) {
                 const aiData = response.data.data;
-                
+
                 if (hiringType === 'freelancer') {
                     setPreviewData({
                         hiringType: 'freelancer',
@@ -129,7 +129,7 @@ const QuickJobPopup = ({ userId }) => {
         } catch (error) {
             console.error("AI Enrichment Error:", error);
             toast.error("AI calculation failed. Using fallback preview.");
-            
+
             // Minimal Fallback
             const fallbackData = {
                 jobTitle: inputs.description?.substring(0, 30) + " Role",
@@ -252,7 +252,7 @@ const QuickJobPopup = ({ userId }) => {
                 </header>
 
                 <div className="qj-content">
-                    
+
                     {/* PHASE 1: SELECTION */}
                     {phase === "selection" && (
                         <div className="qj-selection">
@@ -285,7 +285,7 @@ const QuickJobPopup = ({ userId }) => {
                             <div className="step-bar">
                                 <div className="step-progress" style={{ width: `${((qStep+1)/(hiringType === 'freelancer' ? 4 : 3))*100}%` }} />
                             </div>
-                            
+
                             {/* FREELANCER FLOW */}
                             {hiringType === 'freelancer' ? (
                                 <>
@@ -413,7 +413,7 @@ const QuickJobPopup = ({ userId }) => {
                                 <div className="p-section-main">
                                     <div className="ps-row"><strong>Hiring Type:</strong> <span className="cap">{previewData.hiringType}</span></div>
                                     <div className="ps-row"><strong>Domain:</strong> <span>{previewData.common.domain}</span></div>
-                                    
+
                                     {previewData.hiringType === 'freelancer' ? (
                                         <div className="ps-box">
                                             <h4 className="ps-title"><Briefcase size={16}/> {previewData.freelancer.jobTitle}</h4>

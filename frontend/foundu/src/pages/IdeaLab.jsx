@@ -2,23 +2,18 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Lightbulb, Send, CheckCircle, Circle, Trash2, Rocket, ArrowRight, BookOpen } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./IdeaLab.css";
-
 const API_BASE = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
-
 const IdeaLab = () => {
     const userId = localStorage.getItem("user_id");
     const [ideas, setIdeas] = useState([]);
     const [newIdea, setNewIdea] = useState({ title: "", description: "" });
     const [loading, setLoading] = useState(false);
     const [selectedIdea, setSelectedIdea] = useState(null);
-
     useEffect(() => {
         fetchIdeas();
     }, []);
-
     const fetchIdeas = async () => {
         try {
             const res = await axios.get(`${API_BASE}/ideas/user/${userId}`);
@@ -32,13 +27,11 @@ const IdeaLab = () => {
             console.error("Fetch ideas error:", err);
         }
     };
-
     const handleCreateIdea = async (e) => {
         e.preventDefault();
         if (!newIdea.title || !newIdea.description) {
             return toast.warning("Please fill all fields");
         }
-
         setLoading(true);
         try {
             const res = await axios.post(`${API_BASE}/ideas/create`, {
@@ -56,7 +49,6 @@ const IdeaLab = () => {
             setLoading(false);
         }
     };
-
     const handleToggleMilestone = async (mId, currentStatus) => {
         try {
             const res = await axios.put(`${API_BASE}/ideas/milestone/${mId}`, {
@@ -79,7 +71,6 @@ const IdeaLab = () => {
             toast.error("Error updating milestone");
         }
     };
-
     const handleDeleteIdea = async (id) => {
         if (!window.confirm("Are you sure you want to delete this idea?")) return;
         try {
@@ -94,17 +85,13 @@ const IdeaLab = () => {
             toast.error("Error deleting idea");
         }
     };
-
     return (
         <div className="idea-lab-container">
-            <Navbar />
-            
             <div className="idea-lab-main">
                 <header className="idea-lab-header">
                     <h1>💡 Idea Lab</h1>
                     <p>Pitch your startup ideas and get AI-powered milestone tracking.</p>
                 </header>
-
                 <div className="idea-content-grid">
                     {/* LEFT: IDEA LIST & NEW IDEA FORM */}
                     <aside className="idea-sidebar">
@@ -128,7 +115,6 @@ const IdeaLab = () => {
                                 </button>
                             </form>
                         </div>
-
                         <div className="my-ideas-list">
                             <h3>My Pitches</h3>
                             {ideas.length === 0 ? (
@@ -155,7 +141,6 @@ const IdeaLab = () => {
                             )}
                         </div>
                     </aside>
-
                     {/* RIGHT: SELECTED IDEA DETAILS & MILESTONES */}
                     <main className="idea-details">
                         {selectedIdea ? (
@@ -168,7 +153,6 @@ const IdeaLab = () => {
                                         </div>
                                     </div>
                                     <p className="idea-desc">{selectedIdea.description}</p>
-                                    
                                     <div className="milestone-section">
                                         <h3>🚀 AI-Generated Milestones</h3>
                                         <div className="milestone-list">
@@ -184,7 +168,6 @@ const IdeaLab = () => {
                                             ))}
                                         </div>
                                     </div>
-
                                     {/* RESOURCES SECTION */}
                                     <div className="resources-section">
                                         <h3>📚 Recommended Resources</h3>
@@ -219,10 +202,8 @@ const IdeaLab = () => {
                     </main>
                 </div>
             </div>
-
             <Footer />
         </div>
     );
 };
-
 export default IdeaLab;

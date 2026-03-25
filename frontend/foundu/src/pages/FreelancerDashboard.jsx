@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 import blueBadge from "../assets/bluebadge.png";
 import greenBadge from "../assets/greenbadge.png";
 import goldenBadge from "../assets/goldenbadge.png";
@@ -11,9 +9,7 @@ import red1 from "../assets/9095.png";
 import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
-
 const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
-
 const FreelancerDashboard = () => {
   const [activeTab, setActiveTab] = useState("projects");
   const [applications, setApplications] = useState([]);
@@ -22,26 +18,22 @@ const FreelancerDashboard = () => {
   const [badgeData, setBadgeData] = useState(null);
   const [credibilityData, setCredibilityData] = useState(null);
   const userId = localStorage.getItem("user_id");
-
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   // Tab config with icons
   const tabs = [
     { key: "projects", label: "Projects", icon: "📂" },
     { key: "payments", label: "Payments", icon: "💰" },
     { key: "badges", label: "Badges", icon: "🏅" },
   ];
-
   // Fetch applications when projects tab is active
   useEffect(() => {
     if (activeTab === "projects" && userId) {
       fetchApplications();
     }
   }, [activeTab, userId]);
-
   // Fetch badge statuses and credibility score
   useEffect(() => {
     if (userId) {
@@ -49,14 +41,12 @@ const FreelancerDashboard = () => {
         .get(`${API_URL}/user-socials/${userId}`)
         .then((res) => setBadgeData(res.data.data))
         .catch((err) => console.error("Error fetching badges:", err));
-
       axios
         .get(`${API_URL}/reviews/credibility/${userId}`)
         .then((res) => setCredibilityData(res.data))
         .catch((err) => console.error("Error fetching credibility:", err));
     }
   }, [userId]);
-
   const fetchApplications = async () => {
     setLoadingApps(true);
     try {
@@ -67,7 +57,6 @@ const FreelancerDashboard = () => {
     }
     setLoadingApps(false);
   };
-
   const refreshBadges = async () => {
     try {
       await axios.post(`${API_URL}/badges/recalculate`, { user_id: userId });
@@ -80,12 +69,10 @@ const FreelancerDashboard = () => {
       toast.error("Failed to refresh badges");
     }
   };
-
   const filteredApplications =
     statusFilter === "all"
       ? applications
       : applications.filter((app) => app.status === statusFilter);
-
   // Dummy Data for payments (keeping as-is per requirements)
   const transactions = [
     {
@@ -110,7 +97,6 @@ const FreelancerDashboard = () => {
       type: "Credit",
     },
   ];
-
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "accepted":
@@ -123,14 +109,11 @@ const FreelancerDashboard = () => {
         return "bg-amber-500/15 text-amber-300 border border-amber-500/30";
     }
   };
-
   return (
     <div
       className="min-h-screen text-white font-sans"
       style={gradientBlackToBlue}
     >
-      <Navbar />
-
       <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 mb-8 shadow-lg">
@@ -140,7 +123,6 @@ const FreelancerDashboard = () => {
           <p className="text-blue-200 text-lg text-center">
             Manage your chats, applications, earnings, and badges
           </p>
-
           {/* ═══════════════════════════════════════════════
                         PREMIUM CENTER-ALIGNED TOGGLE BAR
                     ═══════════════════════════════════════════════ */}
@@ -170,7 +152,6 @@ const FreelancerDashboard = () => {
             </div>
           </div>
         </div>
-
         {/* Content Area */}
         <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-8 min-h-[500px]">
           {activeTab === "projects" && (
@@ -200,7 +181,6 @@ const FreelancerDashboard = () => {
                   ))}
                 </div>
               </div>
-
               {loadingApps ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-3">
                   <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
@@ -264,12 +244,10 @@ const FreelancerDashboard = () => {
               )}
             </div>
           )}
-
           {/* ═══════════ PAYMENTS TAB ═══════════ */}
           {activeTab === "payments" && (
             <div>
               <h2 className="text-2xl font-bold text-white mb-8">My Payment</h2>
-
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-gray-700/30 border border-blue-500/30 p-6 rounded-xl relative overflow-hidden group">
@@ -296,7 +274,6 @@ const FreelancerDashboard = () => {
                   <p className="text-3xl font-bold text-purple-400">$800.00</p>
                 </div>
               </div>
-
               {/* Transaction History */}
               <div>
                 <div className="flex justify-between items-center mb-6">
@@ -343,7 +320,6 @@ const FreelancerDashboard = () => {
               </div>
             </div>
           )}
-
           {/* ═══════════ BADGES TAB ═══════════ */}
           {activeTab === "badges" && (
             <div>
@@ -358,7 +334,6 @@ const FreelancerDashboard = () => {
                   <span>🔄</span> Refresh Badges
                 </button>
               </div>
-
               {/* Verification Badges */}
               {(badgeData?.blue_tick_verified === 1 ||
                 badgeData?.blue_tick_verified === true ||
@@ -422,7 +397,6 @@ const FreelancerDashboard = () => {
                   </div>
                 </div>
               )}
-
               {/* Credibility Score Badges */}
               {(credibilityData || badgeData?.credibility_badge) && (
                 <div>
@@ -495,10 +469,8 @@ const FreelancerDashboard = () => {
           )}
         </div>
       </div>
-
       <Footer />
     </div>
   );
 };
-
 export default FreelancerDashboard;

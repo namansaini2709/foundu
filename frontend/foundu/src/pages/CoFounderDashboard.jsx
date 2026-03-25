@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { FaShieldAlt, FaMedal, FaAward } from "react-icons/fa";
 import blueBadge from "../assets/bluebadge.png";
@@ -11,9 +10,7 @@ import red1 from "../assets/9095.png";
 import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
-
 const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
-
 const CoFounderDashboard = () => {
   const [activeTab, setActiveTab] = useState("applications");
   const [applications, setApplications] = useState([]);
@@ -21,27 +18,22 @@ const CoFounderDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [badgeData, setBadgeData] = useState(null);
   const [credibilityData, setCredibilityData] = useState(null);
-
   const userId = localStorage.getItem("user_id");
-
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   // Tab config with icons
   const tabs = [
     { key: "applications", label: "Applications", icon: "📂" },
     { key: "badges", label: "My Badges", icon: "🏅" },
   ];
-
   // Fetch applications when applications tab is active
   useEffect(() => {
     if (activeTab === "applications" && userId) {
       fetchApplications();
     }
   }, [activeTab, userId]);
-
   // Fetch badge statuses and credibility score
   useEffect(() => {
     if (userId) {
@@ -49,14 +41,12 @@ const CoFounderDashboard = () => {
         .get(`${API_URL}/user-socials/${userId}`)
         .then((res) => setBadgeData(res.data.data))
         .catch((err) => console.error("Error fetching badges:", err));
-
       axios
         .get(`${API_URL}/reviews/credibility/${userId}`)
         .then((res) => setCredibilityData(res.data))
         .catch((err) => console.error("Error fetching credibility:", err));
     }
   }, [userId]);
-
   const fetchApplications = async () => {
     setLoadingApps(true);
     try {
@@ -67,7 +57,6 @@ const CoFounderDashboard = () => {
     }
     setLoadingApps(false);
   };
-
   const refreshBadges = async () => {
     try {
       await axios.post(`${API_URL}/badges/recalculate`, { user_id: userId });
@@ -80,12 +69,10 @@ const CoFounderDashboard = () => {
       toast.error("Failed to refresh badges");
     }
   };
-
   const filteredApplications =
     statusFilter === "all"
       ? applications
       : applications.filter((app) => app.status === statusFilter);
-
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "accepted":
@@ -98,14 +85,11 @@ const CoFounderDashboard = () => {
         return "bg-amber-500/15 text-amber-300 border border-amber-500/30";
     }
   };
-
   return (
     <div
       className="min-h-screen text-white font-sans"
       style={gradientBlackToBlue}
     >
-      <Navbar />
-
       <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 mb-8 shadow-lg">
@@ -115,7 +99,6 @@ const CoFounderDashboard = () => {
           <p className="text-blue-200 text-lg text-center">
             Manage your chats, applications, and verified badges
           </p>
-
           {/* ═══════════════════════════════════════════════
               PREMIUM CENTER-ALIGNED TOGGLE BAR
           ═══════════════════════════════════════════════ */}
@@ -145,7 +128,6 @@ const CoFounderDashboard = () => {
             </div>
           </div>
         </div>
-
         {/* Content Area */}
         <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-8 min-h-[500px]">
           {/* ═══════════ APPLICATIONS TAB ═══════════ */}
@@ -176,7 +158,6 @@ const CoFounderDashboard = () => {
                   ))}
                 </div>
               </div>
-
               {loadingApps ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-3">
                   <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
@@ -242,7 +223,6 @@ const CoFounderDashboard = () => {
               )}
             </div>
           )}
-
           {/* ═══════════ BADGES TAB ═══════════ */}
           {activeTab === "badges" && (
             <div>
@@ -257,7 +237,6 @@ const CoFounderDashboard = () => {
                   <span>🔄</span> Refresh Badges
                 </button>
               </div>
-
               {/* Verification Badges */}
               {(badgeData?.blue_tick_verified === 1 ||
                 badgeData?.blue_tick_verified === true ||
@@ -321,7 +300,6 @@ const CoFounderDashboard = () => {
                   </div>
                 </div>
               )}
-
               {/* Credibility Score Badges */}
               {(credibilityData || badgeData?.credibility_badge) && (
                 <div>
@@ -394,10 +372,8 @@ const CoFounderDashboard = () => {
           )}
         </div>
       </div>
-
       <Footer />
     </div>
   );
 };
-
 export default CoFounderDashboard;

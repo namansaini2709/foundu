@@ -23,9 +23,7 @@ import {
   ChevronRight,
   Activity
 } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 // Move Data Outside Component to prevent recreation
 const FEATURES = [
   {
@@ -123,10 +121,8 @@ const FEATURES = [
     accent: "green",
   }
 ];
-
 const StartupDashboard = () => {
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
-
   // Stats Data
   const stats = [
     {
@@ -160,7 +156,6 @@ const StartupDashboard = () => {
       btnText: "View All"
     }
   ];
-
   // Helper for accent classes to avoid Tailwind purge
   const getAccentColor = (accent) => {
     const map = {
@@ -173,7 +168,6 @@ const StartupDashboard = () => {
     };
     return map[accent] || map.blue;
   };
-
   const getStatBorder = (color) => {
     const map = {
       blue: "border-blue-400/20 hover:border-blue-400/50",
@@ -183,18 +177,14 @@ const StartupDashboard = () => {
     };
     return map[color] || map.blue;
   };
-
   return (
     <div className="min-h-screen bg-[#020024] text-white selection:bg-blue-500/30 overflow-x-hidden">
-      <Navbar />
-      
       {/* Background Ambient Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
         <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-indigo-600/10 rounded-full blur-[100px]"></div>
       </div>
-
       <main className="relative z-10 pt-32 px-6 pb-20 max-w-[1700px] mx-auto">
         {/* Welcome Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-white/5 pb-12">
@@ -212,7 +202,6 @@ const StartupDashboard = () => {
             <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
           </button>
         </header>
-
         {/* Dashboard Stats */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {stats.map((stat, index) => (
@@ -239,10 +228,8 @@ const StartupDashboard = () => {
             </div>
           ))}
         </section>
-
         {/* Main Content Layout */}
         <div className="flex flex-col xl:flex-row gap-8">
-          
           {/* LEFT SIDEBAR - Features List */}
           <aside className="xl:w-1/5">
             <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden sticky top-32">
@@ -280,7 +267,6 @@ const StartupDashboard = () => {
               </div>
             </div>
           </aside>
-
           {/* CENTER - Feature Analysis View */}
           <div className="xl:w-[55%]">
             {FEATURES[activeFeatureIndex] && (
@@ -291,7 +277,6 @@ const StartupDashboard = () => {
                    <div className="bg-indigo-500/50 w-1/3"></div>
                    <div className="bg-purple-500/20 w-1/3"></div>
                 </div>
-
                 <div className="p-12 flex-grow flex flex-col">
                   {/* Analysis Info */}
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-10 mb-16">
@@ -327,7 +312,6 @@ const StartupDashboard = () => {
                       )}
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
                      <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
                         <h4 className="text-white font-black text-lg mb-8 flex items-center gap-3">
@@ -353,7 +337,6 @@ const StartupDashboard = () => {
                         </p>
                      </div>
                   </div>
-
                   <button className="mt-auto relative w-full py-10 bg-blue-600 hover:bg-blue-500 transition-all rounded-[2.5rem] overflow-hidden group/btn shadow-2xl shadow-blue-700/40">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                     <div className="relative z-10 flex items-center justify-center gap-6">
@@ -365,7 +348,6 @@ const StartupDashboard = () => {
               </section>
             )}
           </div>
-
           {/* RIGHT PANEL - Portals & Deck */}
           <aside className="xl:w-1/4">
             <div className="space-y-8">
@@ -388,7 +370,6 @@ const StartupDashboard = () => {
                     VIEW PORTALS
                   </button>
                 </div>
-
                 <div className="bg-gray-700/30 border border-blue-700/20 rounded-3xl p-8">
                    <h4 className="text-white font-black mb-2 text-lg">Pitch Deck Pro</h4>
                    <p className="text-gray-500 text-xs mb-6 italic">Generate investor-ready slides with AI.</p>
@@ -401,9 +382,7 @@ const StartupDashboard = () => {
           </aside>
         </div>
       </main>
-
       <Footer />
-
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
@@ -426,5 +405,4 @@ const StartupDashboard = () => {
     </div>
   );
 };
-
 export default StartupDashboard;

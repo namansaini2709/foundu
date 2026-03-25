@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 const ComingSoon = () => {
   const [timeLeft, setTimeLeft] = useState({
     days: "00",
@@ -10,7 +9,6 @@ const ComingSoon = () => {
   const [email, setEmail] = useState("");
   const [stars, setStars] = useState([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
   /* ---------- STARS ---------- */
   useEffect(() => {
     const starArray = [];
@@ -26,16 +24,13 @@ const ComingSoon = () => {
     }
     setStars(starArray);
   }, []);
-
   /* ---------- COUNTDOWN ---------- */
   useEffect(() => {
     const target = new Date("March 1, 2026 00:00:00").getTime();
-
     const timer = setInterval(() => {
       const now = Date.now();
       const diff = target - now;
       if (diff < 0) return;
-
       setTimeLeft({
         days: String(Math.floor(diff / 86400000)).padStart(2, "0"),
         hours: String(Math.floor((diff / 3600000) % 24)).padStart(2, "0"),
@@ -43,10 +38,8 @@ const ComingSoon = () => {
         seconds: String(Math.floor((diff / 1000) % 60)).padStart(2, "0"),
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
-
   /* ---------- MOUSE PARALLAX ---------- */
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -54,17 +47,14 @@ const ComingSoon = () => {
       const y = (e.clientY / window.innerHeight - 0.5) * 20;
       setMousePosition({ x, y });
     };
-
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     alert(`We'll notify you at ${email}`);
     setEmail("");
   };
-
   return (
     <div
       className="h-screen relative overflow-hidden text-white flex flex-col"
@@ -90,7 +80,6 @@ const ComingSoon = () => {
           />
         ))}
       </div>
-
       {/* CONTENT CONTAINER WITH PARALLAX */}
       <div
         className="relative z-10 flex flex-col h-full transition-transform duration-200 ease-out"
@@ -108,19 +97,16 @@ const ComingSoon = () => {
             Say hello! <span className="text-white">foundu.in@gmail.com</span>
           </div>
         </header>
-
         {/* MAIN - CENTERED CONTENT */}
         <main className="flex-1 flex flex-col justify-center items-center px-6 sm:px-12 lg:px-20 pb-6">
           <div className="text-center max-w-5xl w-full">
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 sm:mb-8">
               We Are <br /> Coming Soon
             </h1>
-
             <p className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-300 mb-10 sm:mb-12">
               We're strong believers that the best solutions come from gathering
               new insights and pushing conventional boundaries.
             </p>
-
             {/* COUNTDOWN */}
             <div className="flex justify-center gap-4 sm:gap-6 md:gap-10 mb-10 sm:mb-12 flex-wrap">
               <TimeBox label="Days" value={timeLeft.days} />
@@ -128,12 +114,10 @@ const ComingSoon = () => {
               <TimeBox label="Minutes" value={timeLeft.minutes} />
               <TimeBox label="Seconds" value={timeLeft.seconds} />
             </div>
-
             {/* WAITLIST */}
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-4 sm:mb-6">
               Join the waitlist
             </h2>
-
             <form
               onSubmit={handleSubmit}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto"
@@ -168,13 +152,11 @@ const ComingSoon = () => {
             </form>
           </div>
         </main>
-
         {/* FOOTER - COPYRIGHT */}
         <footer className="px-6 sm:px-12 lg:px-20 pb-4 text-center text-sm text-gray-400 flex-shrink-0">
           © {new Date().getFullYear()} All rights reserved.
         </footer>
       </div>
-
       <style jsx>{`
         @keyframes twinkle {
           0%,
@@ -185,7 +167,6 @@ const ComingSoon = () => {
             opacity: 1;
           }
         }
-
         .animate-twinkle {
           animation: twinkle 3s infinite ease-in-out;
         }
@@ -193,7 +174,6 @@ const ComingSoon = () => {
     </div>
   );
 };
-
 const TimeBox = ({ label, value }) => (
   <div className="text-center">
     <div className="text-xs sm:text-sm md:text-lg text-gray-400 mb-2 sm:mb-3">
@@ -204,5 +184,4 @@ const TimeBox = ({ label, value }) => (
     </div>
   </div>
 );
-
 export default ComingSoon;

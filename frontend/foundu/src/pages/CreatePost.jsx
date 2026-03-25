@@ -11,7 +11,6 @@ import {
     X
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const CreatePost = () => {
@@ -71,7 +70,6 @@ const CreatePost = () => {
 
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans">
-            <Navbar />
 
             <main className="flex-grow pt-32 pb-20 px-6">
                 <div className="max-w-4xl mx-auto">
@@ -129,7 +127,7 @@ const CreatePost = () => {
                         {/* Details Section */}
                         <div className="flex flex-col h-full bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] -z-10 animate-pulse"></div>
-                            
+
                             <div className="mb-8">
                                 <label className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-blue-400 mb-4">
                                     <Type className="w-4 h-4" />

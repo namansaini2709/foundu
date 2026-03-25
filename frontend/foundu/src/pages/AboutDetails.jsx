@@ -1,11 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Rocket, Target, Users, Zap, Shield, Sparkles, Globe, ArrowLeft, MousePointer2 } from 'lucide-react';
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 const AboutDetails = () => {
   const navigate = useNavigate();
-
   const features = [
     {
       icon: <Target className="w-10 h-10" />,
@@ -26,18 +23,14 @@ const AboutDetails = () => {
       color: "purple"
     }
   ];
-
   return (
     <div className="min-h-screen bg-[#020024] text-white selection:bg-blue-500/30 overflow-x-hidden">
-      <Navbar />
-      
       {/* Background Ambient Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[150px] animate-pulse"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(9,9,121,0.15)_0,transparent_70%)]"></div>
       </div>
-
       <main className="relative z-10 pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
         {/* Back Button */}
         <button 
@@ -47,7 +40,6 @@ const AboutDetails = () => {
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           Back to Home
         </button>
-
         {/* Hero Section */}
         <div className="text-center mb-24 relative">
           <div className="inline-block px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm font-bold tracking-widest uppercase mb-6 animate-bounce">
@@ -61,7 +53,6 @@ const AboutDetails = () => {
             Founded on the principle that the right connection can change the world, Foundu is the AI-powered nervous system of the global startup ecosystem.
           </p>
         </div>
-
         {/* The Problem & The Solution */}
         <div className="grid md:grid-cols-2 gap-12 mb-32 items-center">
           <div className="space-y-8">
@@ -89,7 +80,6 @@ const AboutDetails = () => {
             </div>
           </div>
         </div>
-
         {/* Our Pillars */}
         <div className="mb-32">
           <div className="flex items-center gap-4 mb-16">
@@ -106,7 +96,6 @@ const AboutDetails = () => {
                 <div className="relative h-full bg-gray-900/40 backdrop-blur-2xl border border-white/5 rounded-3xl p-10 hover:-translate-y-4 transition-all duration-500 group-hover:border-white/20 shadow-xl overflow-hidden">
                   {/* Hover Light Reflection */}
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  
                   <div className={`mb-8 p-4 rounded-2xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 text-${feature.color}-400 inline-block transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500`}>
                     {feature.icon}
                   </div>
@@ -117,7 +106,6 @@ const AboutDetails = () => {
             ))}
           </div>
         </div>
-
         {/* Animation Strip/Callout */}
         <div className="relative h-[400px] md:h-[600px] mb-32 rounded-[4rem] overflow-hidden border border-white/5 group bg-blue-900/10">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-purple-600/30 animate-pulse"></div>
@@ -128,7 +116,6 @@ const AboutDetails = () => {
              <h2 className="text-4xl md:text-7xl font-bold max-w-3xl leading-tight">THE ONLY PLATFORM THAT UNDERSTANDS <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">VISION.</span></h2>
           </div>
         </div>
-
         {/* Why Foundu Section */}
         <div className="space-y-32">
           <section className="flex flex-col md:flex-row items-center gap-16">
@@ -153,7 +140,6 @@ const AboutDetails = () => {
               </div>
             </div>
           </section>
-
           {/* Final CTA */}
           <section className="relative py-20 px-8 rounded-[3rem] overflow-hidden text-center bg-gradient-to-b from-blue-600 to-transparent border border-blue-400/30">
              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
@@ -174,9 +160,7 @@ const AboutDetails = () => {
           </section>
         </div>
       </main>
-
       <Footer />
-
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }
@@ -196,5 +180,4 @@ const AboutDetails = () => {
     </div>
   );
 };
-
 export default AboutDetails;

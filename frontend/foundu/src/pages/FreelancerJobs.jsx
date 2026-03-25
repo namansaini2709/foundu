@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Briefcase, DollarSign, Clock, MapPin } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 // Gradient styles - same as HomePage
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
 };
-
 function FreelancerJobs() {
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -19,7 +16,6 @@ function FreelancerJobs() {
   const [selectedJobType, setSelectedJobType] = useState("");
   const [availableJobs, setAvailableJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-
   // Fetch available jobs from API
   useEffect(() => {
     const fetchJobs = async () => {
@@ -28,22 +24,18 @@ function FreelancerJobs() {
         // Fetch all jobs
         const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
         const jobsData = await jobsResponse.json();
-        
         // Debug: Log the first job to see the structure
         if (jobsData.length > 0) {
           console.log("First job from API:", jobsData[0]);
         }
-
         // Fetch all startup profiles
         const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
         const profilesData = await profilesResponse.json();
-
         // Create a map of founder_id to startup logo
         const founderLogoMap = {};
         profilesData.forEach((profile) => {
           founderLogoMap[profile.userId] = profile.startup_logo_url;
         });
-
         // Filter only freelancer jobs and map with startup logos
         const jobsWithLogos = jobsData
           .filter((job) => job.job_type === "freelancer")
@@ -55,7 +47,6 @@ function FreelancerJobs() {
             founderId: job.founder_id,
             logoUrl: founderLogoMap[job.founder_id] || null,
           }));
-
         setAvailableJobs(jobsWithLogos);
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -63,16 +54,13 @@ function FreelancerJobs() {
         setLoading(false);
       }
     };
-
     fetchJobs();
   }, []);
-
   // Job Card Component
   const JobCard = ({ job, showMatch = true, isApiJob = false }) => (
     <div className="bg-gray-900/50 backdrop-blur-sm border-2 border-blue-700/50 rounded-2xl p-5 hover:border-blue-400 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-400/20 flex flex-col w-full h-full relative overflow-hidden group">
       {/* Background Gradient Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
       {/* Top Row: Logo + Job Name + Match Percentage */}
       <div className="flex items-start justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3 flex-1">
@@ -114,13 +102,11 @@ function FreelancerJobs() {
               </span>
             </div>
           )}
-
           {/* Job Name - Next to Logo */}
           <h3 className="text-base font-bold text-white group-hover:text-blue-300 transition-colors duration-300 leading-tight">
             {job.name}
           </h3>
         </div>
-
         {/* Match Percentage - Top Right (Smaller) */}
         {showMatch && (
           <span className="text-xs font-bold text-green-400 flex-shrink-0">
@@ -128,18 +114,15 @@ function FreelancerJobs() {
           </span>
         )}
       </div>
-
       {/* One Liner Job Description */}
       <p className="text-gray-300 text-xs mb-4 line-clamp-3 flex-grow relative z-10 leading-relaxed">
         {job.info}
       </p>
-
       {/* Stipend (Optional - can be removed if not needed) */}
       <div className="flex items-center gap-2 mb-4 text-blue-300 relative z-10">
         <DollarSign className="w-3.5 h-3.5" />
         <span className="font-semibold text-xs">{job.stipend}</span>
       </div>
-
       {/* Apply Now Button */}
       <button
         onClick={() => navigate(`/job-description?job_id=${job.id}`)}
@@ -149,10 +132,8 @@ function FreelancerJobs() {
       </button>
     </div>
   );
-
   return (
     <div className="min-h-screen" style={gradientBlackToBlue}>
-      <Navbar />
       <section className="pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <center>
@@ -161,13 +142,11 @@ function FreelancerJobs() {
             <span className="text-blue-300">Jobs</span>
           </h2>
           </center>
-  
           {/* AI Matched Jobs Heading */}
           {/* <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
             <span className="text-white">AI </span>
             <span className="text-blue-300">Matched Jobs</span>
           </h1> */}
-
           {/* AI Matched Jobs - 5 Columns */}
           {/* <div className="relative mb-16">
             <div className="absolute top-0 left-0 -translate-y-1/2 bg-gray-900/70 border border-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
@@ -185,7 +164,6 @@ function FreelancerJobs() {
               ))}
             </div>
           </div> */}
-
           {/* Filters Box */}
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-6 md:p-8 mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">Filter Jobs</h2>
@@ -206,7 +184,6 @@ function FreelancerJobs() {
                   />
                 </div>
               </div>
-
               {/* Job Category */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">
@@ -225,7 +202,6 @@ function FreelancerJobs() {
                   <option value="data">Data Science</option>
                 </select>
               </div>
-
               {/* Stipend */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">
@@ -243,7 +219,6 @@ function FreelancerJobs() {
                   <option value="5k+">$5k+</option>
                 </select>
               </div>
-
               {/* Experience Level */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">
@@ -261,7 +236,6 @@ function FreelancerJobs() {
                   <option value="expert">Expert</option>
                 </select>
               </div>
-
               {/* Job Type */}
               <div>
                 <label className="block text-white text-sm font-medium mb-2">
@@ -281,10 +255,7 @@ function FreelancerJobs() {
               </div>
             </div>
           </div>
-
           {/* Available Jobs Heading */}
-         
-
           {/* Loading State */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
@@ -314,5 +285,4 @@ function FreelancerJobs() {
     </div>
   );
 }
-
 export default FreelancerJobs;

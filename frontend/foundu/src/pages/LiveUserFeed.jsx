@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   Heart,
@@ -24,22 +23,18 @@ import {
   Linkedin,
   Github
 } from "lucide-react";
-
 const LiveUserFeed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const location = useLocation();
-
   const queryParams = new URLSearchParams(location.search);
   const viewMode = queryParams.get("view");
   const currentUserId = localStorage.getItem("user_id");
-
   useEffect(() => {
     fetchPosts();
   }, [viewMode]);
-
   const fetchPosts = async () => {
     setLoading(true);
     try {
@@ -57,7 +52,6 @@ const LiveUserFeed = () => {
       setLoading(false);
     }
   };
-
   const handlePostClick = async (post) => {
     setSelectedPost(post);
     // Fetch full profile details for the right side of the modal
@@ -70,7 +64,6 @@ const LiveUserFeed = () => {
         console.error("Error fetching user details:", error);
     }
   };
-
   const ExploreCard = ({ post }) => (
     <div 
       onClick={() => handlePostClick(post)}
@@ -81,10 +74,8 @@ const LiveUserFeed = () => {
         alt="Post" 
         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
-      
       {/* OVERLAY ON HOVER */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 p-6 flex flex-col justify-between backdrop-blur-[2px]">
-        
         {/* Top Left: User Info */}
         <div className="flex items-center gap-3 translate-x-[-10px] group-hover:translate-x-0 transition-transform duration-500">
           <div className="relative">
@@ -106,7 +97,6 @@ const LiveUserFeed = () => {
             <div className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">{post.user_type}</div>
           </div>
         </div>
-
         {/* Bottom Center: Caption */}
         <div className="translate-y-[10px] group-hover:translate-y-0 transition-transform duration-500 text-center">
           <p className="text-sm text-gray-200 font-medium line-clamp-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 flex items-center justify-center gap-2">
@@ -117,7 +107,6 @@ const LiveUserFeed = () => {
       </div>
     </div>
   );
-
   const PostModal = ({ post, onClose }) => {
     if (!post) return null;
     return (
@@ -128,7 +117,6 @@ const LiveUserFeed = () => {
         >
           <X className="w-8 h-8" />
         </button>
-
         <div className="bg-gray-950 border border-white/10 rounded-[3rem] w-full max-w-[1300px] h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-[0_0_100px_rgba(59,130,246,0.15)] ring-1 ring-white/10">
           {/* Image Section (Left 60%) */}
           <div className="md:w-[65%] bg-black flex items-center justify-center relative border-r border-white/5">
@@ -138,7 +126,6 @@ const LiveUserFeed = () => {
               alt="Detailed View" 
             />
           </div>
-
           {/* User Profile Section (Right 35%) */}
           <div className="md:w-[35%] flex flex-col bg-gray-950 overflow-y-auto custom-scrollbar p-10">
             {userDetails ? (
@@ -160,12 +147,10 @@ const LiveUserFeed = () => {
                             )}
                         </div>
                         <h2 className="text-3xl font-black text-white mb-2">{userDetails.full_name}</h2>
-                        
                         {/* Specific Role Display */}
                         <div className="text-blue-400 font-bold text-sm uppercase tracking-[0.3em] mb-2">
                             {userDetails.professional_role || 'Innovative Professional'}
                         </div>
-
                         {/* Badges Row */}
                         {(userDetails.blue_tick_verified === 1 || userDetails.golden_tick_verified === 1 || userDetails.green_tick_verified === 1) && (
                             <div className="flex items-center justify-center gap-2 mb-4">
@@ -189,7 +174,6 @@ const LiveUserFeed = () => {
                                 )}
                             </div>
                         )}
-
                         <div className="flex items-center justify-center gap-3">
                             <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
                                 {userDetails.user_type}
@@ -200,7 +184,6 @@ const LiveUserFeed = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Stats Row */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white/5 border border-white/5 rounded-3xl p-5 text-center transition-all hover:bg-white/10">
@@ -212,7 +195,6 @@ const LiveUserFeed = () => {
                             <div className="text-2xl font-black text-white">{userDetails.jobs_completed || 0}</div>
                         </div>
                     </div>
-
                     {/* Job Role Section - just above Professional Bio */}
                     {userDetails.job_profile && (
                         <div className="space-y-3 pt-6 border-t border-white/5">
@@ -228,7 +210,6 @@ const LiveUserFeed = () => {
                             </div>
                         </div>
                     )}
-
                     {/* Bio Section */}
                     <div className="space-y-4 pt-6 border-t border-white/5">
                         <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Professional Bio</h4>
@@ -236,7 +217,6 @@ const LiveUserFeed = () => {
                             {userDetails.professional_bio || "Experienced specialist focusing on high-impact solutions."}
                         </p>
                     </div>
-
                     {/* Experience Section - just above Contact Info */}
                     {userDetails.experience && (
                         <div className="space-y-3 pt-6 border-t border-white/5">
@@ -252,7 +232,6 @@ const LiveUserFeed = () => {
                             </div>
                         </div>
                     )}
-
                     {/* Contact Information */}
                     <div className="space-y-4 pt-6 border-t border-white/5">
                         <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Contact Information</h4>
@@ -264,7 +243,6 @@ const LiveUserFeed = () => {
                                 </div>
                                 {userDetails.contact_phone || 'Contact not listed'}
                             </div>
-
                             {/* LinkedIn */}
                             <a 
                                 href={userDetails.contact_linkedin || '#'} 
@@ -277,7 +255,6 @@ const LiveUserFeed = () => {
                                 </div>
                                 LinkedIn Profile
                             </a>
-
                             {/* GitHub */}
                             <a 
                                 href={userDetails.contact_github || '#'} 
@@ -292,7 +269,6 @@ const LiveUserFeed = () => {
                             </a>
                         </div>
                     </div>
-
                     <button 
                         onClick={() => window.location.href = `/chatbox?userId=${userDetails.id}`}
                         className="w-full mt-8 py-5 rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-lg shadow-2xl shadow-blue-600/20 transition-all transform active:scale-95 flex items-center justify-center gap-3"
@@ -312,14 +288,10 @@ const LiveUserFeed = () => {
       </div>
     );
   };
-
   return (
     <div className="min-h-screen bg-[#020024] text-white selection:bg-blue-500/30 overflow-x-hidden">
-      <Navbar />
-      
       {/* Page Content */}
       <main className="pt-40 pb-20 px-4 md:px-12 max-w-[1600px] mx-auto">
-        
         {/* Header Section */}
         <header className="mb-20 text-center relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/10 blur-[100px] -z-10"></div>
@@ -337,7 +309,6 @@ const LiveUserFeed = () => {
             }
           </p>
         </header>
-
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-6">
             <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin shadow-2xl shadow-blue-500/20"></div>
@@ -364,14 +335,10 @@ const LiveUserFeed = () => {
             </button>
           </div>
         )}
-
       </main>
-
       <Footer />
-
       {/* Modal */}
       <PostModal post={selectedPost} onClose={() => setSelectedPost(null)} />
-
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
@@ -390,5 +357,4 @@ const LiveUserFeed = () => {
     </div>
   );
 };
-
 export default LiveUserFeed;

@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 const ROLE_CATEGORIES = [
   "Engineering / Development",
   "Product / UX / UI Design",
@@ -16,7 +14,6 @@ const ROLE_CATEGORIES = [
   "Data / AI / ML",
   "Other",
 ];
-
 const DOMAINS = [
   "SaaS / B2B",
   "Fintech",
@@ -29,7 +26,6 @@ const DOMAINS = [
   "Agency / Services",
   "Other",
 ];
-
 const initial = {
   hiringType: "freelancer",
   common: {
@@ -48,7 +44,6 @@ const initial = {
     jobTitle: "",
     jobDescription: "",
   },
-
   cofounder: {
     roleType: "Technical (CTO / Engineer)",
     compensation: "Equity only",
@@ -62,7 +57,6 @@ const initial = {
     jobDescription: "",
   },
 };
-
 function Chip({ label, active, onClick }) {
   return (
     <button
@@ -77,7 +71,6 @@ function Chip({ label, active, onClick }) {
     </button>
   );
 }
-
 export default function AddJobs() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -86,7 +79,6 @@ export default function AddJobs() {
     try {
       const raw = localStorage.getItem("addJobForm");
       const parsed = raw ? JSON.parse(raw) : {};
-
       return {
         ...initial,
         ...parsed,
@@ -116,9 +108,6 @@ export default function AddJobs() {
       return initial;
     }
   });
-
-
-
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) {
@@ -126,13 +115,10 @@ export default function AddJobs() {
       navigate("/login-signup");
     }
   }, [navigate]);
-
   useEffect(() => {
     localStorage.setItem("addJobForm", JSON.stringify(formData));
   }, [formData]);
-
   const hiringType = formData.hiringType;
-
   function toggleRoleCategory(cat) {
     setFormData((s) => {
       const exists = s.common.roleCategories.includes(cat);
@@ -142,7 +128,6 @@ export default function AddJobs() {
       return { ...s, common: { ...s.common, roleCategories: next } };
     });
   }
-
   function togglePriority(p) {
     setFormData((s) => {
       const exists = s.cofounder.priorities.includes(p);
@@ -152,13 +137,10 @@ export default function AddJobs() {
       return { ...s, cofounder: { ...s.cofounder, priorities: next } };
     });
   }
-
   const validateForm = () => {
     const errors = [];
     const { hiringType, common, freelancer, cofounder } = formData;
-
     if (!common.domain) errors.push("Please select a domain");
-
     if (hiringType === "freelancer" || hiringType === "both") {
       if (common.roleCategories.length === 0)
         errors.push("Please select at least one role category for freelancer");
@@ -185,8 +167,6 @@ export default function AddJobs() {
       if (!freelancer.jobDescription?.trim())
         errors.push("Please provide a job description for freelancer position");
     }
-
-
     if (hiringType === "cofounder" || hiringType === "both") {
       if (!cofounder.roleType) errors.push("Please select role type for cofounder");
       if (!cofounder.compensation) errors.push("Please select compensation");
@@ -212,30 +192,23 @@ export default function AddJobs() {
       if (!cofounder.jobDescription?.trim())
         errors.push("Please provide a job description for cofounder position");
     }
-
     return errors;
   };
-
   async function handleSubmit() {
     const errors = validateForm();
-
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     const userId = localStorage.getItem("user_id");
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
       navigate("/login-signup");
       return;
     }
-
     setLoading(true);
-
     try {
       const { hiringType, common, freelancer, cofounder } = formData;
-
       if (hiringType === "freelancer" || hiringType === "both") {
         await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/freelancer`, {
           user_id: Number(userId),
@@ -250,15 +223,11 @@ export default function AddJobs() {
           job_requirements: freelancer.requirements.filter(
             (r) => r.trim() !== ""
           ),
-
           job_title: freelancer.jobTitle,
           full_job_description: freelancer.jobDescription,
         });
-
         toast.success("Freelancer job posted successfully!");
       }
-
-
       if (hiringType === "cofounder" || hiringType === "both") {
         await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/cofounder`, {
           user_id: Number(userId),
@@ -276,9 +245,7 @@ export default function AddJobs() {
         });
         toast.success("Cofounder job posted successfully!");
       }
-
       localStorage.removeItem("addJobForm");
-
       setTimeout(() => {
         navigate("/startup-dashboard");
       }, 1500);
@@ -293,7 +260,6 @@ export default function AddJobs() {
       setLoading(false);
     }
   }
-
   const handleNext = () => {
     if (currentStep === 2) {
       const errors = validateForm();
@@ -302,25 +268,19 @@ export default function AddJobs() {
         return;
       }
     }
-
     if (currentStep < 3) {
       setCurrentStep((s) => s + 1);
     }
   };
-
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
     }
   };
-
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar />
       <main className="pt-28 pb-12 w-full max-w-5xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-6">Create a new job</h1>
-
         {/* Step 1: Hiring Type */}
         <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
           <div className="flex items-center justify-between mb-4">
@@ -361,7 +321,6 @@ export default function AddJobs() {
             ))}
           </div>
         </section>
-
         {/* Step 2: Common Questions */}
         {currentStep >= 1 && (
           <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
@@ -394,7 +353,6 @@ export default function AddJobs() {
             </div>
           </section>
         )}
-
         {/* Step 3: Role Specific */}
         {currentStep >= 2 && (
           <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
@@ -404,13 +362,11 @@ export default function AddJobs() {
                 <span className="text-green-500 text-sm">✓ Completed</span>
               )}
             </div>
-
             {(hiringType === "freelancer" || hiringType === "both") && (
               <div className="mb-6 p-4 rounded-lg border border-blue-500/30 bg-gray-800">
                 <h3 className="font-semibold mb-3 text-lg">
                   Freelancer Job Details
                 </h3>
-
                 {/* Role Category */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">
@@ -427,7 +383,6 @@ export default function AddJobs() {
                     ))}
                   </div>
                 </div>
-
                 {/* Work Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -463,7 +418,6 @@ export default function AddJobs() {
                     ))}
                   </div>
                 </div>
-
                 {/* Duration, Budget, Urgency */}
                 <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
@@ -487,7 +441,6 @@ export default function AddJobs() {
                       )}
                     </select>
                   </div>
-
                   {/* Budget (INPUT instead of dropdown) */}
                   <div>
                     <label className="block text-sm mb-2 font-medium">
@@ -506,7 +459,6 @@ export default function AddJobs() {
                       placeholder="e.g. $2000, ₹50,000"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm mb-2 font-medium">
                       Urgency <span className="text-red-500">*</span>
@@ -529,7 +481,6 @@ export default function AddJobs() {
                     </select>
                   </div>
                 </div>
-
                 {/* Job Level */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -551,7 +502,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Job Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -573,7 +523,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Job Title */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -592,7 +541,6 @@ export default function AddJobs() {
                     placeholder="e.g. Senior Full Stack Developer"
                   />
                 </div>
-
                 {/* Job Description - MOVED HERE */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -614,13 +562,11 @@ export default function AddJobs() {
                     placeholder="Describe responsibilities, expectations, tech stack, deliverables..."
                   />
                 </div>
-
                 {/* Job Requirements */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
                     Job Requirements <span className="text-red-500">*</span>
                   </label>
-
                   {formData.freelancer.requirements.map((req, idx) => (
                     <input
                       key={idx}
@@ -638,7 +584,6 @@ export default function AddJobs() {
                       placeholder={`Requirement ${idx + 1}`}
                     />
                   ))}
-
                   <button
                     type="button"
                     onClick={() =>
@@ -657,13 +602,11 @@ export default function AddJobs() {
                 </div>
               </div>
             )}
-
             {(hiringType === "cofounder" || hiringType === "both") && (
               <div className="mb-6 p-4 rounded-lg border border-purple-500/30 bg-gray-800">
                 <h3 className="font-semibold mb-3 text-lg">
                   Cofounder Position Details
                 </h3>
-
                 {/* Role Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -691,7 +634,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Compensation */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -717,7 +659,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Commitment */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -738,7 +679,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Job Level */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -760,7 +700,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Job Type */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -782,7 +721,6 @@ export default function AddJobs() {
                     ))}
                   </select>
                 </div>
-
                 {/* Priority Factors */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -806,7 +744,6 @@ export default function AddJobs() {
                     ))}
                   </div>
                 </div>
-
                 {/* Job Title */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -825,7 +762,6 @@ export default function AddJobs() {
                     placeholder="e.g. Co-Founder & CTO"
                   />
                 </div>
-
                 {/* Job Description */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -847,7 +783,6 @@ export default function AddJobs() {
                     placeholder="Describe the vision, equity split, company stage..."
                   />
                 </div>
-
                 {/* Job Requirements */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -886,7 +821,6 @@ export default function AddJobs() {
                     + Add requirement
                   </button>
                 </div>
-
                 {/* Responsibilities */}
                 <div className="mb-3">
                   <label className="block text-sm mb-2 font-medium">
@@ -929,8 +863,6 @@ export default function AddJobs() {
             )}
           </section>
         )}
-
-
         {/* Step 4: Review & Submit */}
         {currentStep >= 3 && (
           <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
@@ -940,12 +872,10 @@ export default function AddJobs() {
                 <strong className="text-blue-400">Hiring Type:</strong>{" "}
                 <span className="capitalize">{formData.hiringType}</span>
               </div>
-
               <div className="mb-4">
                 <strong className="text-blue-400">Domain:</strong>{" "}
                 {formData.common.domain}
               </div>
-
               {(hiringType === "freelancer" || hiringType === "both") && (
                 <div className="mb-4 p-4 bg-gray-800 rounded-lg">
                   <h3 className="font-semibold mb-2 text-lg">Freelancer Job</h3>
@@ -1000,7 +930,6 @@ export default function AddJobs() {
                   </div>
                 </div>
               )}
-
               {(hiringType === "cofounder" || hiringType === "both") && (
                 <div className="mb-4 p-4 bg-gray-800 rounded-lg">
                   <h3 className="font-semibold mb-2 text-lg">
@@ -1075,8 +1004,6 @@ export default function AddJobs() {
             </div>
           </section>
         )}
-
-
         {/* Navigation Buttons */}
         <div className="flex items-center justify-between gap-4 mt-6">
           <div>
@@ -1089,7 +1016,6 @@ export default function AddJobs() {
               </button>
             )}
           </div>
-
           <div className="flex gap-3">
             {currentStep < 3 ? (
               <button

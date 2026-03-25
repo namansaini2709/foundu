@@ -21,15 +21,12 @@ import {
   User,
   Send,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 export default function JobApplicationsDashboard() {
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showMoreAI, setShowMoreAI] = useState(false);
-
   // Real data states
   const [jobs, setJobs] = useState([]);
   const [manualApplicants, setManualApplicants] = useState([]);
@@ -41,7 +38,6 @@ export default function JobApplicationsDashboard() {
     totalApplicants: 0,
     aiMatched: 0,
   });
-
   // Get user data from localStorage (Same logic as FreelancerJobDetail)
   const getUserData = useCallback(() => {
     try {
@@ -56,7 +52,6 @@ export default function JobApplicationsDashboard() {
             const founderId = userData.founder_id || userData.founderId;
             const freelancerId = userData.freelancer_id || userData.freelancerId;
             const cofounderId = userData.cofounder_id || userData.cofounderId;
-
             if (userId && userType) {
               console.log("Found user data:", { userId, founderId, userType });
               return {
@@ -81,7 +76,6 @@ export default function JobApplicationsDashboard() {
       return null;
     }
   }, []);
-
   // Fetch jobs posted by this founder
   const fetchJobs = useCallback(async () => {
     const userData = getUserData();
@@ -90,12 +84,10 @@ export default function JobApplicationsDashboard() {
       navigate("/login");
       return;
     }
-
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
       if (!response.ok) throw new Error("Failed to fetch jobs");
-
       const allJobs = await response.json();
       console.log("Total jobs fetched from API:", allJobs.length);
       console.log("Debug - userData:", userData);
@@ -106,31 +98,25 @@ export default function JobApplicationsDashboard() {
           founder_id: allJobs[0].founder_id
         });
       }
-
       // Filter jobs by current user
       const filteredJobs = allJobs.filter(job => {
         const jobUserId = Number(job.user_id);
         const jobFounderId = Number(job.founder_id);
         const targetUserId = Number(userData.user_id);
         const targetFounderId = Number(userData.founder_id);
-
         const isMatch = (
           jobUserId === targetUserId ||
           (targetFounderId && jobFounderId === targetFounderId) ||
           (targetFounderId && jobUserId === targetFounderId) ||
           (targetUserId && jobFounderId === targetUserId)
         );
-
         return isMatch;
       });
-
       console.log("Filtered jobs for this user:", filteredJobs.length);
-
       // FALLBACK FOR DEVELOPMENT: If no jobs for this user, but jobs exist in DB, log a warning
       if (filteredJobs.length === 0 && allJobs.length > 0) {
         console.warn("⚠️ No jobs matched the logged-in user. Jobs in DB belong to other users.");
       }
-
       const mappedJobs = filteredJobs.map(job => {
         let previewText = "";
         try {
@@ -138,7 +124,6 @@ export default function JobApplicationsDashboard() {
         } catch (e) {
           previewText = job.job_requirements || job.full_job_description;
         }
-
         return {
           id: job.job_id,
           title: job.job_title,
@@ -147,10 +132,8 @@ export default function JobApplicationsDashboard() {
           status: "Open"
         };
       });
-
       setJobs(mappedJobs);
       setStats(prev => ({ ...prev, activeJobs: mappedJobs.length }));
-
       // Fetch applicant counts for each job
       const jobsWithCounts = await Promise.all(mappedJobs.map(async (job) => {
         try {
@@ -162,11 +145,9 @@ export default function JobApplicationsDashboard() {
         } catch (e) { }
         return job;
       }));
-
       setJobs(jobsWithCounts);
       const totalApps = jobsWithCounts.reduce((sum, job) => sum + job.applicants, 0);
       setStats(prev => ({ ...prev, totalApplicants: totalApps }));
-
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Error loading dashboard data");
@@ -174,27 +155,22 @@ export default function JobApplicationsDashboard() {
       setLoading(false);
     }
   }, [getUserData, navigate]);
-
   // Fetch applicants for selected job
   useEffect(() => {
     if (!selectedJob) return;
-
     const fetchApplicants = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
         if (!response.ok) throw new Error("Failed to fetch applicants");
-
         const apps = await response.json();
         const mappedApps = apps.map(app => {
           const isFreelancer = app.user_type === "freelancer";
           const skills = isFreelancer
             ? app.skills_description || "N/A"
             : [app.superpower1, app.superpower2, app.superpower3].filter(Boolean).join(", ") || "N/A";
-
           const githubLink = isFreelancer ? app.github : app.github_behance;
           const linkedinLink = app.linkedin;
           const phoneNum = isFreelancer ? app.phone_number : app.reference_contact;
-
           return {
             id: app.user_id,
             name: app.full_name,
@@ -225,9 +201,7 @@ export default function JobApplicationsDashboard() {
         console.error("Error fetching applicants:", error);
       }
     };
-
     fetchApplicants();
-
     // Fetch AI-matched applicants
     const fetchAIMatches = async () => {
       setAiLoading(true);
@@ -272,14 +246,10 @@ export default function JobApplicationsDashboard() {
     };
     fetchAIMatches();
   }, [selectedJob, jobs]);
-
   // Initial fetch
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
-
-
-
   const getBadgeColor = (badge) => {
     const colors = {
       verified: "bg-blue-500",
@@ -291,7 +261,6 @@ export default function JobApplicationsDashboard() {
     };
     return colors[badge] || "bg-gray-500";
   };
-
   const getBadgeName = (badge) => {
     const names = {
       verified: "Verified",
@@ -303,7 +272,6 @@ export default function JobApplicationsDashboard() {
     };
     return names[badge] || badge;
   };
-
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'accepted': return 'bg-green-500';
@@ -312,7 +280,6 @@ export default function JobApplicationsDashboard() {
       default: return 'bg-yellow-500';
     }
   };
-
   const getStatusLabel = (status) => {
     switch (status?.toLowerCase()) {
       case 'accepted': return 'Shortlisted';
@@ -321,7 +288,6 @@ export default function JobApplicationsDashboard() {
       default: return status || 'New';
     }
   };
-
   const ApplicantCard = ({ applicant, onClick }) => (
     <div
       onClick={onClick}
@@ -368,7 +334,6 @@ export default function JobApplicationsDashboard() {
       )}
     </div>
   );
-
   // ── Action Handlers ──
   const handleUpdateStatus = async (applicantId, newStatus) => {
     if (!selectedJob) return;
@@ -380,7 +345,6 @@ export default function JobApplicationsDashboard() {
       );
       console.log('[FRONTEND] Update response:', response.data);
       toast.success(`Applicant ${newStatus === 'accepted' ? 'shortlisted' : 'rejected'} successfully!`, { theme: 'dark' });
-
       // Refresh the applicant list so the status updates in real-time
       const refreshRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
       if (refreshRes.ok) {
@@ -393,7 +357,6 @@ export default function JobApplicationsDashboard() {
           const githubLink = isFreelancer ? app.github : app.github_behance;
           const linkedinLink = app.linkedin;
           const phoneNum = isFreelancer ? app.phone_number : app.reference_contact;
-
           return {
             id: app.user_id,
             name: app.full_name,
@@ -420,7 +383,6 @@ export default function JobApplicationsDashboard() {
           };
         });
         setManualApplicants(mappedApps);
-
         // Also update the selected applicant so status refreshes in modal
         const updated = mappedApps.find(a => a.id === applicantId);
         if (updated) setSelectedApplicant(updated);
@@ -430,7 +392,6 @@ export default function JobApplicationsDashboard() {
       toast.error('Failed to update applicant status', { theme: 'dark' });
     }
   };
-
   const handleContact = async (applicantId) => {
     try {
       const res = await axios.post(
@@ -447,14 +408,12 @@ export default function JobApplicationsDashboard() {
       toast.error('Failed to start chat. Make sure you are logged in.', { theme: 'dark' });
     }
   };
-
   const ApplicantModal = ({ applicant, onClose }) => {
     const [userDetails, setUserDetails] = useState(null);
     const [userPosts, setUserPosts] = useState([]);
     const [loadingDetails, setLoadingDetails] = useState(true);
     const details = applicant.details || {};
     const currentStatus = applicant.rawStatus || applicant.status || 'pending';
-
     useEffect(() => {
       const fetchUser = async () => {
         try {
@@ -478,9 +437,7 @@ export default function JobApplicationsDashboard() {
       fetchUser();
       fetchPosts();
     }, [applicant.id]);
-
     const ud = userDetails || {};
-
     return (
       <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
         <div className="bg-gray-950 border border-white/10 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -490,7 +447,6 @@ export default function JobApplicationsDashboard() {
               <X size={18} />
             </button>
           </div>
-
           <div className="px-8 pb-8 -mt-4 space-y-6">
             {/* Avatar + Name */}
             <div className="text-center">
@@ -509,12 +465,10 @@ export default function JobApplicationsDashboard() {
                 )}
               </div>
               <h2 className="text-3xl font-black text-white mb-1">{applicant.name}</h2>
-
               {/* Role type */}
               <div className="text-blue-400 font-bold text-sm uppercase tracking-[0.3em] mb-2">
                 {ud.professional_role || applicant.role || 'Professional'}
               </div>
-
               {/* Badges Row */}
               {(ud.blue_tick_verified === 1 || ud.golden_tick_verified === 1 || ud.green_tick_verified === 1) && (
                 <div className="flex items-center justify-center gap-2 mb-4">
@@ -538,7 +492,6 @@ export default function JobApplicationsDashboard() {
                   )}
                 </div>
               )}
-
               {/* Type + Score + Status */}
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
@@ -560,7 +513,6 @@ export default function JobApplicationsDashboard() {
                 </div>
               </div>
             </div>
-
             {/* Stats Row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/5 border border-white/5 rounded-2xl p-4 text-center transition-all hover:bg-white/10">
@@ -572,7 +524,6 @@ export default function JobApplicationsDashboard() {
                 <div className="text-lg font-black text-white">{details.applied || 'N/A'}</div>
               </div>
             </div>
-
             {/* AI Reason (if AI matched) */}
             {applicant.ai_reason && (
               <div className="space-y-3 pt-4 border-t border-white/5">
@@ -585,7 +536,6 @@ export default function JobApplicationsDashboard() {
                 </div>
               </div>
             )}
-
             {/* Job Role Section — shows freelancer_type / professional_role */}
             {(ud.professional_role || ud.job_profile) && (
               <div className="space-y-3 pt-4 border-t border-white/5">
@@ -604,7 +554,6 @@ export default function JobApplicationsDashboard() {
                 </div>
               </div>
             )}
-
             {/* Professional Bio */}
             <div className="space-y-3 pt-4 border-t border-white/5">
               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Professional Bio</h4>
@@ -612,7 +561,6 @@ export default function JobApplicationsDashboard() {
                 {ud.professional_bio || details.skills || "No bio available."}
               </p>
             </div>
-
             {/* Experience Section */}
             {(ud.experience || details.experience) && (
               <div className="space-y-3 pt-4 border-t border-white/5">
@@ -628,7 +576,6 @@ export default function JobApplicationsDashboard() {
                 </div>
               </div>
             )}
-
             {/* Contact Information */}
             <div className="space-y-3 pt-4 border-t border-white/5">
               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Contact Information</h4>
@@ -663,7 +610,6 @@ export default function JobApplicationsDashboard() {
                 </a>
               </div>
             </div>
-
             {/* User Posts */}
             {userPosts.length > 0 && (
               <div className="space-y-3 pt-4 border-t border-white/5">
@@ -687,7 +633,6 @@ export default function JobApplicationsDashboard() {
                 </div>
               </div>
             )}
-
             {/* Action Buttons */}
             <div className="flex gap-3 pt-6 border-t border-white/5">
               <button
@@ -722,7 +667,6 @@ export default function JobApplicationsDashboard() {
       </div>
     );
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)" }}>
@@ -730,7 +674,6 @@ export default function JobApplicationsDashboard() {
       </div>
     );
   }
-
   return (
     <div
       className="min-h-screen"
@@ -739,7 +682,6 @@ export default function JobApplicationsDashboard() {
           "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
       }}
     >
-      <Navbar />
       <div className="pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div>
@@ -750,7 +692,6 @@ export default function JobApplicationsDashboard() {
               Review all applicants for your posted jobs — manually and with
               AI-assisted recommendations.
             </p>
-
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-gray-900 border border-blue-500 rounded-lg p-4">
                 <div className="flex items-center gap-3">
@@ -787,7 +728,6 @@ export default function JobApplicationsDashboard() {
               </div>
             </div>
           </div>
-
           <div>
             <h2 className="text-xl font-bold text-white mb-4">
               Your Job Postings
@@ -823,7 +763,6 @@ export default function JobApplicationsDashboard() {
               ))}
             </div>
           </div>
-
           {selectedJob && (
             <>
               {/* <div className="bg-gray-900 border border-purple-500 rounded-xl p-6">
@@ -839,7 +778,6 @@ export default function JobApplicationsDashboard() {
                   </p>
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {topRecommended.slice(0, 5).map((applicant) => (
                   <div
@@ -868,7 +806,6 @@ export default function JobApplicationsDashboard() {
                   </div>
                 ))}
               </div>
-
               {!showMoreAI && topRecommended.length > 5 && (
                 <div className="flex justify-center mt-4">
                   <button
@@ -880,7 +817,6 @@ export default function JobApplicationsDashboard() {
                   </button>
                 </div>
               )}
-
               {showMoreAI && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
                   {topRecommended.slice(5, 10).map((applicant) => (
@@ -912,12 +848,10 @@ export default function JobApplicationsDashboard() {
                 </div>
               )}
             </div> */}
-
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <h2 className="text-2xl font-bold text-white mb-4">
                   All Applicants
                 </h2>
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center gap-2">
@@ -934,7 +868,6 @@ export default function JobApplicationsDashboard() {
                       ))}
                     </div>
                   </div>
-
                   <div>
                     <h3 className="text-lg font-semibold text-purple-400 mb-4 flex items-center gap-2">
                       <Target size={20} />
@@ -968,7 +901,6 @@ export default function JobApplicationsDashboard() {
               </div>
             </>
           )}
-
           {!selectedJob && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
               <Briefcase className="text-gray-600 mx-auto mb-4" size={48} />
@@ -993,7 +925,6 @@ export default function JobApplicationsDashboard() {
         </div>
       </div>
       <Footer />
-
       {selectedApplicant && (
         <ApplicantModal
           applicant={selectedApplicant}

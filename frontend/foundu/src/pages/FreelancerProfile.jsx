@@ -2,14 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProfilePreview from "../components/ProfilePreview";
-
 const getUserId = () => {
   return localStorage.getItem("user_id");
 };
-
 const FreelancerProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -18,7 +15,6 @@ const FreelancerProfile = () => {
   const [profileData, setProfileData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [userBasicInfo, setUserBasicInfo] = useState(null);
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,7 +38,6 @@ const FreelancerProfile = () => {
     github: "",
     otherLinks: "",
   });
-
   useEffect(() => {
     const userId = getUserId();
     if (!userId) {
@@ -54,7 +49,6 @@ const FreelancerProfile = () => {
     fetchProfile(userId);
     fetchReviews(userId);
   }, [navigate]);
-
   const fetchReviews = async (userId) => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
@@ -63,14 +57,12 @@ const FreelancerProfile = () => {
       console.error("Error fetching reviews:", error);
     }
   };
-
   const fetchUser = async (userId) => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
-      const user = res.data;
+      const user = res.data.success ? res.data.data : res.data;
       setUserBasicInfo(user);
       const name = user.full_name?.split(" ") || [];
-      
       // Only pre-fill if formData is currently empty to avoid overwriting existing profile data
       setFormData((prev) => ({
         ...prev,
@@ -82,7 +74,6 @@ const FreelancerProfile = () => {
       console.error("Error fetching user:", error);
     }
   };
-
   const fetchProfile = async (userId) => {
     try {
       const res = await axios.get(
@@ -121,16 +112,13 @@ const FreelancerProfile = () => {
       }
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
   };
-
   // Validate fields for the current step only
   const validateCurrentStep = () => {
     const errors = [];
-
     switch (currentStep) {
       case 1: // Personal Details
         if (!formData.firstName?.trim()) {
@@ -146,7 +134,6 @@ const FreelancerProfile = () => {
           errors.push("Phone Number is required");
         }
         break;
-
       case 2: // Education Details
         if (!formData.degreeType?.trim()) {
           errors.push("Degree Type is required");
@@ -164,7 +151,6 @@ const FreelancerProfile = () => {
           errors.push("University is required");
         }
         break;
-
       case 3: // Type of Freelancer
         if (!formData.freelancerType?.trim()) {
           errors.push("Freelancer Type is required");
@@ -173,7 +159,6 @@ const FreelancerProfile = () => {
           errors.push("Please specify your freelancer type");
         }
         break;
-
       case 4: // Skills
         if (!formData.skillsDescription?.trim()) {
           errors.push("Skills Description is required");
@@ -182,13 +167,11 @@ const FreelancerProfile = () => {
           errors.push("Self Description is required");
         }
         break;
-
       case 5: // Experience
         if (!formData.experience?.trim()) {
           errors.push("Experience is required");
         }
         break;
-
       case 6: // Role
         if (!formData.jobProfile?.trim()) {
           errors.push("Job Profile is required");
@@ -203,7 +186,6 @@ const FreelancerProfile = () => {
           errors.push("Please specify your stipend expectation");
         }
         break;
-
       case 7: // Important Links
         if (!formData.linkedin?.trim()) {
           errors.push("LinkedIn profile is required");
@@ -215,58 +197,47 @@ const FreelancerProfile = () => {
           errors.push("Portfolio or other link is required");
         }
         break;
-
       default:
         break;
     }
-
     return errors;
   };
-
   // Handle Next button click
   const handleNext = () => {
     const errors = validateCurrentStep();
-
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     if (currentStep < 7) {
       setCurrentStep((s) => s + 1);
       toast.success(`Step ${currentStep} completed!`);
     }
   };
-
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep((s) => s - 1);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Safety check – submit only on step 7
     if (currentStep !== 7) {
       toast.error("Please complete all steps before submitting");
       return;
     }
-
     // Validate current step (step 7)
     const errors = validateCurrentStep();
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
       navigate("/login");
       return;
     }
-
     setLoading(true);
     try {
       const response = await axios.post(
@@ -296,10 +267,8 @@ const FreelancerProfile = () => {
           other_links: formData.otherLinks,
         }
       );
-
       console.log("Profile created:", response.data);
       toast.success("Profile created successfully! Redirecting...");
-
       setTimeout(() => {
         navigate("/");
       }, 1500);
@@ -313,25 +282,19 @@ const FreelancerProfile = () => {
       setLoading(false);
     }
   };
-
   const gradient = {
     background:
       "linear-gradient(180deg, rgba(2,0,36,1) 16%, rgba(9,9,121,1) 100%)",
   };
-
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   return (
     <div className="min-h-screen flex flex-col" style={gradient}>
       {/* Navigation */}
-      <Navbar />
-
       {/* Main Content */}
       <div className="pt-24 pb-8 flex flex-col items-center">
-
         {/* View/Edit Toggle Bar */}
         <div className="w-[85%] max-w-7xl mb-8">
           <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
@@ -349,7 +312,6 @@ const FreelancerProfile = () => {
             </button>
           </div>
         </div>
-
         {viewMode === "view" ? (
           <ProfilePreview
             user={{
@@ -395,7 +357,6 @@ const FreelancerProfile = () => {
                 freelancer
               </p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Step 1: Personal Details */}
               {currentStep === 1 && (
@@ -485,7 +446,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 2: Education Details */}
               {currentStep === 2 && (
                 <div className="flex justify-center">
@@ -595,7 +555,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 3: Type of Freelancer */}
               {currentStep === 3 && (
                 <div className="flex justify-center">
@@ -657,7 +616,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 4: Skills */}
               {currentStep === 4 && (
                 <div className="flex justify-center">
@@ -719,7 +677,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 5: Experience */}
               {currentStep === 5 && (
                 <div className="flex justify-center">
@@ -754,7 +711,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 6: Role */}
               {currentStep === 6 && (
                 <div className="flex justify-center">
@@ -852,7 +808,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 7: Important Links */}
               {currentStep === 7 && (
                 <div className="flex justify-center">
@@ -923,7 +878,6 @@ const FreelancerProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Navigation Buttons */}
               <div className="flex justify-between pt-6">
                 {currentStep > 1 && (
@@ -935,9 +889,7 @@ const FreelancerProfile = () => {
                     Back
                   </button>
                 )}
-
                 <div className="flex-1" />
-
                 {currentStep < 7 ? (
                   <button
                     type="button"
@@ -960,11 +912,9 @@ const FreelancerProfile = () => {
           </div>
         )}
       </div>
-
       {/* Footer */}
       <Footer />
     </div>
   );
 };
-
 export default FreelancerProfile;

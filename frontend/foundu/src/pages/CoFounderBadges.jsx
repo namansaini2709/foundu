@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { X, Loader2, CheckCircle } from "lucide-react";
 import blueBadge from "../assets/bluebadge.png";
@@ -12,14 +11,11 @@ import red4 from "../assets/below80.png";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
-
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
 };
-
 const BlueTickStatusBadge = ({ status, verified }) => {
   if (verified)
     return (
@@ -46,7 +42,6 @@ const BlueTickStatusBadge = ({ status, verified }) => {
     );
   return null;
 };
-
 const CoFounderBadges = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -54,15 +49,12 @@ const CoFounderBadges = () => {
   const [blueTickVerified, setBlueTickVerified] = useState(false);
   const [greenTickVerified, setGreenTickVerified] = useState(false);
   const [goldenData, setGoldenData] = useState(null);
-
   const [formData, setFormData] = useState({
     linkedin: "",
     portfolio: "",
     profilePhoto: null,
   });
-
   const userId = localStorage.getItem("user_id");
-
   /* Load existing status on mount */
   useEffect(() => {
     if (!userId) return;
@@ -82,26 +74,22 @@ const CoFounderBadges = () => {
         }
       })
       .catch(() => {});
-
     // Load golden tick progress
     axios
       .get(`${API}/badges/golden-status/${userId}`, { withCredentials: true })
       .then((res) => setGoldenData(res.data.data))
       .catch(() => {});
   }, [userId]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
     }
   };
-
   const handleSave = async () => {
     if (!formData.linkedin)
       return toast.error("LinkedIn URL is required", { theme: "dark" });
@@ -110,31 +98,26 @@ const CoFounderBadges = () => {
         theme: "dark",
       });
     if (!userId) return toast.error("You must be logged in", { theme: "dark" });
-
     setSubmitting(true);
     try {
       const data = new FormData();
       data.append("user_id", userId);
       data.append("linkedin_url", formData.linkedin);
       data.append("portfolio_url", formData.portfolio);
-
       if (formData.profilePhoto instanceof File) {
         data.append("profile_picture", formData.profilePhoto);
       } else if (formData.profilePhoto) {
         data.append("profile_picture_url", formData.profilePhoto);
       }
-
       await axios.post(`${API}/user-socials`, data, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       await axios.post(
         `${API}/badges/apply/blue`,
         { user_id: userId },
         { withCredentials: true },
       );
-
       setBlueTickStatus("pending");
       setIsModalOpen(false);
       toast.success(" Verification submitted! Under review by admin.", {
@@ -148,20 +131,16 @@ const CoFounderBadges = () => {
       setSubmitting(false);
     }
   };
-
   return (
     <div
       className="min-h-screen text-white flex flex-col"
       style={gradientBlackToBlue}
     >
-      <Navbar />
-
       <div className="flex-grow pt-24 px-4 pb-12 max-w-7xl mx-auto w-full">
         <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
           <span className="text-white">CO-FOUNDER </span>
           <span className="text-blue-300">BADGES</span>
         </h1>
-
         <div className="flex flex-col gap-6 mb-16">
           {/* Blue Tick Badge */}
           <div className="bg-gray-800/40 backdrop-blur-md border border-blue-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-blue-400 transition-all">
@@ -234,7 +213,6 @@ const CoFounderBadges = () => {
               )}
             </div>
           </div>
-
           {/* Green Tick Badge */}
           <div className="bg-gray-800/40 backdrop-blur-md border border-green-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-green-400 transition-all">
             <div className="flex-shrink-0">
@@ -275,7 +253,6 @@ const CoFounderBadges = () => {
               )}
             </div>
           </div>
-
           {/* ── Golden Tick Badge ─────────────────────────────── */}
           <div
             className={`bg-gray-800/40 backdrop-blur-md border rounded-xl p-6 hover:scale-[1.01] transition-all duration-300 ${
@@ -318,7 +295,6 @@ const CoFounderBadges = () => {
                     * Resets monthly
                   </span>
                 </p>
-
                 {/* Progress Section */}
                 {goldenData ? (
                   <div className="space-y-2">
@@ -339,7 +315,6 @@ const CoFounderBadges = () => {
                         </span>
                       )}
                     </div>
-
                     {/* Login day progress bar */}
                     <div>
                       <div className="justify-between flex text-xs mb-1">
@@ -403,7 +378,6 @@ const CoFounderBadges = () => {
             </div>
           </div>
         </div>
-
         {/* Credibility Score */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -517,9 +491,7 @@ const CoFounderBadges = () => {
           </div>
         </div>
       </div>
-
       <Footer />
-
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -541,7 +513,6 @@ const CoFounderBadges = () => {
               Submit your professional links for manual review by the FoundU
               team.
             </p>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
@@ -594,7 +565,6 @@ const CoFounderBadges = () => {
                 </div>
               </div>
             </div>
-
             <div className="mt-8 flex gap-3">
               <button
                 onClick={() => !submitting && setIsModalOpen(false)}
@@ -620,10 +590,8 @@ const CoFounderBadges = () => {
           </div>
         </div>
       )}
-
       <ToastContainer position="top-right" theme="dark" />
     </div>
   );
 };
-
 export default CoFounderBadges;
