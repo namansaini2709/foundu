@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mailService = require("../services/mailService");
 
-// Diagnostic route to test SMTP configuration
+// Diagnostic route to test email configuration
 router.get("/test-email", async (req, res) => {
   const testEmail = process.env.MAIL_EMAIL;
   
@@ -14,54 +14,24 @@ router.get("/test-email", async (req, res) => {
   }
 
   try {
-    const dns = require("dns").promises;
-    console.log("[DIAGNOSTIC] Checking DNS resolution for smtp.gmail.com...");
-    const lookup = await dns.lookup("smtp.gmail.com");
-    console.log(`[DIAGNOSTIC] DNS Resolved: ${lookup.address}`);
+    console.log(`[MAIL TEST] Attempting to send test email to: ${testEmail}`);
+    
+    await mailService.sendEmail(
+      testEmail,
+      "Live Email Success! | FoundU",
+      "If you are reading this, your FoundU email system is FINALLY working on Railway via the Resend API! 🚀",
+      "<h1>Success! 🚀</h1><p>Your FoundU email system is finally working on Railway via the Resend API.</p>"
+    );
 
-    const ports = [465, 587, 2525];
-    const results = [];
-
-    for (const port of ports) {
-      console.log(`[DIAGNOSTIC] Testing connection to ${lookup.address}:${port}...`);
-      try {
-        const net = require("net");
-        const socket = new net.Socket();
-        
-        const connect = new Promise((resolve, reject) => {
-          socket.setTimeout(5000);
-          socket.connect(port, "smtp.gmail.com", () => {
-            socket.destroy();
-            resolve(true);
-          });
-          socket.on("timeout", () => {
-            socket.destroy();
-            reject(new Error("Timeout"));
-          });
-          socket.on("error", (err) => {
-            socket.destroy();
-            reject(err);
-          });
-        });
-
-        const isOk = await connect;
-        results.push({ port, status: "OPEN" });
-      } catch (err) {
-        results.push({ port, status: "CLOSED/TIMEOUT", error: err.message });
-      }
-    }
-
-    res.json({
-      success: false,
-      message: "Diagnostic complete. Check results to see which ports are blocked.",
-      dns: lookup.address,
-      portResults: results
+    res.json({ 
+      success: true, 
+      message: `Test email sent successfully to ${testEmail}! Please check your inbox.` 
     });
   } catch (error) {
-    console.error("[DIAGNOSTIC ERROR] Test email failed:", error);
+    console.error("[MAIL TEST ERROR] Failed:", error);
     res.status(500).json({ 
       success: false, 
-      error: "Failed to send test email. Check Railway logs for detailed SMTP error codes.",
+      error: "Failed to send test email.",
       details: error.message
     });
   }
