@@ -14,18 +14,48 @@ router.get("/test-email", async (req, res) => {
   }
 
   try {
-    console.log(`[DIAGNOSTIC] Attempting to send test email to: ${testEmail}`);
-    
-    await mailService.sendEmail(
-      testEmail,
-      "Test Email | FoundU Diagnostic",
-      "If you are reading this, your FoundU SMTP configuration is working perfectly on Railway! 🚀",
-      "<h1>Success! 🚀</h1><p>Your FoundU SMTP configuration is working perfectly on Railway.</p>"
-    );
+    const dns = require("dns").promises;
+    console.log("[DIAGNOSTIC] Checking DNS resolution for smtp.gmail.com...");
+    const lookup = await dns.lookup("smtp.gmail.com");
+    console.log(`[DIAGNOSTIC] DNS Resolved: ${lookup.address}`);
 
-    res.json({ 
-      success: true, 
-      message: `Test email sent successfully to ${testEmail}. Please check your inbox and the Railway logs.` 
+    const ports = [465, 587, 2525];
+    const results = [];
+
+    for (const port of ports) {
+      console.log(`[DIAGNOSTIC] Testing connection to ${lookup.address}:${port}...`);
+      try {
+        const net = require("net");
+        const socket = new net.Socket();
+        
+        const connect = new Promise((resolve, reject) => {
+          socket.setTimeout(5000);
+          socket.connect(port, "smtp.gmail.com", () => {
+            socket.destroy();
+            resolve(true);
+          });
+          socket.on("timeout", () => {
+            socket.destroy();
+            reject(new Error("Timeout"));
+          });
+          socket.on("error", (err) => {
+            socket.destroy();
+            reject(err);
+          });
+        });
+
+        const isOk = await connect;
+        results.push({ port, status: "OPEN" });
+      } catch (err) {
+        results.push({ port, status: "CLOSED/TIMEOUT", error: err.message });
+      }
+    }
+
+    res.json({
+      success: false,
+      message: "Diagnostic complete. Check results to see which ports are blocked.",
+      dns: lookup.address,
+      portResults: results
     });
   } catch (error) {
     console.error("[DIAGNOSTIC ERROR] Test email failed:", error);

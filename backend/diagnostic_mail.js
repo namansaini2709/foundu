@@ -4,10 +4,10 @@ console.log("--- Email Diagnostic Start ---");
 console.log("MAIL_EMAIL exists:", !!process.env.MAIL_EMAIL);
 console.log("MAIL_PASSWORD exists:", !!process.env.MAIL_PASSWORD);
 
-if (process.env.MAIL_PASSWORD) {
-    console.log("MAIL_PASSWORD length:", process.env.MAIL_PASSWORD.length);
-    console.log("MAIL_PASSWORD contains spaces:", process.env.MAIL_PASSWORD.includes(" "));
-}
+const dns = require('dns');
+dns.lookup('smtp.gmail.com', (err, address, family) => {
+  console.log('DNS Lookup for smtp.gmail.com:', address, 'Family:', family, 'Error:', err);
+});
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
