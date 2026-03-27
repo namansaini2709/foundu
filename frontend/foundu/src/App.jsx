@@ -31,6 +31,7 @@ import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
+import AdminTestimonials from "./admin/pages/AdminTestimonials";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -42,6 +43,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
+import OurTeam from "./pages/OurTeam";
+import ContactUs from "./pages/ContactUs";
 
 function App() {
   const userRole = localStorage.getItem("user_type") || null;
@@ -94,12 +97,15 @@ function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/badges" element={<AdminBadges />} />
         <Route path="/admin/broadcast" element={<AdminBroadcast />} />
+        <Route path="/admin/testimonials" element={<AdminTestimonials />} />
         {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
         <Route path="/about-details" element={<AboutDetails />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/influencer-marketplace" element={<InfluencerMarketplace />} />
+        <Route path="/our-team" element={<OurTeam />} />
+        <Route path="/contact-us" element={<ContactUs />} />
       </Routes>
       {isLoggedIn && (
         <>

@@ -25,7 +25,7 @@ export default function AdminDashboard() {
     axios
       .get(`${API}/admin/dashboard/stats`, { withCredentials: true })
       .then((r) => setStats(r.data.stats))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,6 +45,7 @@ export default function AdminDashboard() {
           <StatCard icon="⏳" label="Pending Blue Tick" value={stats?.pendingBlueTickRequests} color="border-yellow-500/40" sub="Awaiting manual review" />
           <StatCard icon="✅" label="Approved Verifications" value={stats?.approvedBlueTick} color="border-green-500/40" sub="Blue tick granted" />
           <StatCard icon="👥" label="Total Users" value={stats?.totalUsers} color="border-blue-500/40" sub="All roles combined" />
+          <StatCard icon="⭐" label="Testimonials" value={stats?.totalTestimonials} color="border-orange-500/40" sub="Homepage reviews" />
           <StatCard icon="💼" label="Total Jobs Posted" value={stats?.totalJobs} color="border-purple-500/40" sub="Active & closed" />
         </div>
       )}
@@ -63,6 +64,12 @@ export default function AdminDashboard() {
                 {stats.pendingBlueTickRequests}
               </span>
             )}
+          </a>
+          <a
+            href="/admin/testimonials"
+            className="bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            ⭐ Manage Testimonials
           </a>
         </div>
       </div>

@@ -419,6 +419,31 @@ exports.getLiveFeed = (req, res) => {
 };
 
 /* =========================
+   GET PUBLIC STATS
+========================= */
+exports.getPublicStats = async (req, res) => {
+  try {
+    const [[freelancers]] = await db.promise().query("SELECT COUNT(*) as count FROM users WHERE user_type = 'freelancer'");
+    const [[founders]] = await db.promise().query("SELECT COUNT(*) as count FROM users WHERE user_type = 'founder'");
+    const [[cofounders]] = await db.promise().query("SELECT COUNT(*) as count FROM users WHERE user_type = 'cofounder'");
+    const [[jobs]] = await db.promise().query("SELECT COUNT(*) as count FROM foundu_jobs");
+
+    res.json({
+      success: true,
+      stats: {
+        freelancers: freelancers.count,
+        founders: founders.count,
+        cofounders: cofounders.count,
+        totalJobs: jobs.count
+      }
+    });
+  } catch (error) {
+    console.error("[PUBLIC STATS ERROR]", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =========================
    DELETE USER
 ========================= */
 exports.deleteUser = async (req, res) => {
