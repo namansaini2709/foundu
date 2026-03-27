@@ -95,62 +95,66 @@ const IdeaLabPopup = ({ userId }) => {
       console.error("History fetch error:", err);
     }
   };
-  const handleRunAnalysis = (text, customTitle = null) => {
+  const handleRunAnalysis = async (text, customTitle = null) => {
     setLoading(true);
     setPhase("loading");
-    // MOCK AI PIPELINE (Dummy Data Only)
-    setTimeout(() => {
-      const mockReport = {
-        title: customTitle || text.substring(0, 30) + "...",
-        refinedIdea:
-          mode === "discover"
-            ? `Based on your ${answers.bg} background and ${answers.skills} skills, we recommend: **A Smart ${answers.passions} Platform** leveraging AI to optimize ${answers.bg === "Tech / Engineering" ? "backend efficiency" : "market reach"}.`
-            : "A comprehensive hyper-local marketplace platform connecting organic farmers directly with urban consumers using blockchain for transparency and AI for logistics optimization.",
-        roadmap: [
-          "Foundation: Market research, entity registration and team assembly.",
-          "Build: MVP development, supply chain integration and pilot testing.",
-          "Scaling: Brand building, aggressive marketing and multi-city expansion.",
-        ],
-        team: {
-          size: "4-6 Key Roles",
-          roles: [
-            "Tech Lead (Full Stack)",
-            "Operations Manager",
-            "Supply Chain Expert",
-            "Marketing Strategist",
-          ],
-        },
-        vendors: [
-          "Cloud Hosting (AWS/Azure)",
-          "Logistics Partner (Delhivery/BlueDart)",
-          "Payment Gateway (Razorpay)",
-          "Packaging Supplies",
-        ],
-        support: {
-          foundu: [
-            "Access to vetted Tech Talent",
-            "Seed Funding Network",
-            "Incubation Support",
-            "Legal & Compliance tools",
-          ],
-          user: [
-            "Product Vision",
-            "Core Management",
-            "Initial Operations",
-            "Domain Expertise",
-          ],
-        },
-        talent: [
-          { name: "Rahul Sharma", role: "Sr. Full Stack Dev", score: 94 },
-          { name: "Priya Patel", role: "Ops Specialist", score: 88 },
-          { name: "Ankit Verma", role: "Marketing Lead", score: 91 },
-        ],
-      };
-      setReportData(mockReport);
+    
+    try {
+      const response = await axios.post(`${API_BASE}/ai/analyze-idea`, {
+        mode: mode,
+        text: text,
+        context: mode === 'discover' ? answers : { title: customTitle }
+      });
+
+      if (response.data.success) {
+        const aiData = response.data.data;
+        
+        // Map Gemini output to the frontend report structure
+        const formattedReport = {
+          title: customTitle || (text.length > 30 ? text.substring(0, 30) + "..." : text),
+          refinedIdea: aiData.refinedIdea,
+          roadmap: aiData.roadmap || [],
+          team: {
+            size: aiData.team?.size || "Not specified",
+            roles: aiData.team?.roles || []
+          },
+          vendors: aiData.vendors || [],
+          support: {
+            foundu: aiData.support?.foundu || [],
+            user: aiData.support?.user || []
+          },
+          // Map talentSuggestions to the UI list
+          talent: (aiData.talentSuggestions || []).map((s, idx) => ({
+            name: s.split(":")[0] || "Expert",
+            role: s.split(":")[1] || s,
+            score: 90 - (idx * 5)
+          }))
+        };
+
+        setReportData(formattedReport);
+        setPhase("results");
+        toast.success("Venture Analysis Complete! ✨");
+      } else {
+        throw new Error("AI analysis failed");
+      }
+    } catch (error) {
+      console.error("Idea Lab AI Error:", error);
+      toast.error("AI Analysis failed. Showing sample data.");
+      
+      // Minimal Fallback for UX
+      setReportData({
+        title: "Analysis Unavailable",
+        refinedIdea: "We couldn't reach the AI engine right now. Please try again later.",
+        roadmap: ["Step 1: Reconnect", "Step 2: Retry"],
+        team: { size: "?", roles: [] },
+        vendors: [],
+        support: { foundu: [], user: [] },
+        talent: []
+      });
       setPhase("results");
+    } finally {
       setLoading(false);
-      toast.success("Venture Analysis Complete!");
-    }, 3000);
+    }
   };
   const handleBack = () => {
     if (phase === "results") setPhase("start");

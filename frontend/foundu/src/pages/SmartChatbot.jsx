@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import "./SmartChatbot.css";
 /* ================================================================
    CONVERSATION FLOWS — per role, 5 questions each
@@ -286,7 +287,7 @@ function TypingIndicator() {
   );
 }
 /* Single suggestion card */
-function SuggestionCard({ candidate, onInvite }) {
+function SuggestionCard({ candidate, onInvite, userRole }) {
   const [showExplain, setShowExplain] = useState(false);
   return (
     <div className="sc-card">
@@ -334,7 +335,7 @@ function SuggestionCard({ candidate, onInvite }) {
           {showExplain ? "▲ Hide" : "🔍 Why this match?"}
         </button>
         <button className="sc-btn-invite" onClick={() => onInvite(candidate)}>
-          📨 Invite
+          {userRole === "founder" ? "📨 Invite" : "✉️ Apply"}
         </button>
       </div>
       {/* Match explainer */}
@@ -357,12 +358,29 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
     `Hi ${candidate?.name?.split(" ")[0] || "there"},\n\nI found your profile through FoundU's AI matcher and think you'd be a great fit${jobContext ? ` for our open role` : ""}. Your credibility score and verified badges really stood out!\n\nWould you be interested in connecting?\n\nBest,\nFoundU`
   );
   const [sent, setSent] = useState(false);
-  const handleSend = () => {
+  const handleSend = async () => {
     setSent(true);
-    setTimeout(() => {
+    try {
+      const currentUserId = localStorage.getItem("user_id");
+      await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/invite`, {
+        sender_id: currentUserId,
+        receiver_id: candidate.user_id || candidate.id, // candidate.id for jobs, user_id for candidates
+        message: msg,
+        job_id: jobContext
+      });
+      
       onSend();
       onClose();
-    }, 1200);
+
+      // IF it's a job (has jobContext), redirect to the job page for formal application
+      if (jobContext && (localStorage.getItem("user_type") === "freelancer" || localStorage.getItem("user_type") === "cofounder")) {
+        window.location.href = `/job/${jobContext}`;
+      }
+    } catch (error) {
+      console.error("Invite Send Error:", error);
+      toast.error("Failed to send invite notification.");
+      setSent(false);
+    }
   };
   return (
     <div className="sc-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -475,19 +493,46 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       // All questions done → show results
       await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching... 🔍");
       setStep("loading");
-      setTimeout(() => {
+      
+      try {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/chat-suggestions`, {
+          role: userRole,
+          filters: newFilters
+        });
+
+        if (res.data.success) {
+          const realSuggestions = res.data.suggestions.map(s => ({
+            ...s,
+            name: s.full_name || s.job_title,
+            role: s.user_type || s.domain,
+            initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
+            // Map credibility if available
+            credibility: s.credibility_score ? `${s.credibility_score-5}-${s.credibility_score+5}` : "70-75",
+            blueTick: true, // Mocking ticks for now based on score
+            skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Tech", "FoundU Verified"]
+          }));
+
+          setSuggestions(realSuggestions);
+          addCards(realSuggestions);
+          setStep("results");
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "bot",
+              text: `✅ Found **${realSuggestions.length} top matches** for you! These are real platform members ranked by AI:`,
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("AI Assistant API Error:", err);
+        const errorMsg = err.response?.data?.error || err.message;
+        toast.error(`AI Assistant connection failed: ${errorMsg}`);
+        console.log("Using backup MOCK_SUGGESTIONS due to error.");
         const mockData = MOCK_SUGGESTIONS[userRole] || MOCK_SUGGESTIONS.founder;
         setSuggestions(mockData);
         addCards(mockData);
         setStep("results");
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            text: `✅ Found **${mockData.length} top matches** for you! Here they are, ranked by AI credibility score:`,
-          },
-        ]);
-      }, 1800);
+      }
     }
   };
   /* Context-aware transition lines for natural conversation */
@@ -568,7 +613,14 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
             <SuggestionCard
               key={c.id}
               candidate={c}
-              onInvite={(candidate) => setInviteTarget(candidate)}
+              userRole={userRole}
+              onInvite={(candidate) => {
+                if (userRole === "founder") {
+                  setInviteTarget(candidate);
+                } else {
+                  window.location.href = `/job-description?job_id=${candidate.id}`;
+                }
+              }}
             />
           ))}
         </div>
