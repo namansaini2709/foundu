@@ -21,9 +21,7 @@ import {
   History,
 } from "lucide-react";
 import "./IdeaLabPopup.css";
-
-const API_BASE = "http://localhost:4000/api";
-
+const API_BASE = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 const IdeaLabPopup = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState(null); // 'discover' or 'validate'
@@ -34,7 +32,6 @@ const IdeaLabPopup = ({ userId }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
-
   // QUESTIONS FOR DISCOVERY
   const QUESTIONS = [
     {
@@ -87,11 +84,9 @@ const IdeaLabPopup = ({ userId }) => {
       ],
     },
   ];
-
   useEffect(() => {
     if (isOpen && userId) fetchHistory();
   }, [isOpen, userId]);
-
   const fetchHistory = async () => {
     try {
       const res = await axios.get(`${API_BASE}/ideas/user/${userId}`);
@@ -100,66 +95,67 @@ const IdeaLabPopup = ({ userId }) => {
       console.error("History fetch error:", err);
     }
   };
-
-  const handleRunAnalysis = (text, customTitle = null) => {
+  const handleRunAnalysis = async (text, customTitle = null) => {
     setLoading(true);
     setPhase("loading");
+    
+    try {
+      const response = await axios.post(`${API_BASE}/ai/analyze-idea`, {
+        mode: mode,
+        text: text,
+        context: mode === 'discover' ? answers : { title: customTitle }
+      });
 
-    // MOCK AI PIPELINE (Dummy Data Only)
-    setTimeout(() => {
-      const mockReport = {
-        title: customTitle || text.substring(0, 30) + "...",
-        refinedIdea:
-          mode === "discover"
-            ? `Based on your ${answers.bg} background and ${answers.skills} skills, we recommend: **A Smart ${answers.passions} Platform** leveraging AI to optimize ${answers.bg === "Tech / Engineering" ? "backend efficiency" : "market reach"}.`
-            : "A comprehensive hyper-local marketplace platform connecting organic farmers directly with urban consumers using blockchain for transparency and AI for logistics optimization.",
-        roadmap: [
-          "Foundation: Market research, entity registration and team assembly.",
-          "Build: MVP development, supply chain integration and pilot testing.",
-          "Scaling: Brand building, aggressive marketing and multi-city expansion.",
-        ],
-        team: {
-          size: "4-6 Key Roles",
-          roles: [
-            "Tech Lead (Full Stack)",
-            "Operations Manager",
-            "Supply Chain Expert",
-            "Marketing Strategist",
-          ],
-        },
-        vendors: [
-          "Cloud Hosting (AWS/Azure)",
-          "Logistics Partner (Delhivery/BlueDart)",
-          "Payment Gateway (Razorpay)",
-          "Packaging Supplies",
-        ],
-        support: {
-          foundu: [
-            "Access to vetted Tech Talent",
-            "Seed Funding Network",
-            "Incubation Support",
-            "Legal & Compliance tools",
-          ],
-          user: [
-            "Product Vision",
-            "Core Management",
-            "Initial Operations",
-            "Domain Expertise",
-          ],
-        },
-        talent: [
-          { name: "Rahul Sharma", role: "Sr. Full Stack Dev", score: 94 },
-          { name: "Priya Patel", role: "Ops Specialist", score: 88 },
-          { name: "Ankit Verma", role: "Marketing Lead", score: 91 },
-        ],
-      };
-      setReportData(mockReport);
+      if (response.data.success) {
+        const aiData = response.data.data;
+        
+        // Map Gemini output to the frontend report structure
+        const formattedReport = {
+          title: customTitle || (text.length > 30 ? text.substring(0, 30) + "..." : text),
+          refinedIdea: aiData.refinedIdea,
+          roadmap: aiData.roadmap || [],
+          team: {
+            size: aiData.team?.size || "Not specified",
+            roles: aiData.team?.roles || []
+          },
+          vendors: aiData.vendors || [],
+          support: {
+            foundu: aiData.support?.foundu || [],
+            user: aiData.support?.user || []
+          },
+          // Map talentSuggestions to the UI list
+          talent: (aiData.talentSuggestions || []).map((s, idx) => ({
+            name: s.split(":")[0] || "Expert",
+            role: s.split(":")[1] || s,
+            score: 90 - (idx * 5)
+          }))
+        };
+
+        setReportData(formattedReport);
+        setPhase("results");
+        toast.success("Venture Analysis Complete! ✨");
+      } else {
+        throw new Error("AI analysis failed");
+      }
+    } catch (error) {
+      console.error("Idea Lab AI Error:", error);
+      toast.error("AI Analysis failed. Showing sample data.");
+      
+      // Minimal Fallback for UX
+      setReportData({
+        title: "Analysis Unavailable",
+        refinedIdea: "We couldn't reach the AI engine right now. Please try again later.",
+        roadmap: ["Step 1: Reconnect", "Step 2: Retry"],
+        team: { size: "?", roles: [] },
+        vendors: [],
+        support: { foundu: [], user: [] },
+        talent: []
+      });
       setPhase("results");
+    } finally {
       setLoading(false);
-      toast.success("Venture Analysis Complete!");
-    }, 3000);
+    }
   };
-
   const handleBack = () => {
     if (phase === "results") setPhase("start");
     else if (phase === "input" && qIdx > 0) setQIdx(qIdx - 1);
@@ -168,14 +164,12 @@ const IdeaLabPopup = ({ userId }) => {
       setMode(null);
     }
   };
-
   if (!isOpen)
     return (
       <div className="fab-idea" onClick={() => setIsOpen(true)}>
         <Lightbulb size={28} />
       </div>
     );
-
   return (
     <div className="venture-modal-overlay">
       <div className="venture-modal-container">
@@ -187,7 +181,6 @@ const IdeaLabPopup = ({ userId }) => {
               <div className="sidebar-name">VENTURE</div>
             </div>
           </div>
-
           <div className="sidebar-history">
             <div className="history-label">Idea History</div>
             {history.length > 0 ? (
@@ -206,7 +199,6 @@ const IdeaLabPopup = ({ userId }) => {
             )}
           </div>
         </aside>
-
         {/* MAIN AREA */}
         <main className="venture-main">
           <header className="venture-header">
@@ -233,7 +225,6 @@ const IdeaLabPopup = ({ userId }) => {
               <X size={18} />
             </button>
           </header>
-
           <div className="venture-content">
             {phase === "start" && (
               <div className="venture-land">
@@ -245,7 +236,6 @@ const IdeaLabPopup = ({ userId }) => {
                 <p className="land-sub">
                   5 AI Engines working together to build your vision.
                 </p>
-
                 <div className="mode-grid">
                   <div
                     className="mode-card"
@@ -306,7 +296,6 @@ const IdeaLabPopup = ({ userId }) => {
                 </div>
               </div>
             )}
-
             {phase === "input" && (
               <div className="venture-flow">
                 {mode === "discover" ? (
@@ -346,7 +335,6 @@ const IdeaLabPopup = ({ userId }) => {
                   <div className="qcard">
                     <div className="q-badge">VALIDATION ENGINE</div>
                     <h2 className="q-text">Describe your startup vision</h2>
-
                     <div className="input-group" style={{ marginTop: "20px" }}>
                       <label
                         style={{
@@ -378,7 +366,6 @@ const IdeaLabPopup = ({ userId }) => {
                           setAnswers({ ...answers, tempTitle: e.target.value })
                         }
                       />
-
                       <label
                         style={{
                           fontSize: "11px",
@@ -407,7 +394,6 @@ const IdeaLabPopup = ({ userId }) => {
                         onChange={(e) => setIdeaText(e.target.value)}
                       />
                     </div>
-
                     <button
                       className="q-next"
                       onClick={() =>
@@ -420,7 +406,6 @@ const IdeaLabPopup = ({ userId }) => {
                 )}
               </div>
             )}
-
             {phase === "loading" && (
               <div className="v-loader">
                 <div className="loader-orb" />
@@ -432,7 +417,6 @@ const IdeaLabPopup = ({ userId }) => {
                 </p>
               </div>
             )}
-
             {phase === "results" && reportData && (
               <div className="results-container">
                 <div className="verdict-hero">
@@ -453,7 +437,6 @@ const IdeaLabPopup = ({ userId }) => {
                     roadmap.
                   </p>
                 </div>
-
                 <div
                   className="results-sections"
                   style={{
@@ -488,7 +471,6 @@ const IdeaLabPopup = ({ userId }) => {
                       {reportData.refinedIdea}
                     </div>
                   </section>
-
                   {/* 2. ROADMAP */}
                   <section className="res-section">
                     <h4
@@ -530,7 +512,6 @@ const IdeaLabPopup = ({ userId }) => {
                       ))}
                     </div>
                   </section>
-
                   {/* 3. TEAM & VENDORS */}
                   <div
                     style={{
@@ -617,7 +598,6 @@ const IdeaLabPopup = ({ userId }) => {
                       </div>
                     </section>
                   </div>
-
                   {/* 4. FOUNDU SUPPORT */}
                   <section className="res-section">
                     <h4
@@ -706,7 +686,6 @@ const IdeaLabPopup = ({ userId }) => {
                       </div>
                     </div>
                   </section>
-
                   {/* 5. SUGGESTED TALENT */}
                   <section
                     className="res-section"
@@ -772,7 +751,6 @@ const IdeaLabPopup = ({ userId }) => {
                     </div>
                   </section>
                 </div>
-
                 <button
                   className="q-next"
                   style={{
@@ -792,5 +770,4 @@ const IdeaLabPopup = ({ userId }) => {
     </div>
   );
 };
-
 export default IdeaLabPopup;

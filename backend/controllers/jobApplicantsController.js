@@ -86,7 +86,7 @@ exports.applyToJob = (req, res) => {
                   "New Candidate Applied! 👤",
                   `A new candidate has recently applied for your job listing "${resJob[0].job_title}". Log in to your dashboard to review their profile and experience.`,
                   "Review Applications",
-                  `http://localhost:5173/job/${job_id}`
+                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${job_id}`
                 );
 
                 // 🔥 Email Notification (Applicant Confirmation)
@@ -95,7 +95,7 @@ exports.applyToJob = (req, res) => {
                   "Application Received 🤝",
                   `Your application for "${resJob[0].job_title}" has been successfully submitted to the founder. We will notify you once they review your profile.`,
                   "Go to Dashboard",
-                  "http://localhost:5173/dashboard"
+                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
                 );
               }
             }
@@ -242,7 +242,7 @@ exports.updateApplicantStatus = (req, res) => {
         "Application Status Update 📢",
         `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
         "View Application Status",
-        "http://localhost:5173/dashboard"
+        `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
       );
     },
   );
@@ -295,3 +295,68 @@ exports.deleteApplicant = (req, res) => {
     },
   );
 };
+
+/* =========================
+   AI-MATCHED APPLICANTS
+========================= */
+const geminiService = require("../services/geminiService");
+
+exports.getAIMatchedApplicants = async (req, res) => {
+  const { job_id } = req.params;
+
+  try {
+    // 1. Get job details
+    const [jobRows] = await db.promise().query(
+      "SELECT * FROM foundu_jobs WHERE job_id = ?", [job_id]
+    );
+    if (!jobRows.length) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // 2. Get all applicants for this job
+    const [applicants] = await db.promise().query(`
+      SELECT 
+        ja.user_id, ja.status, ja.created_at,
+        u.full_name, u.email, u.user_type, u.credibility_score,
+        u.blue_tick_verified, u.golden_tick_verified, u.green_tick_verified,
+        us.profile_picture_url,
+        fp.skills_description, fp.experience, fp.describe_best,
+        fp.phone_number, fp.github, fp.linkedin, fp.freelancer_type,
+        fp.working_environment, fp.job_profile,
+        cp.superpower1, cp.superpower2, cp.superpower3,
+        cp.quantifiable_impact, cp.github_behance,
+        cp.linkedin AS cp_linkedin, cp.reference_contact, cp.primary_identity
+      FROM job_applicants ja
+      JOIN users u ON u.id = ja.user_id
+      LEFT JOIN users_socials us ON us.user_id = u.id
+      LEFT JOIN freelancer_profiles fp ON fp.user_id = u.id
+      LEFT JOIN cofounder_profiles cp ON cp.user_id = u.id
+      WHERE ja.job_id = ?
+      ORDER BY ja.created_at DESC
+    `, [job_id]);
+
+    if (applicants.length === 0) {
+      return res.json([]);
+    }
+
+    // 3. Call Gemini AI
+    const aiResults = await geminiService.matchApplicants(jobRows[0], applicants);
+
+    // 4. Merge AI results with full applicant data
+    const merged = aiResults.map(aiMatch => {
+      const full = applicants.find(a => a.user_id === aiMatch.user_id);
+      if (!full) return null;
+      return {
+        ...full,
+        match_score: aiMatch.match_score,
+        ai_reason: aiMatch.reason,
+        isAI: true
+      };
+    }).filter(Boolean);
+
+    res.json(merged);
+  } catch (error) {
+    console.error("AI Match Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

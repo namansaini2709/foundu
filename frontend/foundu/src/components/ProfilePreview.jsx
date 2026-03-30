@@ -82,7 +82,7 @@ const ProfilePreview = ({ user, reviews, type }) => {
                     <div className="relative group">
                         <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-blue-500/30 group-hover:border-blue-500 transition-all duration-300 shadow-xl">
                             <img
-                                src={data.profile_picture_url ? (data.profile_picture_url.startsWith('http') ? data.profile_picture_url : `http://localhost:4000${data.profile_picture_url}`) : "https://api.dicebear.com/7.x/initials/svg?seed=" + data.full_name}
+                                src={data.profile_picture_url ? (data.profile_picture_url.startsWith('http') ? data.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${data.profile_picture_url}`) : "https://api.dicebear.com/7.x/initials/svg?seed=" + data.full_name}
                                 alt={data.full_name}
                                 className="w-full h-full object-cover"
                             />

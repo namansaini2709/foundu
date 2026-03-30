@@ -2,36 +2,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
 };
-
 const CoFounderJobs = () => {
   const navigate = useNavigate();
   const [industryFilter, setIndustryFilter] = useState("All Industry");
   const [stageFilter, setStageFilter] = useState("All Stage");
   const [availableJobs, setAvailableJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  
-
   // Fetch available jobs from API
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
         // Fetch all jobs
-        const jobsResponse = await fetch("http://localhost:4000/api/jobs");
+        const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
         const jobsData = await jobsResponse.json();
-
         // Fetch all startup profiles for logos
-        const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+        const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
         const profilesData = await profilesResponse.json();
-
         // Create a map of founder_id to startup logo and name
         const startupMap = {};
         profilesData.forEach((profile) => {
@@ -40,7 +32,6 @@ const CoFounderJobs = () => {
             name: profile.startup_name
           };
         });
-
         // Filter for co-founder jobs
         const filteredJobs = jobsData
           .filter((job) => job.job_type === "cofounder")
@@ -51,7 +42,6 @@ const CoFounderJobs = () => {
             about: job.full_job_description,
             position: job.job_title,
           }));
-
         setAvailableJobs(filteredJobs);
       } catch (error) {
         console.error("Error fetching co-founder jobs:", error);
@@ -59,18 +49,13 @@ const CoFounderJobs = () => {
         setLoading(false);
       }
     };
-
     fetchJobs();
   }, []);
-
   const handleShowInterest = (id) => {
     navigate(`/cofounder-jobs/${id}`);
   };
-
   return (
     <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
-      <Navbar />
-
       <div className="pt-24 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Filter Section */}
@@ -106,7 +91,6 @@ const CoFounderJobs = () => {
                   </option>
                 </select>
               </div>
-
               {/* Stage Filter */}
               <div className="flex-1">
                 <label className="block text-white text-sm font-medium mb-2">
@@ -134,7 +118,6 @@ const CoFounderJobs = () => {
                   </option>
                 </select>
               </div>
-
               {/* Apply Filter Button */}
               <div>
                 <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2">
@@ -156,13 +139,11 @@ const CoFounderJobs = () => {
               </div>
             </div>
           </div>
-
           {/* Available Jobs Heading */}
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
             <span className="text-white">Available </span>
             <span className="text-blue-300">Jobs</span>
           </h2>
-
           {/* Regular Jobs Cards (without AI percentage) */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
@@ -194,19 +175,16 @@ const CoFounderJobs = () => {
                       {job.startupName}
                     </h2>
                   </div>
-
                   {/* About */}
                   <p className="text-gray-300 text-sm mb-4 leading-relaxed line-clamp-3 flex-grow">
                     {job.about}
                   </p>
-
                   {/* Position */}
                   <div className="mb-4">
                     <p className="text-blue-300 text-sm font-medium">
                       Position: {job.position}
                     </p>
                   </div>
-
                   {/* Show Interest Button */}
                   <button
                     onClick={() => handleShowInterest(job.id)}
@@ -220,10 +198,8 @@ const CoFounderJobs = () => {
           )}
         </div>
       </div>
-
       <Footer />
     </div>
   );
 };
-
 export default CoFounderJobs;

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import AdminLayout from "../AdminLayout";
 
-const API = "http://localhost:4000/api";
+const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 
 const StatCard = ({ icon, label, value, color, sub }) => (
   <div className={`bg-gray-800/40 backdrop-blur-sm border rounded-xl p-5 hover:scale-[1.02] transition-all duration-200 ${color}`}>

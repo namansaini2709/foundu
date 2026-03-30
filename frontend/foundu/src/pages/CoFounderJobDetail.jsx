@@ -11,26 +11,21 @@ import {
   Clock,
   Calendar,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 // Gradient styles - same as HomePage
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
 };
-
 function CoFounderJobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [jobData, setJobData] = useState(null);
   const [startupData, setStartupData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState(null);
-
   // Get user data from localStorage
   const getUserData = () => {
     try {
@@ -61,16 +56,14 @@ function CoFounderJobDetail() {
       return null;
     }
   };
-
   // Check if user has already applied
   useEffect(() => {
     const checkApplicationStatus = async () => {
       const userData = getUserData();
       if (!userData || !id) return;
-
       try {
         const response = await fetch(
-          `http://localhost:4000/api/jobs/${id}/applicants/${userData.user_id}`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${id}/applicants/${userData.user_id}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -81,12 +74,10 @@ function CoFounderJobDetail() {
         console.log("No existing application found");
       }
     };
-
     if (id) {
       checkApplicationStatus();
     }
   }, [id]);
-
   // Fetch job details and startup profile
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -94,10 +85,9 @@ function CoFounderJobDetail() {
         navigate("/cofounder-jobs");
         return;
       }
-
       try {
         setLoading(true);
-        const jobResponse = await fetch(`http://localhost:4000/api/jobs/${id}`);
+        const jobResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${id}`);
         if (!jobResponse.ok) {
           toast.error("Failed to load job details");
           navigate("/cofounder-jobs");
@@ -105,10 +95,9 @@ function CoFounderJobDetail() {
         }
         const job = await jobResponse.json();
         setJobData(job);
-
         // Fetch startup profile using founder_id
         if (job.founder_id) {
-          const profilesResponse = await fetch("http://localhost:4000/api/startup-profiles");
+          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
           const profiles = await profilesResponse.json();
           const startupProfile = profiles.find((profile) => Number(profile.founder_id) === Number(job.founder_id));
           if (startupProfile) {
@@ -122,10 +111,8 @@ function CoFounderJobDetail() {
         setLoading(false);
       }
     };
-
     fetchJobDetails();
   }, [id, navigate]);
-
   const handleApplyNow = async () => {
     const userData = getUserData();
     if (!userData || !userData.user_id) {
@@ -133,15 +120,13 @@ function CoFounderJobDetail() {
       setTimeout(() => navigate("/login-signup"), 1500);
       return;
     }
-
     if (hasApplied) {
       toast.warning("You have already shown interest in this job");
       return;
     }
-
     setApplying(true);
     try {
-      const response = await fetch("http://localhost:4000/api/jobs/apply", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +134,6 @@ function CoFounderJobDetail() {
           user_id: parseInt(userData.user_id),
         }),
       });
-
       const data = await response.json();
       if (response.ok && data.success) {
         setHasApplied(true);
@@ -166,7 +150,6 @@ function CoFounderJobDetail() {
       setApplying(false);
     }
   };
-
   const getApplyButtonConfig = () => {
     if (applying) return { text: "Submitting...", disabled: true, className: "bg-gray-500 cursor-not-allowed" };
     if (hasApplied) {
@@ -176,11 +159,9 @@ function CoFounderJobDetail() {
     }
     return { text: "Show Interest", disabled: false, className: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" };
   };
-
   if (loading) {
     return (
       <div className="min-h-screen" style={gradientBlackToBlue}>
-        <Navbar />
         <div className="flex justify-center items-center h-screen">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
         </div>
@@ -188,11 +169,9 @@ function CoFounderJobDetail() {
       </div>
     );
   }
-
   if (!jobData) {
     return (
       <div className="min-h-screen" style={gradientBlackToBlue}>
-        <Navbar />
         <div className="flex justify-center items-center h-screen">
           <div className="text-center">
             <p className="text-gray-400 text-xl mb-4">Job not found</p>
@@ -203,20 +182,15 @@ function CoFounderJobDetail() {
       </div>
     );
   }
-
   const buttonConfig = getApplyButtonConfig();
   const job = jobData; // For compatibility with existing JSX
-
   return (
     <div className="min-h-screen" style={gradientBlackToBlue}>
-      <Navbar />
-
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
       </div>
-
       <section className="pt-32 pb-16 px-4 relative z-10">
         <div className="w-[85vw] mx-auto">
           {/* Back Button */}
@@ -227,7 +201,6 @@ function CoFounderJobDetail() {
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Back to Jobs</span>
           </button>
-
           {/* Main Content Container */}
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-8 md:p-12 shadow-2xl relative">
             {/* Header Section */}
@@ -247,35 +220,29 @@ function CoFounderJobDetail() {
                   </span>
                 </div>
               )}
-
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
                   {startupData?.startup_name || job.startup_name || "Unknown Startup"}
                 </h1>
-
                 <div className="flex flex-wrap gap-6 items-center">
                   <div className="flex items-center gap-2 text-blue-300">
                     <DollarSign className="w-5 h-5" />
                     <span className="font-semibold text-lg">{job.budget_range || job.compensation || "Not specified"}</span>
                   </div>
-
                   <div className="flex items-center gap-2 text-blue-300">
                     <Briefcase className="w-5 h-5" />
                     <span className="font-medium">{job.job_level || job.experienceLevel}</span>
                   </div>
-
                   <div className="flex items-center gap-2 text-blue-300">
                     <MapPin className="w-5 h-5" />
                     <span className="font-medium">{job.job_location_type || job.location}</span>
                   </div>
-
                   {job.urgency && (
                     <div className="flex items-center gap-2 text-blue-300">
                       <Zap className="w-5 h-5" />
                       <span className="font-medium capitalize">{job.urgency}</span>
                     </div>
                   )}
-
                   {job.duration && (
                     <div className="flex items-center gap-2 text-blue-300">
                       <Clock className="w-5 h-5" />
@@ -285,7 +252,6 @@ function CoFounderJobDetail() {
                 </div>
               </div>
             </div>
-
             {/* Show Interest Button - Top Right */}
             <div className="absolute top-6 right-4">
               <button
@@ -297,7 +263,6 @@ function CoFounderJobDetail() {
                 {buttonConfig.text}
               </button>
             </div>
-
             {/* About Startup Section */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
@@ -310,7 +275,6 @@ function CoFounderJobDetail() {
                 </p>
               </div>
             </div>
-
             {/* Job Description Section */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
@@ -323,7 +287,6 @@ function CoFounderJobDetail() {
                 </p>
               </div>
             </div>
-
             {/* Responsibilities Section */}
             {job.responsibilities && (
               <div className="mb-8">
@@ -349,7 +312,6 @@ function CoFounderJobDetail() {
                 </div>
               </div>
             )}
-
             {/* Requirements Section */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
@@ -367,9 +329,7 @@ function CoFounderJobDetail() {
                         reqs = typeof job.requirements === 'string' ? JSON.parse(job.requirements) : job.requirements;
                       }
                     } catch (e) { reqs = [job.job_requirements || job.requirements]; }
-
                     if (!reqs || reqs.length === 0) return <p className="text-gray-400">No requirements specified.</p>;
-
                     return reqs.map((requirement, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
@@ -383,10 +343,8 @@ function CoFounderJobDetail() {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );
 }
-
 export default CoFounderJobDetail;

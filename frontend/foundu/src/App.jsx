@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
@@ -45,6 +45,22 @@ import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 import OurTeam from "./pages/OurTeam";
 import ContactUs from "./pages/ContactUs";
+import CreatePost from "./pages/CreatePost";
+import Navbar from "./components/Navbar";
+
+function NavbarWrapper() {
+  const location = useLocation();
+  const hideNavbarRoutes = [
+    "/admin/dashboard",
+    "/admin/badges",
+    "/admin/broadcast",
+  ];
+  // Note: /chatbox or others can be added here if needed to hide Navbar there
+  if (hideNavbarRoutes.includes(location.pathname) || location.pathname.startsWith('/admin')) {
+    return null;
+  }
+  return <Navbar />;
+}
 
 function App() {
   const userRole = localStorage.getItem("user_type") || null;
@@ -53,6 +69,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <NavbarWrapper />
 
       {/* ✅ GLOBAL TOAST CONTAINER */}
       <ToastContainer
@@ -93,6 +110,7 @@ function App() {
         <Route path="/jobposting" element={<ViewJobPosting />} />
         <Route path="/reviews" element={<FreelancerReviews />} />
         <Route path="/live-feed" element={<LiveUserFeed />} />
+        <Route path="/create-post" element={<CreatePost />} />
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/badges" element={<AdminBadges />} />

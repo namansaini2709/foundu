@@ -5,7 +5,6 @@ import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight } f
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
-
 // Gradient styles - alternating
 const gradientBlackToBlue = {
   background:
@@ -54,7 +53,6 @@ function HomePage() {
       setScrollY(window.scrollY);
       setShowNavbar(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);

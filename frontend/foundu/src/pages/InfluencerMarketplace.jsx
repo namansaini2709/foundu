@@ -11,7 +11,6 @@ import {
     Star,
     Zap
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const InfluencerMarketplace = () => {
@@ -86,7 +85,6 @@ const InfluencerMarketplace = () => {
 
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans">
-            <Navbar />
 
             {/* Header Section */}
             <div className="pt-32 pb-16 px-6 relative overflow-hidden">
@@ -140,7 +138,7 @@ const InfluencerMarketplace = () => {
                         >
                             {/* Card Header Gradient */}
                             <div className={`h-32 bg-gradient-to-br ${inf.color} opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
-                            
+
                             {/* Avatar & Info */}
                             <div className="px-8 pb-8 -mt-12 relative z-10">
                                 <div className="flex justify-between items-end mb-6">

@@ -86,7 +86,7 @@ exports.evaluateGreenTick = (user_id) => {
                 "Badge Achieved: Green Tick! ✅",
                 "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully completing a job on FoundU, proving your reliability to the community.",
                 "View Your Badge",
-                "http://localhost:5173/profile"
+                `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
               );
             }
           },
@@ -118,7 +118,7 @@ exports.evaluateGreenTick = (user_id) => {
                 "Badge Achieved: Green Tick! ✅",
                 "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully posting a job on FoundU, proving your reliability to the community.",
                 "View Your Badge",
-                "http://localhost:5173/profile"
+                `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
               );
             }
           },
@@ -167,7 +167,7 @@ exports.evaluateGoldenTick = (user_id) => {
               "Milestone Badge: Golden Tick! 🏆",
               "Congratulations! Your consistent activity on FoundU has earned you the prestigious Golden Tick badge. This represents your commitment and regular engagement with the platform.",
               "View Your Badge",
-              "http://localhost:5173/profile"
+              `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
             );
           } else {
             db.query(

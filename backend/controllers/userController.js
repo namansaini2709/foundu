@@ -109,7 +109,7 @@ exports.signup = async (req, res) => {
       "Welcome to FoundU! 🎉",
       "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
       "Complete Your Profile",
-      "http://localhost:5173/profile"
+      `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
     );
   } catch (error) {
     console.error("Signup error:", error);
@@ -356,17 +356,37 @@ exports.getAllUsers = async (_, res) => {
   res.json(rows);
 };
 
-exports.getUserById = async (req, res) => {
-  const [rows] = await db.promise().query(
-    "SELECT * FROM users WHERE id=?",
-    [req.params.id]
-  );
-
-  if (!rows.length) {
-    return res.status(404).json({ message: "User not found" });
-  }
-
-  res.json(rows[0]);
+exports.getUserById = (req, res) => {
+  const query = `
+    SELECT 
+      u.id, u.full_name, u.email, u.user_type, u.credibility_score,
+      u.blue_tick_verified, u.golden_tick_verified, u.green_tick_verified,
+      us.profile_picture_url,
+      COALESCE(fp.describe_best, cp.quantifiable_impact, sp.why_building) AS professional_bio,
+      COALESCE(fp.phone_number, cp.reference_contact) AS contact_phone,
+      COALESCE(fp.linkedin, cp.linkedin, us.linkedin_url) AS contact_linkedin,
+      COALESCE(fp.github, cp.github_behance, us.github_url) AS contact_github,
+      COALESCE(fp.freelancer_type, cp.primary_identity, sp.founder_type) AS professional_role,
+      fp.experience,
+      fp.job_profile,
+      (SELECT COUNT(*) FROM job_applicants ja WHERE ja.user_id = u.id AND ja.status = 'completed') AS jobs_completed
+    FROM users u
+    LEFT JOIN users_socials us ON u.id = us.user_id
+    LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+    LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+    LEFT JOIN startup_profiles sp ON u.id = sp.user_id
+    WHERE u.id = ?
+  `;
+  db.query(query, [req.params.id], (err, rows) => {
+    if (err) {
+      console.error("Error in getUserById:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, data: rows[0] });
+  });
 };
 
 /* =========================

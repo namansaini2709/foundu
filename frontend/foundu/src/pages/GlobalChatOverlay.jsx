@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Chatbox from "../pages/Chatbox";
 import { FaCommentDots, FaTimes } from "react-icons/fa";
-
 const GlobalChatOverlay = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   // Close with Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -13,7 +11,6 @@ const GlobalChatOverlay = ({ userId }) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
   return (
     <>
       {/* Floating Button */}
@@ -26,7 +23,6 @@ const GlobalChatOverlay = ({ userId }) => {
           <FaCommentDots className="text-white text-2xl" />
         </button>
       )}
-
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[90] transition-opacity duration-300 ${
@@ -34,7 +30,6 @@ const GlobalChatOverlay = ({ userId }) => {
         }`}
         onClick={() => setIsOpen(false)}
       />
-
       {/* Sidebar Panel */}
       <div
         className={`fixed top-0 left-0 h-full w-[90vw] md:w-[45vw] bg-black z-[100] shadow-[10px_0_30px_rgba(0,0,0,0.5)] border-r border-gray-800 transition-transform duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] flex flex-col ${
@@ -51,7 +46,6 @@ const GlobalChatOverlay = ({ userId }) => {
             <FaTimes className="text-xl" />
           </button>
         )}
-
         {/* Chatbox Wrapper */}
         <div className="w-full h-full relative overflow-hidden">
           {isOpen && <Chatbox />}
@@ -60,5 +54,4 @@ const GlobalChatOverlay = ({ userId }) => {
     </>
   );
 };
-
 export default GlobalChatOverlay;

@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { socket } from '../socket';
-
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await axios.get("http://localhost:4000/api/notifications", {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, {
                     withCredentials: true
                 });
                 if (res.data.success) {
@@ -25,26 +22,21 @@ const Notifications = () => {
                 setLoading(false);
             }
         };
-
         fetchNotifications();
-
         // Listen for new ones live while on this page
         const handleLiveNotif = (notif) => {
             console.log("Live notification received on page:", notif);
             setNotifications(prev => [notif, ...prev]);
         };
-
         if (!socket.connected) socket.connect();
         const userId = localStorage.getItem("user_id");
         if (userId) socket.emit("register", userId);
-
         socket.on("new_notification", handleLiveNotif);
         return () => socket.off("new_notification", handleLiveNotif);
     }, []);
-
     const markAsRead = async (id) => {
         try {
-            await axios.put(`http://localhost:4000/api/notifications/${id}/read`, {}, { withCredentials: true });
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}/read`, {}, { withCredentials: true });
             setNotifications(notifications.map(n =>
                 n.id === id ? { ...n, is_read: 1 } : n
             ));
@@ -54,10 +46,9 @@ const Notifications = () => {
             toast.error("Failed to mark as read");
         }
     };
-
     const deleteNotification = async (id, isUnread) => {
         try {
-            await axios.delete(`http://localhost:4000/api/notifications/${id}`, { withCredentials: true });
+            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}`, { withCredentials: true });
             setNotifications(notifications.filter(n => n.id !== id));
             if (isUnread) {
                 window.dispatchEvent(new Event("notification_read"));
@@ -67,7 +58,6 @@ const Notifications = () => {
             toast.error("Failed to delete notification");
         }
     };
-
     const typeConfigs = {
         success: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', glow: 'shadow-green-500/20' },
         warning: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', glow: 'shadow-yellow-500/20' },
@@ -76,7 +66,6 @@ const Notifications = () => {
         badge: { icon: Bell, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', glow: 'shadow-amber-500/20' },
         default: { icon: Info, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', glow: 'shadow-blue-500/20' }
     };
-
     const getIcon = (type) => {
         const config = typeConfigs[type] || typeConfigs.default;
         const IconComponent = config.icon;
@@ -86,11 +75,8 @@ const Notifications = () => {
             </div>
         );
     };
-
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col">
-            <Navbar />
-
             <div className="flex-1 pt-28 pb-12 flex justify-center px-4">
                 <div className="w-full md:w-[75%] max-w-5xl">
                     <div className="flex items-center gap-3 mb-8">
@@ -102,7 +88,6 @@ const Notifications = () => {
                             <p className="text-gray-400 text-sm">Stay updated with your latest activities</p>
                         </div>
                     </div>
-
                     <div className="grid gap-4">
                         {notifications.length > 0 ? (
                             notifications.map((n) => (
@@ -138,7 +123,6 @@ const Notifications = () => {
                                             </p>
                                         </div>
                                     </div>
-
                                     {/* Hover Actions */}
                                     <div className="absolute top-1/2 -translate-y-1/2 right-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
                                         {!n.is_read && (
@@ -177,10 +161,8 @@ const Notifications = () => {
                     </div>
                 </div>
             </div>
-
             <Footer />
         </div>
     );
 };
-
 export default Notifications;

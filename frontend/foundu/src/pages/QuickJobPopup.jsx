@@ -13,7 +13,7 @@ const QuickJobPopup = ({ userId }) => {
     const [phase, setPhase] = useState("selection"); // selection, questions, loading, preview
     const [hiringType, setHiringType] = useState(null); // freelancer, cofounder
     const [qStep, setQStep] = useState(0); 
-    
+
     const [inputs, setInputs] = useState({
         budget: "",        // Freelancer
         workType: "",      // Freelancer (Work Type)
@@ -46,18 +46,9 @@ const QuickJobPopup = ({ userId }) => {
         const maxStep = hiringType === 'freelancer' ? 3 : 2;
 
         if (qStep < maxStep) {
-            // Validation
-            if (hiringType === 'freelancer') {
-                if (qStep === 0 && !inputs.description) { toast.warning("Please describe the job vision"); return; }
-            } else {
-                if (qStep === 1 && !inputs.compensation) { toast.warning("Please provide compensation details"); return; }
-            }
+            // Relaxed validation: AI can guess if not provided
             setQStep(qStep + 1);
         } else {
-            // Final step validation
-            if (hiringType === 'freelancer') {
-                if (!inputs.budget) { toast.warning("Please provide a budget/price range"); return; }
-            }
             runAISummary();
         }
     };
@@ -75,14 +66,14 @@ const QuickJobPopup = ({ userId }) => {
         setPhase("loading");
 
         try {
-            const response = await axios.post("http://localhost:4000/api/ai/enrich-job", {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/ai/enrich-job`, {
                 role: hiringType,
                 inputs: inputs
             });
 
             if (response.data.success) {
                 const aiData = response.data.data;
-                
+
                 if (hiringType === 'freelancer') {
                     setPreviewData({
                         hiringType: 'freelancer',
@@ -92,15 +83,15 @@ const QuickJobPopup = ({ userId }) => {
                         },
                         freelancer: {
                             jobTitle: aiData.jobTitle,
-                            workType: inputs.workType,
-                            duration: "1–3 months",
-                            budget: inputs.budget,
+                            workType: aiData.work_type || inputs.workType || "Remote",
+                            duration: aiData.duration || "1–3 months",
+                            budget: aiData.budget_range || inputs.budget || "Competitive",
                             urgency: "ASAP (within 7 days)",
-                            jobLevel: aiData.jobLevel,
-                            jobType: inputs.jobType,
-                            jobDescription: inputs.description,
-                            requirements: Array.isArray(aiData.requirements) ? aiData.requirements : [aiData.requirements],
-                            responsibilities: Array.isArray(aiData.responsibilities) ? aiData.responsibilities : [aiData.responsibilities]
+                            jobLevel: aiData.jobLevel || "Mid-Level",
+                            jobType: aiData.jobType || inputs.jobType || "Work from home",
+                            jobDescription: aiData.jobDescription,
+                            requirements: aiData.requirements || ["Specific skills as per role"],
+                            responsibilities: aiData.responsibilities || ["Core task management"]
                         }
                     });
                 } else {
@@ -129,7 +120,7 @@ const QuickJobPopup = ({ userId }) => {
         } catch (error) {
             console.error("AI Enrichment Error:", error);
             toast.error("AI calculation failed. Using fallback preview.");
-            
+
             // Minimal Fallback
             const fallbackData = {
                 jobTitle: inputs.description?.substring(0, 30) + " Role",
@@ -193,11 +184,14 @@ const QuickJobPopup = ({ userId }) => {
                 duration: previewData.freelancer.duration,
                 budget_range: previewData.freelancer.budget,
                 urgency: previewData.freelancer.urgency,
-                job_level: previewData.freelancer.jobLevel,
-                job_type: previewData.freelancer.jobType,
                 job_requirements: previewData.freelancer.requirements,
                 job_title: previewData.freelancer.jobTitle,
-                full_job_description: previewData.freelancer.jobDescription
+                full_job_description: previewData.freelancer.jobDescription,
+                // New auto-filled fields
+                job_level: previewData.freelancer.jobLevel || "Mid-Level",
+                job_type: previewData.freelancer.jobType || "Remote",
+                duration: previewData.freelancer.duration || "3 Months",
+                budget_range: previewData.freelancer.budget || "Negotiable"
             } : {
                 user_id: Number(userId),
                 domain: previewData.common.domain,
@@ -213,7 +207,7 @@ const QuickJobPopup = ({ userId }) => {
                 full_job_description: previewData.cofounder.jobDescription
             };
 
-            await axios.post(`http://localhost:4000/api${endpoint}`, payload);
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api${endpoint}`, payload);
             toast.success("🚀 Job Successfully Published!");
             setIsOpen(false);
             setPhase("selection");
@@ -252,7 +246,7 @@ const QuickJobPopup = ({ userId }) => {
                 </header>
 
                 <div className="qj-content">
-                    
+
                     {/* PHASE 1: SELECTION */}
                     {phase === "selection" && (
                         <div className="qj-selection">
@@ -285,7 +279,7 @@ const QuickJobPopup = ({ userId }) => {
                             <div className="step-bar">
                                 <div className="step-progress" style={{ width: `${((qStep+1)/(hiringType === 'freelancer' ? 4 : 3))*100}%` }} />
                             </div>
-                            
+
                             {/* FREELANCER FLOW */}
                             {hiringType === 'freelancer' ? (
                                 <>
@@ -413,17 +407,17 @@ const QuickJobPopup = ({ userId }) => {
                                 <div className="p-section-main">
                                     <div className="ps-row"><strong>Hiring Type:</strong> <span className="cap">{previewData.hiringType}</span></div>
                                     <div className="ps-row"><strong>Domain:</strong> <span>{previewData.common.domain}</span></div>
-                                    
+
                                     {previewData.hiringType === 'freelancer' ? (
                                         <div className="ps-box">
                                             <h4 className="ps-title"><Briefcase size={16}/> {previewData.freelancer.jobTitle}</h4>
                                             <div className="ps-grid">
                                                 <div><strong>Category:</strong> {previewData.common.roleCategories.join(", ")}</div>
                                                 <div><strong>Work Type:</strong> {previewData.freelancer.workType}</div>
-                                                <div><strong>Job Type:</strong> {previewData.freelancer.jobType}</div>
-                                                <div><strong>Budget:</strong> {previewData.freelancer.budget}</div>
-                                                <div><strong>Duration:</strong> {previewData.freelancer.duration}</div>
-                                                <div><strong>Level:</strong> {previewData.freelancer.jobLevel}</div>
+                                                <div><strong>Commitment:</strong> {previewData.freelancer.jobType || "Remote"}</div>
+                                                <div><strong>Budget:</strong> {previewData.freelancer.budget || "Negotiable"}</div>
+                                                <div><strong>Duration:</strong> {previewData.freelancer.duration || "1-3 Months"}</div>
+                                                <div><strong>Level:</strong> {previewData.freelancer.jobLevel || "Mid-Level"}</div>
                                             </div>
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">DESCRIPTION</p>

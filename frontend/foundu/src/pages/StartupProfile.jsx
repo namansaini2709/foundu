@@ -2,13 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 const getUserId = () => {
   return localStorage.getItem("user_id");
 };
-
 /**
  * Startup Profile Page Component
  * Multi-step profile completion page for startups
@@ -17,14 +14,11 @@ const StartupProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-
   const [userBasicInfo, setUserBasicInfo] = useState(null);
-
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   // Form state management
   const [formData, setFormData] = useState({
     // Step 1: Founder DNA
@@ -37,7 +31,6 @@ const StartupProfile = () => {
     weaknesses: [],
     hoursPerWeek: "",
     cofounderType: [],
-
     // Step 2: Startup DNA
     problemSolving: "",
     whoHasProblem: "",
@@ -45,33 +38,27 @@ const StartupProfile = () => {
     solutionBuilding: "",
     monetization: "",
     unfairAdvantage: "",
-
     // Step 3: Burn Reality
     monthlyInvestment: "",
     survivalWithoutRevenue: "",
     biggestRisk: "",
-
     // Step 4: Hiring & Execution
     currentNeed: "",
     outcome30Days: "",
     executionFailures: "",
     trustFactors: [],
-
     // Step 5: Vendor Intelligence
     useVendors: "",
     vendorCategories: [],
     vendorPreference: [],
-
     // Step 6: AI Idea & Strategy Engine
     currentStage: "",
     growthBlocker: "",
     magicFix: "",
-
     // Step 7: Dashboard Intelligence
     dashboards: [],
     currentTools: "",
   });
-
   // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
@@ -83,14 +70,12 @@ const StartupProfile = () => {
     fetchUserData(userId);
     fetchProfile(userId);
   }, [navigate]);
-
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/users/${userId}`);
-      const user = response.data;
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
+      const user = response.data.success ? response.data.data : response.data;
       setUserBasicInfo(user);
-      
       // Auto-fill startupName if it's currently empty
       setFormData((prev) => ({
         ...prev,
@@ -100,15 +85,13 @@ const StartupProfile = () => {
       console.error("Error fetching user data:", error);
     }
   };
-
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/startup-profiles/user/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles/user/${userId}`
       );
       const profile = response.data;
-
       // Map database fields to form fields
       setFormData({
         startupName: profile.startup_name || "",
@@ -163,7 +146,6 @@ const StartupProfile = () => {
       }
     }
   };
-
   /**
    * Handle input changes
    */
@@ -173,14 +155,12 @@ const StartupProfile = () => {
       [name]: value,
     }));
   };
-
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
     }
   };
-
   /**
    * Handle checkbox/array changes
    */
@@ -192,13 +172,11 @@ const StartupProfile = () => {
         : [...prev[field], value],
     }));
   };
-
   /**
    * Validate fields for the current step only
    */
   const validateCurrentStep = () => {
     const errors = [];
-
     switch (currentStep) {
       case 1: // Founder DNA
         if (!formData.startupName?.trim()) errors.push("Startup Name is required");
@@ -216,7 +194,6 @@ const StartupProfile = () => {
         if (formData.cofounderType.length === 0)
           errors.push("At least one co-founder type is required");
         break;
-
       case 2: // Startup DNA
         if (!formData.problemSolving?.trim())
           errors.push("Problem solving is required");
@@ -230,7 +207,6 @@ const StartupProfile = () => {
         if (!formData.unfairAdvantage?.trim())
           errors.push("Unfair advantage is required");
         break;
-
       case 3: // Burn Reality
         if (!formData.monthlyInvestment?.trim())
           errors.push("Monthly investment is required");
@@ -238,7 +214,6 @@ const StartupProfile = () => {
           errors.push("Survival without revenue is required");
         if (!formData.biggestRisk?.trim()) errors.push("Biggest risk is required");
         break;
-
       case 4: // Hiring & Execution
         if (!formData.currentNeed?.trim()) errors.push("Current need is required");
         if (!formData.outcome30Days?.trim())
@@ -248,11 +223,9 @@ const StartupProfile = () => {
         if (formData.trustFactors.length === 0)
           errors.push("At least one trust factor is required");
         break;
-
       case 5: // Vendor Intelligence
         if (!formData.useVendors?.trim()) errors.push("Vendor usage is required");
         break;
-
       case 6: // AI Idea & Strategy Engine
         if (!formData.currentStage?.trim())
           errors.push("Current stage is required");
@@ -260,38 +233,31 @@ const StartupProfile = () => {
           errors.push("Growth blocker is required");
         if (!formData.magicFix?.trim()) errors.push("Magic fix is required");
         break;
-
       case 7: // Dashboard Intelligence
         if (formData.dashboards.length === 0)
           errors.push("At least one dashboard is required");
         if (!formData.currentTools?.trim())
           errors.push("Current tools is required");
         break;
-
       default:
         break;
     }
-
     return errors;
   };
-
   /**
    * Handle Next button click
    */
   const handleNext = () => {
     const errors = validateCurrentStep();
-
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     if (currentStep < 7) {
       setCurrentStep((s) => s + 1);
       toast.success(`Step ${currentStep} completed!`);
     }
   };
-
   /**
    * Handle Back button
    */
@@ -300,45 +266,38 @@ const StartupProfile = () => {
       setCurrentStep((s) => s - 1);
     }
   };
-
   /**
    * Handle form submission
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Safety check – submit only on step 7
     if (currentStep !== 7) {
       toast.error("Please complete all steps before submitting");
       return;
     }
-
     // Validate current step (step 7)
     const errors = validateCurrentStep();
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
       navigate("/login-signup");
       return;
     }
-
     setLoading(true);
     try {
       const data = new FormData();
       data.append("user_id", Number(userId));
       data.append("startup_name", formData.startupName);
-      
       if (formData.startupLogo instanceof File) {
         data.append("startup_logo", formData.startupLogo);
       } else if (formData.startupLogo) {
         data.append("startup_logo_url", formData.startupLogo);
       }
-
       data.append("founderType", formData.founderType);
       data.append("whyBuilding", formData.whyBuilding);
       data.append("superpower", formData.superpower);
@@ -367,18 +326,15 @@ const StartupProfile = () => {
       data.append("magicFix", formData.magicFix);
       data.append("dashboards", JSON.stringify(formData.dashboards));
       data.append("currentTools", formData.currentTools);
-
       const response = await axios.post(
-        "http://localhost:4000/api/startup-profiles",
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`,
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
       console.log("Profile created:", response.data);
       toast.success("Profile created successfully! Redirecting...");
-
       setTimeout(() => {
         navigate("/startup-services");
       }, 1500);
@@ -393,16 +349,12 @@ const StartupProfile = () => {
       setLoading(false);
     }
   };
-
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   return (
     <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
-      <Navbar />
-
       <div className="pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Step Indicator */}
@@ -436,7 +388,6 @@ const StartupProfile = () => {
               Step {currentStep} of 7 - Fill in your details to connect with the right talent
             </p>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Step 1: Founder DNA */}
             {currentStep === 1 && (
@@ -451,7 +402,6 @@ const StartupProfile = () => {
                         🧠 STEP 1 – Founder DNA (Founder Readiness +
                         Compatibility Engine)
                       </h2>
-
                       <div>
                         <label
                           htmlFor="startupName"
@@ -469,7 +419,6 @@ const StartupProfile = () => {
                           placeholder="Enter your startup name"
                         />
                       </div>
-
                       <div>
                         <label
                           htmlFor="startupLogo"
@@ -491,7 +440,7 @@ const StartupProfile = () => {
                               <img 
                                 src={formData.startupLogo instanceof File 
                                   ? URL.createObjectURL(formData.startupLogo) 
-                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `http://localhost:4000${formData.startupLogo}`)} 
+                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.startupLogo}`)} 
                                 alt="Logo Preview" 
                                 className="max-w-full max-h-full object-contain" 
                               />
@@ -499,7 +448,6 @@ const StartupProfile = () => {
                           )}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           1. What best describes you right now? <span className="text-red-500">*</span>
@@ -529,7 +477,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label
                           htmlFor="whyBuilding"
@@ -547,7 +494,6 @@ const StartupProfile = () => {
                           placeholder="Explain your motivation..."
                         />
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           3. What is your superpower? <span className="text-red-500">*</span>
@@ -591,7 +537,6 @@ const StartupProfile = () => {
                           />
                         )}
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           4. What are you weak at? <span className="text-red-500">*</span>
@@ -624,7 +569,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           5. How many hours can you realistically commit per
@@ -651,7 +595,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           6. What type of co-founder would you work best with? <span className="text-red-500">*</span>
@@ -690,7 +633,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 2: Startup DNA */}
             {currentStep === 2 && (
               <div className="flex justify-center">
@@ -704,7 +646,6 @@ const StartupProfile = () => {
                         🧬 STEP 2 – Startup DNA (Startup DNA Score + AI
                         Simulator)
                       </h2>
-
                       <div>
                         <label
                           htmlFor="problemSolving"
@@ -722,7 +663,6 @@ const StartupProfile = () => {
                           placeholder="Describe the problem..."
                         />
                       </div>
-
                       <div>
                         <label
                           htmlFor="whoHasProblem"
@@ -740,7 +680,6 @@ const StartupProfile = () => {
                           placeholder="Describe the target audience..."
                         />
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           9. What happens if this problem is not solved? <span className="text-red-500">*</span>
@@ -770,7 +709,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label
                           htmlFor="solutionBuilding"
@@ -788,7 +726,6 @@ const StartupProfile = () => {
                           placeholder="Describe your solution..."
                         />
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           11. How will you make money? <span className="text-red-500">*</span>
@@ -807,7 +744,6 @@ const StartupProfile = () => {
                           <option value="Not sure">Not sure</option>
                         </select>
                       </div>
-
                       <div>
                         <label
                           htmlFor="unfairAdvantage"
@@ -830,7 +766,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 3: Burn Reality */}
             {currentStep === 3 && (
               <div className="flex justify-center">
@@ -844,7 +779,6 @@ const StartupProfile = () => {
                         🔥 STEP 3 – Burn Reality (Burn Reality Checker +
                         Readiness Score)
                       </h2>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           13. How much can you invest per month? <span className="text-red-500">*</span>
@@ -874,7 +808,6 @@ const StartupProfile = () => {
                           )}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           14. How long can you survive without revenue? <span className="text-red-500">*</span>
@@ -907,7 +840,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           15. What is your biggest risk right now? <span className="text-red-500">*</span>
@@ -944,7 +876,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 4: Hiring & Execution */}
             {currentStep === 4 && (
               <div className="flex justify-center">
@@ -958,7 +889,6 @@ const StartupProfile = () => {
                         🚀 STEP 4 – Hiring & Execution (AI Matching + Trial
                         Sprint Generator)
                       </h2>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           16. What do you need right now? <span className="text-red-500">*</span>
@@ -990,7 +920,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label
                           htmlFor="outcome30Days"
@@ -1008,7 +937,6 @@ const StartupProfile = () => {
                           placeholder="Describe the required outcome..."
                         />
                       </div>
-
                       <div>
                         <label
                           htmlFor="executionFailures"
@@ -1026,7 +954,6 @@ const StartupProfile = () => {
                           placeholder="Describe common execution issues..."
                         />
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           19. What would make you trust an AI-recommended person
@@ -1064,7 +991,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 5: Vendor Intelligence */}
             {currentStep === 5 && (
               <div className="flex justify-center">
@@ -1077,7 +1003,6 @@ const StartupProfile = () => {
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧩 STEP 5 – Vendor Intelligence
                       </h2>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           20. Do you use vendors today? <span className="text-red-500">*</span>
@@ -1103,7 +1028,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       {formData.useVendors === "Yes" && (
                         <>
                           <div>
@@ -1144,7 +1068,6 @@ const StartupProfile = () => {
                               ))}
                             </div>
                           </div>
-
                           <div>
                             <label className="block text-sm font-medium text-white mb-2">
                               22. When do you prefer a vendor over hiring?
@@ -1189,7 +1112,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 6: AI Idea & Strategy Engine */}
             {currentStep === 6 && (
               <div className="flex justify-center">
@@ -1202,7 +1124,6 @@ const StartupProfile = () => {
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧠 STEP 6 – AI Idea & Strategy Engine
                       </h2>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           23. What stage are you at? <span className="text-red-500">*</span>
@@ -1220,7 +1141,6 @@ const StartupProfile = () => {
                           <option value="Scaling">Scaling</option>
                         </select>
                       </div>
-
                       <div>
                         <label
                           htmlFor="growthBlocker"
@@ -1238,7 +1158,6 @@ const StartupProfile = () => {
                           placeholder="Describe growth blockers..."
                         />
                       </div>
-
                       <div>
                         <label
                           htmlFor="magicFix"
@@ -1262,7 +1181,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Step 7: Dashboard Intelligence */}
             {currentStep === 7 && (
               <div className="flex justify-center">
@@ -1275,7 +1193,6 @@ const StartupProfile = () => {
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         📊 STEP 7 – Dashboard Intelligence
                       </h2>
-
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
                           26. Which dashboards would you use weekly? <span className="text-red-500">*</span>
@@ -1307,7 +1224,6 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-
                       <div>
                         <label
                           htmlFor="currentTools"
@@ -1330,7 +1246,6 @@ const StartupProfile = () => {
                 </div>
               </div>
             )}
-
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-6">
               {currentStep > 1 && (
@@ -1364,10 +1279,8 @@ const StartupProfile = () => {
           </form>
         </div>
       </div>
-
       <Footer />
     </div>
   );
 };
-
 export default StartupProfile;

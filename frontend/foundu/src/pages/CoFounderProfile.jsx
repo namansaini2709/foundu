@@ -2,14 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProfilePreview from "../components/ProfilePreview";
-
 const getUserId = () => {
   return localStorage.getItem("user_id");
 };
-
 /**
  * Co-Founder Profile Page Component
  * Multi-step profile completion page for co-founders
@@ -22,12 +19,10 @@ const CoFounderProfile = () => {
   const [profileData, setProfileData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [userBasicInfo, setUserBasicInfo] = useState(null);
-
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   // Form state management
   const [formData, setFormData] = useState({
     // Step 1: The Trust & Reputation Layer
@@ -39,7 +34,6 @@ const CoFounderProfile = () => {
     primaryIdentityOther: "",
     currentOccupationalStatus: "",
     pedigreeScore: "",
-
     // Step 2: Deep Competency & Intelligence
     superpower1: "",
     superpower2: "",
@@ -52,32 +46,27 @@ const CoFounderProfile = () => {
     domainIQ: "",
     antiPortfolio: "",
     quantifiableImpact: "",
-
     // Step 3: The Financial & Time "Stress Test"
     drySpellRunway: "",
     currentBurnRequirement: "",
     bandwidthReality: "",
     moonlightPolicy: "",
-
     // Step 4: The Ego & Psychology Match
     decisionHierarchy: "",
     conflictSimulation: "",
     feedbackLoop: "",
     workEnvironment: "",
     riskAppetite: "",
-
     // Step 5: Ethics & Value Alignment
     exitVision: "",
     redLine: "",
     diversityOfThought: "",
-
     // Step 6: Targeted Requirement Filters
     missingHalfProfile: "",
     industrySpecificity: [],
     equityMinimum: "",
     vibeKeywords: "",
   });
-
   // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
@@ -90,25 +79,22 @@ const CoFounderProfile = () => {
     fetchProfile(userId);
     fetchReviews(userId);
   }, [navigate]);
-
   const fetchReviews = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:4000/api/reviews/user/${userId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews:", error);
     }
   };
-
   // Fetch user data to populate name
   const fetchUserData = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/users/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`
       );
-      const user = response.data;
+      const user = response.data.success ? response.data.data : response.data;
       setUserBasicInfo(user);
-      
       // Only pre-fill if formData is currently empty to avoid overwriting existing profile data
       setFormData((prev) => ({
         ...prev,
@@ -119,15 +105,13 @@ const CoFounderProfile = () => {
       console.error("Error fetching user data:", error);
     }
   };
-
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:4000/api/cofounder-profiles/user/${userId}`
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/cofounder-profiles/user/${userId}`
       );
       const profile = response.data;
-
       // Map database fields to form fields
       setFormData({
         fullLegalName: profile.full_legal_name || "",
@@ -176,7 +160,6 @@ const CoFounderProfile = () => {
       }
     }
   };
-
   /**
    * Handle input changes
    */
@@ -187,7 +170,6 @@ const CoFounderProfile = () => {
       [name]: value,
     }));
   };
-
   /**
    * Handle checkbox changes for industry specificity
    */
@@ -201,13 +183,11 @@ const CoFounderProfile = () => {
           : prev.industrySpecificity,
     }));
   };
-
   /**
    * Validate fields for the current step only
    */
   const validateCurrentStep = () => {
     const errors = [];
-
     switch (currentStep) {
       case 1: // The Trust & Reputation Layer
         if (!formData.fullLegalName?.trim())
@@ -227,7 +207,6 @@ const CoFounderProfile = () => {
         if (!formData.pedigreeScore?.trim())
           errors.push("Pedigree Score is required");
         break;
-
       case 2: // Deep Competency & Intelligence
         if (!formData.superpower1?.trim())
           errors.push("Superpower 1 is required");
@@ -251,7 +230,6 @@ const CoFounderProfile = () => {
         if (!formData.quantifiableImpact?.trim())
           errors.push("Quantifiable Impact is required");
         break;
-
       case 3: // The Financial & Time "Stress Test"
         if (!formData.drySpellRunway?.trim())
           errors.push("Dry Spell Runway is required");
@@ -262,7 +240,6 @@ const CoFounderProfile = () => {
         if (!formData.moonlightPolicy?.trim())
           errors.push("Moonlight Policy is required");
         break;
-
       case 4: // The Ego & Psychology Match
         if (!formData.decisionHierarchy?.trim())
           errors.push("Decision Hierarchy is required");
@@ -275,14 +252,12 @@ const CoFounderProfile = () => {
         if (!formData.riskAppetite?.trim())
           errors.push("Risk Appetite is required");
         break;
-
       case 5: // Ethics & Value Alignment
         if (!formData.exitVision?.trim()) errors.push("Exit Vision is required");
         if (!formData.redLine?.trim()) errors.push("Red Line is required");
         if (!formData.diversityOfThought?.trim())
           errors.push("Diversity of Thought is required");
         break;
-
       case 6: // Targeted Requirement Filters
         if (!formData.missingHalfProfile?.trim())
           errors.push("Missing Half Profile is required");
@@ -291,31 +266,25 @@ const CoFounderProfile = () => {
         if (!formData.vibeKeywords?.trim())
           errors.push("Vibe Keywords is required");
         break;
-
       default:
         break;
     }
-
     return errors;
   };
-
   /**
    * Handle Next button click
    */
   const handleNext = () => {
     const errors = validateCurrentStep();
-
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     if (currentStep < 6) {
       setCurrentStep((s) => s + 1);
       toast.success(`Step ${currentStep} completed!`);
     }
   };
-
   /**
    * Handle Back button
    */
@@ -324,37 +293,32 @@ const CoFounderProfile = () => {
       setCurrentStep((s) => s - 1);
     }
   };
-
   /**
    * Handle form submission
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Safety check – submit only on step 6
     if (currentStep !== 6) {
       toast.error("Please complete all steps before submitting");
       return;
     }
-
     // Validate current step (step 6)
     const errors = validateCurrentStep();
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;
     }
-
     const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
       navigate("/login");
       return;
     }
-
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/cofounder-profiles",
+        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/cofounder-profiles`,
         {
           user_id: Number(userId),
           fullLegalName: formData.fullLegalName,
@@ -396,10 +360,8 @@ const CoFounderProfile = () => {
           vibeKeywords: formData.vibeKeywords,
         }
       );
-
       console.log("Profile created:", response.data);
       toast.success("Profile created successfully! Redirecting...");
-
       setTimeout(() => {
         navigate("/");
       }, 1500);
@@ -414,20 +376,15 @@ const CoFounderProfile = () => {
       setLoading(false);
     }
   };
-
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-
   return (
     <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
       {/* Navigation */}
-      <Navbar />
-
       {/* Main Content */}
       <div className="pt-24 pb-8 flex flex-col items-center">
-
         {/* View/Edit Toggle Bar */}
         <div className="w-[85%] max-w-7xl mb-8">
           <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
@@ -445,7 +402,6 @@ const CoFounderProfile = () => {
             </button>
           </div>
         </div>
-
         {viewMode === "view" ? (
           <ProfilePreview
             user={{
@@ -491,7 +447,6 @@ const CoFounderProfile = () => {
                 co-founder
               </p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Step 1: The Trust & Reputation Layer */}
               {currentStep === 1 && (
@@ -505,7 +460,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           The Trust & Reputation Layer
                         </h2>
-
                         <div>
                           <label
                             htmlFor="fullLegalName"
@@ -524,7 +478,6 @@ const CoFounderProfile = () => {
                             placeholder="Enter your full legal name"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="linkedin"
@@ -542,7 +495,6 @@ const CoFounderProfile = () => {
                             placeholder="https://linkedin.com/in/yourprofile"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="githubBehance"
@@ -560,7 +512,6 @@ const CoFounderProfile = () => {
                             placeholder="https://github.com/username or https://behance.net/username"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="referenceContact"
@@ -578,7 +529,6 @@ const CoFounderProfile = () => {
                             placeholder="Name and contact information"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="primaryIdentity"
@@ -626,7 +576,6 @@ const CoFounderProfile = () => {
                             />
                           )}
                         </div>
-
                         <div>
                           <label
                             htmlFor="currentOccupationalStatus"
@@ -653,7 +602,6 @@ const CoFounderProfile = () => {
                             </option>
                           </select>
                         </div>
-
                         <div>
                           <label
                             htmlFor="pedigreeScore"
@@ -684,7 +632,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 2: Deep Competency & Intelligence */}
               {currentStep === 2 && (
                 <div className="flex justify-center">
@@ -697,7 +644,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Deep Competency & Intelligence
                         </h2>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-2">
                             The "Superpower" Hierarchy: List 3 skills where you are
@@ -729,7 +675,6 @@ const CoFounderProfile = () => {
                             placeholder="Superpower 3"
                           />
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-2">
                             Multi-Domain Toolkit: List 5 tools/frameworks you master{" "}
@@ -776,7 +721,6 @@ const CoFounderProfile = () => {
                             placeholder="Tool/Framework 5"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="domainIQ"
@@ -795,7 +739,6 @@ const CoFounderProfile = () => {
                             placeholder="e.g., Specific newsletters, Peer groups, Research papers"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="antiPortfolio"
@@ -815,7 +758,6 @@ const CoFounderProfile = () => {
                             placeholder="Describe your failure and the lesson learned"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="quantifiableImpact"
@@ -841,7 +783,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 3: The Financial & Time "Stress Test" */}
               {currentStep === 3 && (
                 <div className="flex justify-center">
@@ -854,7 +795,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           The Financial & Time "Stress Test"
                         </h2>
-
                         <div>
                           <label
                             htmlFor="drySpellRunway"
@@ -874,7 +814,6 @@ const CoFounderProfile = () => {
                             placeholder="e.g., 3 months, 6 months, 12 months+"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="currentBurnRequirement"
@@ -894,7 +833,6 @@ const CoFounderProfile = () => {
                             placeholder="Enter minimum monthly stipend"
                           />
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-3">
                             Bandwidth Reality <span className="text-red-500">*</span>
@@ -946,7 +884,6 @@ const CoFounderProfile = () => {
                             </label>
                           </div>
                         </div>
-
                         <div>
                           <label
                             htmlFor="moonlightPolicy"
@@ -971,7 +908,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 4: The Ego & Psychology Match */}
               {currentStep === 4 && (
                 <div className="flex justify-center">
@@ -984,7 +920,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           The Ego & Psychology Match (The Oracle's Core)
                         </h2>
-
                         <div>
                           <label
                             htmlFor="decisionHierarchy"
@@ -1004,7 +939,6 @@ const CoFounderProfile = () => {
                             placeholder="Explain your decision-making approach"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="conflictSimulation"
@@ -1024,7 +958,6 @@ const CoFounderProfile = () => {
                             placeholder="Describe how you would handle this situation"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="feedbackLoop"
@@ -1048,7 +981,6 @@ const CoFounderProfile = () => {
                             <option value="data-led">Data-led only</option>
                           </select>
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-3">
                             Work Environment <span className="text-red-500">*</span>
@@ -1100,7 +1032,6 @@ const CoFounderProfile = () => {
                             </label>
                           </div>
                         </div>
-
                         <div>
                           <label
                             htmlFor="riskAppetite"
@@ -1127,7 +1058,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 5: Ethics & Value Alignment */}
               {currentStep === 5 && (
                 <div className="flex justify-center">
@@ -1140,7 +1070,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Ethics & Value Alignment
                         </h2>
-
                         <div>
                           <label
                             htmlFor="exitVision"
@@ -1166,7 +1095,6 @@ const CoFounderProfile = () => {
                             </option>
                           </select>
                         </div>
-
                         <div>
                           <label
                             htmlFor="redLine"
@@ -1186,7 +1114,6 @@ const CoFounderProfile = () => {
                             placeholder="Describe your ethical red line"
                           />
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-3">
                             Diversity of Thought: Do you prefer a partner who thinks
@@ -1231,7 +1158,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Step 6: Targeted Requirement Filters */}
               {currentStep === 6 && (
                 <div className="flex justify-center">
@@ -1244,7 +1170,6 @@ const CoFounderProfile = () => {
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Targeted Requirement Filters
                         </h2>
-
                         <div>
                           <label
                             htmlFor="missingHalfProfile"
@@ -1264,7 +1189,6 @@ const CoFounderProfile = () => {
                             placeholder="e.g., I am looking for a Founder who is a Sales machine because I am a shy Engineer"
                           />
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-white mb-3">
                             Industry Specificity (Select up to 3)
@@ -1311,7 +1235,6 @@ const CoFounderProfile = () => {
                             Selected: {formData.industrySpecificity.length}/3
                           </p>
                         </div>
-
                         <div>
                           <label
                             htmlFor="equityMinimum"
@@ -1331,7 +1254,6 @@ const CoFounderProfile = () => {
                             placeholder="e.g., 20%, 30%, 50%"
                           />
                         </div>
-
                         <div>
                           <label
                             htmlFor="vibeKeywords"
@@ -1355,7 +1277,6 @@ const CoFounderProfile = () => {
                   </div>
                 </div>
               )}
-
               {/* Navigation Buttons */}
               <div className="flex justify-between pt-6">
                 {currentStep > 1 && (
@@ -1390,11 +1311,9 @@ const CoFounderProfile = () => {
           </div>
         )}
       </div>
-
       {/* Footer */}
       <Footer />
     </div>
   );
 };
-
 export default CoFounderProfile;

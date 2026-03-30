@@ -1,9 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Users, Briefcase, Rocket } from "lucide-react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
 // Gradient styles - same as HomePage
 const gradientBlackToBlue = {
   background:
@@ -13,11 +11,9 @@ const gradientBlueToBlack = {
   background:
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
-
 function UserTypeSelection() {
   const navigate = useNavigate();
   const [hoveredType, setHoveredType] = useState(null);
-
   const userTypes = [
     {
       id: "cofounder",
@@ -41,14 +37,11 @@ function UserTypeSelection() {
         "Need talented freelancers or co-founders for your startup? Discover top talent and build your dream team to scale your business.",
     },
   ];
-
   const handleTypeClick = (typeId) => {
     navigate(`/login-signup?type=${typeId}`);
   };
-
   // Navbar Component
-  // const Navbar = () => <Navbar />;
-
+  // const Navbar = () => ;
   // Footer Component
   // const Footer = () => (
   //   <footer className="relative py-16 px-4" style={gradientBlackToBlue}>
@@ -264,14 +257,11 @@ function UserTypeSelection() {
   //     </div>
   //   </footer>
   // );
-
   return (
     <div
       className="min-h-screen relative overflow-hidden"
       style={gradientBlackToBlue}
     >
-      <Navbar />
-
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -281,7 +271,6 @@ function UserTypeSelection() {
         ></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-300/5 rounded-full blur-3xl"></div>
       </div>
-
       <section className="pt-24 pb-32 px-4 min-h-screen flex flex-col items-center justify-center relative z-10">
         <div className="max-w-7xl mx-auto w-full">
           {/* Single Translucent Column Container - Made Smaller */}
@@ -289,7 +278,6 @@ function UserTypeSelection() {
             {/* Decorative Corner Elements */}
             <div className="absolute top-0 left-0 w-24 h-24 border-t-2 border-l-2 border-blue-400/30 rounded-tl-3xl"></div>
             <div className="absolute bottom-0 right-0 w-24 h-24 border-b-2 border-r-2 border-blue-400/30 rounded-br-3xl"></div>
-
             {/* Heading with Animation */}
             <div className="text-center mb-12 md:mb-14">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
@@ -301,7 +289,6 @@ function UserTypeSelection() {
               </h1>
               <div className="w-24 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto mt-4"></div>
             </div>
-
             {/* Three Columns with Enhanced Design */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative z-10">
               {userTypes.map((type, index) => {
@@ -325,7 +312,6 @@ function UserTypeSelection() {
                         hoveredType === type.id ? "opacity-100" : "opacity-0"
                       }`}
                     ></div>
-
                     {/* Glowing Border Effect */}
                     <div
                       className={`absolute inset-0 rounded-2xl transition-opacity duration-500 ${
@@ -334,7 +320,6 @@ function UserTypeSelection() {
                           : "opacity-0"
                       }`}
                     ></div>
-
                     <div className="text-center relative z-10">
                       {/* Icon with Animated Ring */}
                       <div className="flex justify-center mb-6 relative">
@@ -363,7 +348,6 @@ function UserTypeSelection() {
                           />
                         </div>
                       </div>
-
                       {/* Title */}
                       <h2
                         className={`text-2xl md:text-3xl font-bold mb-4 transition-all duration-300 ${
@@ -374,7 +358,6 @@ function UserTypeSelection() {
                       >
                         {type.name}
                       </h2>
-
                       {/* Description with Smooth Animation */}
                       <p
                         className={`text-gray-300 text-sm md:text-base leading-relaxed px-2 transition-all duration-300 ${
@@ -383,7 +366,6 @@ function UserTypeSelection() {
                       >
                         {type.description}
                       </p>
-
                       {/* Hover Indicator Arrow */}
                       <div
                         className={`mt-6 flex justify-center transition-all duration-300 ${
@@ -412,7 +394,6 @@ function UserTypeSelection() {
                         </div>
                       </div>
                     </div>
-
                     {/* Corner Decorative Elements */}
                     <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-blue-400/30 rounded-tr-2xl"></div>
                     <div className="absolute bottom-2 left-2 w-8 h-8 border-b-2 border-l-2 border-blue-400/30 rounded-bl-2xl"></div>
@@ -427,5 +408,4 @@ function UserTypeSelection() {
     </div>
   );
 }
-
 export default UserTypeSelection;

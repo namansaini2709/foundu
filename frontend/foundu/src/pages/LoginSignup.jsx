@@ -1,17 +1,14 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useState } from 'react'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
-import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import AnimatedCardVisual from '../components/ui/AnimatedCardVisual'
-
 const gradientBlackToBlue = {
   background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
 }
-
 function LoginSignup() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -20,23 +17,18 @@ function LoginSignup() {
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [resetEmail, setResetEmail] = useState('')
-
   const userTypeNames = {
     cofounder: 'Co-founder',
     freelancer: 'Freelancer',
     founder: 'Founder'
   }
-
   const userTypeName = userTypeNames[userType] || 'User'
-
   const isValidEmail = (email) => email.includes('@') && email.includes('.')
-
   const redirectByTypeOnSignup = (type) => {
     const userTypeLower = type.toLowerCase()
     if (userTypeLower === 'freelancer') navigate('/freelancer-profile')
@@ -44,7 +36,6 @@ function LoginSignup() {
     else if (userTypeLower === 'founder') navigate('/startup-profile')
     else navigate('/')
   }
-
   const redirectByTypeOnLogin = (type) => {
     const userTypeLower = type.toLowerCase()
     if (userTypeLower === 'freelancer') navigate('/freelancer-jobs')
@@ -52,26 +43,20 @@ function LoginSignup() {
     else if (userTypeLower === 'founder') navigate('/startup-services')
     else navigate('/')
   }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!email || !password || (!isLogin && (!fullName || !confirmPassword))) {
       return toast.error('All fields are required', { theme: 'dark' })
     }
-
     if (!isValidEmail(email)) {
       return toast.error('Invalid email format', { theme: 'dark' })
     }
-
     if (password.length < 6) {
       return toast.error('Password must be at least 6 characters', { theme: 'dark' })
     }
-
     if (!isLogin && password !== confirmPassword) {
       return toast.error('Passwords do not match', { theme: 'dark' })
     }
-
     try {
       if (isLogin) {
         // ── ADMIN SHORTCUT ──────────────────────────────────
@@ -83,17 +68,14 @@ function LoginSignup() {
           return
         }
         // ── NORMAL LOGIN ────────────────────────────────────
-        const res = await axios.post('http://localhost:4000/api/login', {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
           email,
           password
         }, { withCredentials: true })
-
         // Store user_id and user_type in localStorage
         localStorage.setItem('user_id', res.data.user.id)
         localStorage.setItem('user_type', res.data.user.user_type)
-
         toast.success('Login successful', { theme: 'dark' })
-        
         // Full reload to target page to ensure clean state
         setTimeout(() => {
           const type = res.data.user.user_type.toLowerCase();
@@ -107,30 +89,24 @@ function LoginSignup() {
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
           ? userType
           : 'freelancer'
-
-        await axios.post('http://localhost:4000/api/signup', {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/signup`, {
           full_name: fullName,
           email,
           password,
           user_type: validUserType
         })
-
-        const loginRes = await axios.post('http://localhost:4000/api/login', {
+        const loginRes = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
           email,
           password
         }, { withCredentials: true })
-
         const userData = loginRes.data.user;
         if (!userData || !userData.id) {
           throw new Error("Invalid response from server");
         }
-
         // Store user_id and user_type in localStorage
         localStorage.setItem('user_id', userData.id)
         localStorage.setItem('user_type', userData.user_type || userType)
-
         toast.success('Signup successful', { theme: 'dark' })
-
         // Full reload to target page to ensure clean state
         setTimeout(() => {
           const type = (userData.user_type || userType).toLowerCase();
@@ -147,23 +123,18 @@ function LoginSignup() {
       })
     }
   }
-
   const handleForgotPassword = async (e) => {
     e.preventDefault()
-
     if (!resetEmail) {
       return toast.error('Email is required', { theme: 'dark' })
     }
-
     if (!isValidEmail(resetEmail)) {
       return toast.error('Invalid email format', { theme: 'dark' })
     }
-
     try {
-      await axios.post('http://localhost:4000/api/forgot-password', {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/forgot-password`, {
         email: resetEmail
       })
-
       toast.success('Password reset link sent to your email', { theme: 'dark' })
       setResetEmail('')
       setTimeout(() => {
@@ -177,22 +148,17 @@ function LoginSignup() {
       })
     }
   }
-
   return (
     <div className="min-h-screen" >
-      <Navbar />
       <section className="min-h-screen flex items-center justify-center p-4 pt-20 pb-20">
         <div className="w-full max-w-6xl bg-transparent rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px] border border-gray-800">
-
           {/* Left Column - Animated Visual */}
           <div className="hidden md:block w-1/2 relative">
             <AnimatedCardVisual />
           </div>
-
           {/* Right Column - Login Form */}
           <div className="w-full md:w-1/2 bg-transparent flex flex-col justify-center p-8 md:p-12 lg:p-16 relative">
             <div className="max-w-md w-full mx-auto">
-
               {/* Forgot Password View */}
               {isForgotPassword ? (
                 <>
@@ -204,7 +170,6 @@ function LoginSignup() {
                       Enter your email to receive a password reset link
                     </p>
                   </div>
-
                   <form className="space-y-6" onSubmit={handleForgotPassword}>
                     <div>
                       <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
@@ -221,7 +186,6 @@ function LoginSignup() {
                         />
                       </div>
                     </div>
-
                     <button
                       type="submit"
                       className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-blue-900/20 active:scale-[0.98]"
@@ -229,7 +193,6 @@ function LoginSignup() {
                       Send Reset Link
                     </button>
                   </form>
-
                   <div className="mt-8 text-center">
                     <button
                       type="button"
@@ -257,7 +220,6 @@ function LoginSignup() {
                         : `Sign up as ${userTypeName} to get started with Foundu`}
                     </p>
                   </div>
-
                   <form className="space-y-5" onSubmit={handleSubmit}>
                     {!isLogin && (
                       <div>
@@ -273,7 +235,6 @@ function LoginSignup() {
                         />
                       </div>
                     )}
-
                     <div>
                       <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
                         Email
@@ -289,7 +250,6 @@ function LoginSignup() {
                         />
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
                         Password
@@ -312,7 +272,6 @@ function LoginSignup() {
                         </button>
                       </div>
                     </div>
-
                     {!isLogin && (
                       <div>
                         <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
@@ -330,7 +289,6 @@ function LoginSignup() {
                         </div>
                       </div>
                     )}
-
                     {isLogin && (
                       <div className="flex items-center justify-between mt-2">
                         <label className="flex items-center cursor-pointer group">
@@ -357,7 +315,6 @@ function LoginSignup() {
                         </button>
                       </div>
                     )}
-
                     <button
                       type="submit"
                       className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-blue-900/20 active:scale-[0.98] mt-6"
@@ -365,7 +322,6 @@ function LoginSignup() {
                       {isLogin ? 'Login' : 'Sign Up'}
                     </button>
                   </form>
-
                   <div className="mt-8 text-center">
                     <p className="text-gray-400 text-sm">
                       {isLogin ? 'New user? ' : 'Already have an account? '}
@@ -384,7 +340,6 @@ function LoginSignup() {
                       </button>
                     </p>
                   </div>
-
                   <div className="mt-8">
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
@@ -397,7 +352,6 @@ function LoginSignup() {
                   </div>
                 </>
               )}
-
               {/* Social Login Buttons */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <button
@@ -422,7 +376,6 @@ function LoginSignup() {
                   <span>GitHub</span>
                 </button>
               </div>
-
             </div>
           </div>
         </div>
@@ -432,5 +385,4 @@ function LoginSignup() {
     </div>
   )
 }
-
 export default LoginSignup

@@ -21,12 +21,15 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 ========================= */
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: true,
     credentials: true,
   }),
 );
 
 app.use(express.json());
+
+app.set("trust proxy", 1);
+const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME;
 
 app.use(
   session({
@@ -36,17 +39,21 @@ app.use(
     name: "foundu_sid", // Custom name to avoid conflicts
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
-      secure: false, // Must be false for localhost HTTP
-      sameSite: 'lax'
+      secure: isProduction ? true : false, // Must be true for cross-site
+      sameSite: isProduction ? "none" : "lax", // 'none' for cross-domain
     },
   }),
 );
 
 // DEBUG: Log all requests
 app.use((req, res, next) => {
-  console.log(`\n[REQUEST] ${req.method} ${req.url}`);
-  console.log("Headers:", req.headers);
-  console.log("Session:", req.session);
+  const log = `\n[${new Date().toISOString()}] [REQUEST] ${req.method} ${req.url}\nHeaders: ${JSON.stringify(req.headers)}\n`;
+  console.log(log);
+
+  const logsDir = path.join(__dirname, "logs");
+  if (!require("fs").existsSync(logsDir)) require("fs").mkdirSync(logsDir);
+  require("fs").appendFileSync(path.join(logsDir, "requests.txt"), log);
+
   next();
 });
 
@@ -68,6 +75,8 @@ const aiRoutes = require("./routes/aiRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const testimonialRoutes = require("./routes/testimonialRoutes");
+const postRoutes = require("./routes/postRoutes");
+const testEmailRoutes = require("./routes/testEmailRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -105,6 +114,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api", ideaRoutes);
 app.use("/api", notificationRoutes);
 app.use("/api", testimonialRoutes);
+app.use("/api", postRoutes);
+app.use("/api", testEmailRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -122,7 +133,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: true,
     credentials: true,
   },
 });
@@ -133,6 +144,19 @@ onboardingReminderService.initOnboardingReminders();
 io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
   notificationService.handleSocketConnection(socket);
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("GLOBAL_ERROR:", err);
+  const fs = require("fs");
+  const logsDir = path.join(__dirname, "logs");
+  if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+  fs.appendFileSync(
+    path.join(logsDir, "global_error.txt"),
+    `\n[${new Date().toISOString()}] ${err.stack}\n`,
+  );
+  res.status(500).json({ success: false, error: err.message });
 });
 
 server.listen(PORT, () => {

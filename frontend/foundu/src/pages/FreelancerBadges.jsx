@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { X, Loader2, TrendingUp, Star, CheckCircle } from "lucide-react";
 import blueBadge from "../assets/bluebadge.png";
@@ -9,18 +8,14 @@ import red1 from "../assets/9095.png";
 import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
-
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const API = "http://localhost:4000/api";
-
+const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
 };
-
 /* ── Blue Tick status badge component ─────────────────────── */
 const BlueTickStatusBadge = ({ status, verified }) => {
   if (verified) {
@@ -51,7 +46,6 @@ const BlueTickStatusBadge = ({ status, verified }) => {
   }
   return null;
 };
-
 const FreelancerBadges = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -59,16 +53,13 @@ const FreelancerBadges = () => {
   const [blueTickVerified, setBlueTickVerified] = useState(false);
   const [greenTickVerified, setGreenTickVerified] = useState(false);
   const [goldenData, setGoldenData] = useState(null);
-
   const [formData, setFormData] = useState({
     linkedin: "",
     github: "",
     portfolio: "",
     profilePhoto: null // Now holds File or URL string
   });
-
   const userId = localStorage.getItem("user_id");
-
   /* ── Load existing social data + blue tick status on mount ── */
   useEffect(() => {
     if (!userId) return;
@@ -90,26 +81,22 @@ const FreelancerBadges = () => {
         }
       })
       .catch(() => {});
-
     // Load golden tick progress
     axios
       .get(`${API}/badges/golden-status/${userId}`, { withCredentials: true })
       .then((res) => setGoldenData(res.data.data))
       .catch(() => {});
   }, [userId]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
     }
   };
-
   /* ── Save & Submit ────────────────────────────────────────── */
   const handleSave = async () => {
     if (!formData.linkedin) {
@@ -123,7 +110,6 @@ const FreelancerBadges = () => {
     if (!userId) {
       return toast.error("You must be logged in", { theme: "dark" });
     }
-
     setSubmitting(true);
     try {
       // Create FormData for multipart submission
@@ -132,15 +118,12 @@ const FreelancerBadges = () => {
       data.append("linkedin_url", formData.linkedin);
       data.append("github_url", formData.github);
       data.append("portfolio_url", formData.portfolio);
-      
       // If profilePhoto is a File object, append as 'profile_picture'
       if (formData.profilePhoto instanceof File) {
         data.append("profile_picture", formData.profilePhoto);
       } else if (typeof formData.profilePhoto === 'string') {
         data.append("profile_picture_url", formData.profilePhoto);
       }
-
-
       // Step 1 — Save social data to users_socials table
       await axios.post(
         `${API}/user-socials`,
@@ -150,7 +133,6 @@ const FreelancerBadges = () => {
           headers: { 'Content-Type': 'multipart/form-data' }
         },
       );
-
       // Step 2 — Apply for Blue Tick (sets blue_tick_status = 'pending')
       await axios.post(
         `${API}/badges/apply/blue`,
@@ -159,7 +141,6 @@ const FreelancerBadges = () => {
         },
         { withCredentials: true },
       );
-
       setBlueTickStatus("pending");
       setIsModalOpen(false);
       toast.success(" Verification submitted! Under review by admin.", {
@@ -173,23 +154,18 @@ const FreelancerBadges = () => {
       setSubmitting(false);
     }
   };
-
   /* ── Can they apply? ─────────────────────────────────────── */
   const canApply = !blueTickVerified && blueTickStatus !== "pending";
-
   return (
     <div
       className="min-h-screen text-white flex flex-col"
       style={gradientBlackToBlue}
     >
-      <Navbar />
-
       <div className="flex-grow pt-24 px-4 pb-12 max-w-7xl mx-auto w-full">
         <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
           <span className="text-white">FREELANCER </span>
           <span className="text-blue-300">BADGES</span>
         </h1>
-
         {/* Verification Badges */}
         <div className="flex flex-col gap-6 mb-16">
           {/* ── Blue Tick Badge ─────────────────────────────── */}
@@ -262,7 +238,6 @@ const FreelancerBadges = () => {
               )}
             </div>
           </div>
-
           {/* ── Green Tick Badge ─────────────────────────────── */}
           <div className="bg-gray-800/40 backdrop-blur-md border border-green-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-green-400 transition-all">
             <div className="flex-shrink-0">
@@ -303,7 +278,6 @@ const FreelancerBadges = () => {
               )}
             </div>
           </div>
-
           {/* ── Golden Tick Badge ─────────────────────────────── */}
           <div
             className={`bg-gray-800/40 backdrop-blur-md border rounded-xl p-6 hover:scale-[1.01] transition-all duration-300 ${
@@ -346,7 +320,6 @@ const FreelancerBadges = () => {
                     * Resets monthly
                   </span>
                 </p>
-
                 {/* Progress Section */}
                 {goldenData ? (
                   <div className="space-y-2">
@@ -362,7 +335,6 @@ const FreelancerBadges = () => {
                         </span>
                       )}
                     </div>
-
                     {/* Login day progress bar */}
                     <div>
                       <div className="flex justify-between text-xs mb-1">
@@ -426,14 +398,12 @@ const FreelancerBadges = () => {
             </div>
           </div>
         </div>
-
         {/* Credibility Score Section */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-12">
             <span className="text-white">CREDIBILITY </span>
             <span className="text-blue-300">SCORE</span>
           </h2>
-
           <div className="flex flex-col gap-6">
             {[
               {
@@ -541,9 +511,7 @@ const FreelancerBadges = () => {
           </div>
         </div>
       </div>
-
       <Footer />
-
       {/* ── Modal ─────────────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -558,7 +526,6 @@ const FreelancerBadges = () => {
             >
               <X size={24} />
             </button>
-
             <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
               <CheckCircle className="text-blue-500" />
               Verify Profile
@@ -567,7 +534,6 @@ const FreelancerBadges = () => {
               After submitting, your links will be reviewed manually by the
               FoundU team.
             </p>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
@@ -632,9 +598,7 @@ const FreelancerBadges = () => {
                   )}
                 </div>
               </div>
-
             </div>
-
             <div className="mt-8 flex gap-3">
               <button
                 onClick={() => !submitting && setIsModalOpen(false)}
@@ -660,10 +624,8 @@ const FreelancerBadges = () => {
           </div>
         </div>
       )}
-
       <ToastContainer position="top-right" theme="dark" />
     </div>
   );
 };
-
 export default FreelancerBadges;

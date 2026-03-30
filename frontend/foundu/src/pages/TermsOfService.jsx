@@ -1,12 +1,10 @@
 import React from 'react'
-import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { FileText, UserPlus, Scale, ShieldAlert, BookOpen, Fingerprint, Gavel, ExternalLink } from 'lucide-react'
 
 const gradientBlackToBlue = {
   background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
 }
-
 export default function TermsOfService() {
   return (
     <div className="min-h-screen flex flex-col pt-20 overflow-x-hidden font-sans" style={gradientBlackToBlue}>

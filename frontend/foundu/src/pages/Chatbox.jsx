@@ -6,9 +6,7 @@ import {
   FaCircle,
   FaCheckDouble,
 } from "react-icons/fa";
-
-const API_URL = "http://localhost:4000/api/chat";
-
+const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/chat`;
 const Chatbox = () => {
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -19,13 +17,11 @@ const Chatbox = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const messagesEndRef = useRef(null);
-
   useEffect(() => {
     const storedUserId = localStorage.getItem("user_id");
     if (storedUserId) setCurrentUserId(parseInt(storedUserId));
     fetchChats();
   }, []);
-
   useEffect(() => {
     if (activeChat) {
       fetchMessages(activeChat.chat_id);
@@ -37,15 +33,12 @@ const Chatbox = () => {
       return () => clearInterval(interval);
     }
   }, [activeChat]);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   const fetchChats = async () => {
     try {
       const res = await axios.get(`${API_URL}/my-chats`, {
@@ -58,7 +51,6 @@ const Chatbox = () => {
       setLoading(false);
     }
   };
-
   const fetchMessages = async (chatId) => {
     try {
       const res = await axios.get(`${API_URL}/${chatId}/messages`, {
@@ -69,10 +61,8 @@ const Chatbox = () => {
       console.error("Error fetching messages:", err);
     }
   };
-
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeChat) return;
-
     try {
       await axios.post(
         `${API_URL}/message`,
@@ -82,7 +72,6 @@ const Chatbox = () => {
         },
         { withCredentials: true },
       );
-
       setNewMessage("");
       fetchMessages(activeChat.chat_id); // Refresh messages immediately
       fetchChats(); // Update last message in sidebar
@@ -90,11 +79,9 @@ const Chatbox = () => {
       console.error("Error sending message:", err);
     }
   };
-
   const handleKeyPress = (e) => {
     if (e.key === "Enter") handleSendMessage();
   };
-
   // Search Users
   useEffect(() => {
     const searchUsers = async () => {
@@ -103,7 +90,7 @@ const Chatbox = () => {
         return;
       }
       try {
-        const res = await axios.get("http://localhost:4000/api/users", { withCredentials: true });
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/users`, { withCredentials: true });
         const filtered = res.data.filter(
           (u) =>
             u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -117,10 +104,8 @@ const Chatbox = () => {
     const delayDebounceFn = setTimeout(() => {
       searchUsers();
     }, 300);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, currentUserId]);
-
   // Start new chat
   const handleStartChat = async (otherUserId) => {
     try {
@@ -130,11 +115,9 @@ const Chatbox = () => {
         { withCredentials: true },
       );
       const { chatId } = res.data;
-
       setSearchQuery(""); // Clear search
       setSearchResults([]);
       await fetchChats(); // Refresh list to show new chat
-
       // Select the new chat (we need to find it in the updated list users)
       // For now, let's just refresh functionality.
       // Ideally we would set activeChat here but we need the full chat object.
@@ -142,7 +125,6 @@ const Chatbox = () => {
       console.error("Error creating chat:", err);
     }
   };
-
   return (
     <div className="flex h-screen bg-black text-gray-100 font-sans overflow-hidden">
       {/* Sidebar */}
@@ -162,7 +144,6 @@ const Chatbox = () => {
             <FaSearch className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
           </div>
         </div>
-
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           {loading ? (
             <div className="p-4 text-center text-gray-500">
@@ -210,7 +191,6 @@ const Chatbox = () => {
               </div>
             ))
           )}
-
           {/* Search Results Overlay or List */}
           {searchQuery && (
             <div className="absolute top-20 left-4 w-64 bg-gray-800 rounded-lg shadow-xl z-10 max-h-60 overflow-y-auto">
@@ -239,7 +219,6 @@ const Chatbox = () => {
           )}
         </div>
       </div>
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-black">
         {activeChat ? (
@@ -258,7 +237,6 @@ const Chatbox = () => {
                 </div>
               </div>
             </div>
-
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
               {messages.length === 0 && (
@@ -297,7 +275,6 @@ const Chatbox = () => {
               ))}
               <div ref={messagesEndRef} />
             </div>
-
             {/* Input Area */}
             <div className="p-4 bg-gray-900 border-t border-gray-800">
               <div className="flex items-center gap-2 bg-gray-800 rounded-full px-4 py-2">
@@ -327,5 +304,4 @@ const Chatbox = () => {
     </div>
   );
 };
-
 export default Chatbox;

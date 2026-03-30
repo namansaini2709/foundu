@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import "./SmartChatbot.css";
-
 /* ================================================================
    CONVERSATION FLOWS — per role, 5 questions each
    ================================================================ */
@@ -38,7 +38,6 @@ const FLOWS = {
       },
     ],
   },
-
   freelancer: {
     greeting:
       "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best opportunities matching your skills, or show you which founders are actively looking for someone like you. What would you like?",
@@ -70,7 +69,6 @@ const FLOWS = {
       },
     ],
   },
-
   cofounder: {
     greeting:
       "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best co-founder roles matching your profile, or discover which founders might be looking for someone exactly like you. Let's go!",
@@ -103,7 +101,6 @@ const FLOWS = {
     ],
   },
 };
-
 /* ================================================================
    MOCK SUGGESTION DATA — used until backend is connected
    ================================================================ */
@@ -255,7 +252,6 @@ const MOCK_SUGGESTIONS = {
     },
   ],
 };
-
 /* ================================================================
    HELPER UTILITIES
    ================================================================ */
@@ -264,13 +260,11 @@ const getScoreClass = (score) => {
   if (score >= 70) return "sc-score-mid";
   return "sc-score-low";
 };
-
 const getScoreLabel = (score) => {
   if (score >= 90) return `🔥 ${score}% Top Pick`;
   if (score >= 80) return `✅ ${score}% Strong`;
   return `👍 ${score}% Good Fit`;
 };
-
 const avatarGradients = [
   "linear-gradient(135deg,#1d4ed8,#0284c7)",
   "linear-gradient(135deg,#2563eb,#0891b2)",
@@ -278,11 +272,9 @@ const avatarGradients = [
   "linear-gradient(135deg,#3b82f6,#06b6d4)",
   "linear-gradient(135deg,#1d4ed8,#4338ca)",
 ];
-
 /* ================================================================
    SUB-COMPONENTS
    ================================================================ */
-
 /* Typing indicator */
 function TypingIndicator() {
   return (
@@ -294,11 +286,9 @@ function TypingIndicator() {
     </div>
   );
 }
-
 /* Single suggestion card */
-function SuggestionCard({ candidate, onInvite }) {
+function SuggestionCard({ candidate, onInvite, userRole }) {
   const [showExplain, setShowExplain] = useState(false);
-
   return (
     <div className="sc-card">
       <div className="sc-card-top">
@@ -320,7 +310,6 @@ function SuggestionCard({ candidate, onInvite }) {
           {getScoreLabel(candidate.matchScore)}
         </span>
       </div>
-
       {/* Stats row */}
       <div className="sc-card-stats">
         <span className="sc-rating">⭐ {candidate.avgRating}</span>
@@ -331,14 +320,12 @@ function SuggestionCard({ candidate, onInvite }) {
           {candidate.goldenTick && <span className="sc-badge-tag" title="Golden Tick — Highly Active">🏆</span>}
         </span>
       </div>
-
       {/* Skill tags */}
       <div className="sc-skills">
         {candidate.skills.map((s) => (
           <span key={s} className="sc-skill-tag">{s}</span>
         ))}
       </div>
-
       {/* Action buttons */}
       <div className="sc-card-actions">
         <button
@@ -348,10 +335,9 @@ function SuggestionCard({ candidate, onInvite }) {
           {showExplain ? "▲ Hide" : "🔍 Why this match?"}
         </button>
         <button className="sc-btn-invite" onClick={() => onInvite(candidate)}>
-          📨 Invite
+          {userRole === "founder" ? "📨 Invite" : "✉️ Apply"}
         </button>
       </div>
-
       {/* Match explainer */}
       {showExplain && (
         <div className="sc-explain-box">
@@ -366,22 +352,36 @@ function SuggestionCard({ candidate, onInvite }) {
     </div>
   );
 }
-
 /* Invite modal */
 function InviteModal({ candidate, jobContext, onClose, onSend }) {
   const [msg, setMsg] = useState(
     `Hi ${candidate?.name?.split(" ")[0] || "there"},\n\nI found your profile through FoundU's AI matcher and think you'd be a great fit${jobContext ? ` for our open role` : ""}. Your credibility score and verified badges really stood out!\n\nWould you be interested in connecting?\n\nBest,\nFoundU`
   );
   const [sent, setSent] = useState(false);
-
-  const handleSend = () => {
+  const handleSend = async () => {
     setSent(true);
-    setTimeout(() => {
+    try {
+      const currentUserId = localStorage.getItem("user_id");
+      await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/invite`, {
+        sender_id: currentUserId,
+        receiver_id: candidate.user_id || candidate.id, // candidate.id for jobs, user_id for candidates
+        message: msg,
+        job_id: jobContext
+      });
+      
       onSend();
       onClose();
-    }, 1200);
-  };
 
+      // IF it's a job (has jobContext), redirect to the job page for formal application
+      if (jobContext && (localStorage.getItem("user_type") === "freelancer" || localStorage.getItem("user_type") === "cofounder")) {
+        window.location.href = `/job/${jobContext}`;
+      }
+    } catch (error) {
+      console.error("Invite Send Error:", error);
+      toast.error("Failed to send invite notification.");
+      setSent(false);
+    }
+  };
   return (
     <div className="sc-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sc-modal">
@@ -402,28 +402,23 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
     </div>
   );
 }
-
 /* ================================================================
    MAIN COMPONENT
    ================================================================ */
 export default function SmartChatbot({ userRole: propRole, userId }) {
   const location = useLocation();
-
   /* ── Detect role from localStorage if not passed as prop ── */
   const userRole = propRole || localStorage.getItem("user_type") || "founder";
-
   /* ── Detect job_id from URL ─────────────────────────────── */
   const jobMatch = location.pathname.match(/\/job(?:posting)?[/=?]?(\d+)/i);
   const queryJobId = new URLSearchParams(location.search).get("job_id");
   const jobId = jobMatch?.[1] || queryJobId || null;
-
   /* ── Pages where chatbot should be HIDDEN ───────────────── */
   const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
   const shouldHide = hiddenPaths.some(
     (p) => location.pathname === p || location.pathname.startsWith("/login")
   );
   if (shouldHide) return null;
-
   /* ── State ──────────────────────────────────────────────── */
   const [isOpen, setIsOpen]         = useState(false);
   const [step, setStep]             = useState(0);       // 0=greeting, 1-5=questions, 6=results
@@ -434,14 +429,11 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   const [inviteTarget, setInviteTarget] = useState(null);
   const [hasNotif, setHasNotif]     = useState(true);
   const messagesEndRef               = useRef(null);
-
   const flow = FLOWS[userRole] || FLOWS.founder;
-
   /* ── Auto-scroll to bottom on new messages ──────────────── */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
   /* ── Initialize chat when opened ───────────────────────── */
   useEffect(() => {
     if (isOpen && messages.length === 0) {
@@ -449,7 +441,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       startGreeting();
     }
   }, [isOpen]);
-
   /* ── Reset when role/location changes ───────────────────── */
   useEffect(() => {
     setMessages([]);
@@ -457,7 +448,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     setFilters({});
     setSuggestions([]);
   }, [userRole, location.pathname]);
-
   /* ── Helpers ────────────────────────────────────────────── */
   const addBotMsg = (text, delay = 0) => {
     return new Promise((resolve) => {
@@ -469,40 +459,31 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       }, delay + 700);
     });
   };
-
   const addUserMsg = (text) => {
     setMessages((prev) => [...prev, { type: "user", text }]);
   };
-
   const addCards = (cards) => {
     setMessages((prev) => [...prev, { type: "cards", cards }]);
   };
-
   /* ── Greeting flow ───────────────────────────────────────── */
   const startGreeting = async () => {
     setStep(0);
     await addBotMsg(flow.greeting, 200);
-
     // If founder on a job page, add context message
     if (userRole === "founder" && jobId) {
       await addBotMsg(`I can see you're viewing **Job #${jobId}**. I'll tailor my suggestions specifically for this posting! 🎯`, 300);
     }
-
     setStep(1);
   };
-
   /* ── Handle option click ─────────────────────────────────── */
   const handleOption = async (option) => {
     const currentQ = flow.questions[step - 1];
     if (!currentQ) return;
-
     // Record user answer
     addUserMsg(option);
     const newFilters = { ...filters, [currentQ.key]: option };
     setFilters(newFilters);
-
     const nextStep = step + 1;
-
     if (nextStep <= flow.questions.length) {
       // Next question
       const nextQ = flow.questions[nextStep - 1];
@@ -512,23 +493,48 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       // All questions done → show results
       await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching... 🔍");
       setStep("loading");
+      
+      try {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/chat-suggestions`, {
+          role: userRole,
+          filters: newFilters
+        });
 
-      setTimeout(() => {
+        if (res.data.success) {
+          const realSuggestions = res.data.suggestions.map(s => ({
+            ...s,
+            name: s.full_name || s.job_title,
+            role: s.user_type || s.domain,
+            initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
+            // Map credibility if available
+            credibility: s.credibility_score ? `${s.credibility_score-5}-${s.credibility_score+5}` : "70-75",
+            blueTick: true, // Mocking ticks for now based on score
+            skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Tech", "FoundU Verified"]
+          }));
+
+          setSuggestions(realSuggestions);
+          addCards(realSuggestions);
+          setStep("results");
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "bot",
+              text: `✅ Found **${realSuggestions.length} top matches** for you! These are real platform members ranked by AI:`,
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("AI Assistant API Error:", err);
+        const errorMsg = err.response?.data?.error || err.message;
+        toast.error(`AI Assistant connection failed: ${errorMsg}`);
+        console.log("Using backup MOCK_SUGGESTIONS due to error.");
         const mockData = MOCK_SUGGESTIONS[userRole] || MOCK_SUGGESTIONS.founder;
         setSuggestions(mockData);
         addCards(mockData);
         setStep("results");
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            text: `✅ Found **${mockData.length} top matches** for you! Here they are, ranked by AI credibility score:`,
-          },
-        ]);
-      }, 1800);
+      }
     }
   };
-
   /* Context-aware transition lines for natural conversation */
   const getTransitionLine = (option) => {
     const lines = {
@@ -551,7 +557,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     };
     return lines[option] || "Preference noted";
   };
-
   /* ── Reset chat ──────────────────────────────────────────── */
   const handleReset = () => {
     setMessages([]);
@@ -560,7 +565,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     setSuggestions([]);
     setTimeout(startGreeting, 100);
   };
-
   /* ── Current options to display ─────────────────────────── */
   const currentOptions = () => {
     if (step === "results") {
@@ -571,7 +575,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     }
     return [];
   };
-
   const handleOptionClickWrapper = (opt) => {
     if (opt === "🔄 Start Over" || opt === "🔍 Refine Filters") {
       handleReset();
@@ -579,7 +582,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       handleOption(opt);
     }
   };
-
   /* ── Render a single message ─────────────────────────────── */
   const renderMessage = (msg, idx) => {
     if (msg.type === "bot") {
@@ -597,7 +599,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
         </div>
       );
     }
-
     if (msg.type === "user") {
       return (
         <div key={idx} className="sc-msg-user">
@@ -605,7 +606,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
         </div>
       );
     }
-
     if (msg.type === "cards") {
       return (
         <div key={idx} className="sc-cards">
@@ -613,16 +613,21 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
             <SuggestionCard
               key={c.id}
               candidate={c}
-              onInvite={(candidate) => setInviteTarget(candidate)}
+              userRole={userRole}
+              onInvite={(candidate) => {
+                if (userRole === "founder") {
+                  setInviteTarget(candidate);
+                } else {
+                  window.location.href = `/job-description?job_id=${candidate.id}`;
+                }
+              }}
             />
           ))}
         </div>
       );
     }
-
     return null;
   };
-
   /* ── Page title for context display ─────────────────────── */
   const getPageContext = () => {
     if (userRole === "founder" && jobId) return `Job #${jobId}`;
@@ -635,7 +640,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     };
     return map[location.pathname] || null;
   };
-
   /* ================================================================
      RENDER
      ================================================================ */
@@ -650,7 +654,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
         <span className="sc-fab-icon">{isOpen ? "✕" : "✨"}</span>
         {hasNotif && !isOpen && <span className="sc-notif-dot" />}
       </button>
-
       {/* Chat popup */}
       {isOpen && (
         <div className="sc-popup">
@@ -691,7 +694,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
               </button>
             </div>
           </div>
-
           {/* Messages */}
           <div className="sc-messages">
             {step === 0 && messages.length === 0 && (
@@ -700,13 +702,10 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
                 <p style={{ fontSize: 13 }}>Starting AI Assistant...</p>
               </div>
             )}
-
             {messages.map((msg, idx) => renderMessage(msg, idx))}
-
             {isTyping && (
               <TypingIndicator />
             )}
-
             {step === "loading" && !isTyping && (
               <div style={{ textAlign: "center", padding: "16px", color: "#3b82f6", fontSize: 12 }}>
                 <div style={{ marginBottom: 8 }}>🔍 Scanning profiles...</div>
@@ -726,10 +725,8 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
-
           {/* Option buttons */}
           {currentOptions().length > 0 && !isTyping && step !== "loading" && (
             <div className="sc-options">
@@ -750,7 +747,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
           )}
         </div>
       )}
-
       {/* Invite modal */}
       {inviteTarget && (
         <InviteModal

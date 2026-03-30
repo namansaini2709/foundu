@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-
-const API_URL = 'http://localhost:4000/api';
-
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
 const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [credibility, setCredibility] = useState({ 
@@ -17,20 +14,16 @@ const FreelancerReviews = () => {
     });
     const [loading, setLoading] = useState(true);
     const [recalculating, setRecalculating] = useState(false);
-
     const userId = localStorage.getItem('user_id');
-
     const gradientBlackToBlue = {
         background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
     };
-
     useEffect(() => {
         if (userId) {
             fetchReviews();
             fetchCredibility(false); // Fetch stored data on load (No notification)
         }
     }, [userId]);
-
     const fetchReviews = async () => {
         try {
             const res = await axios.get(`${API_URL}/reviews/user/${userId}`);
@@ -40,7 +33,6 @@ const FreelancerReviews = () => {
         }
         setLoading(false);
     };
-
     const fetchCredibility = async (isRecalculate = false) => {
         try {
             let res;
@@ -56,13 +48,11 @@ const FreelancerReviews = () => {
             console.error('Error fetching credibility:', err);
         }
     };
-
     const handleRecalculate = async () => {
         setRecalculating(true);
         await fetchCredibility(true); // Explicitly trigger recalculation and notification
         setTimeout(() => setRecalculating(false), 800);
     };
-
     // Group reviews by month
     const groupedReviews = reviews.reduce((acc, review) => {
         const date = new Date(review.created_at);
@@ -71,7 +61,6 @@ const FreelancerReviews = () => {
         acc[key].push(review);
         return acc;
     }, {});
-
     // Get badge color scheme
     const getBadgeColors = (badge) => {
         switch (badge) {
@@ -81,9 +70,7 @@ const FreelancerReviews = () => {
             default: return { bg: 'from-gray-600 to-slate-600', border: 'border-gray-500/50', text: 'text-gray-300', glow: 'shadow-gray-500/30' };
         }
     };
-
     const badgeColors = getBadgeColors(credibility.badge);
-
     // Render filled/empty stars
     const renderStars = (count) => {
         return (
@@ -101,14 +88,12 @@ const FreelancerReviews = () => {
             </div>
         );
     };
-
     // SVG Circular Gauge for credibility score
     const renderGauge = (score) => {
         const radius = 80;
         const circumference = 2 * Math.PI * radius;
         const progress = (score / 100) * circumference;
         const dashOffset = circumference - progress;
-
         return (
             <div className="relative w-52 h-52">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
@@ -140,13 +125,9 @@ const FreelancerReviews = () => {
             </div>
         );
     };
-
     return (
         <div className="min-h-screen text-white font-sans" style={gradientBlackToBlue}>
-            <Navbar />
-
             <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
-
                 {/* ═══════════════════════════════════════
                     CREDIBILITY SCORE HERO SECTION
                 ═══════════════════════════════════════ */}
@@ -154,21 +135,18 @@ const FreelancerReviews = () => {
                     {/* Decorative gradient orbs */}
                     <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                     <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-600/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
-
                     <div className="relative z-10">
                         <h1 className="text-4xl md:text-5xl font-bold text-center mb-2">
                             <span className="text-white">Reviews & </span>
                             <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Ratings</span>
                         </h1>
                         <p className="text-center text-gray-400 mb-10">Your reputation and credibility at a glance</p>
-
                         <div className="flex flex-col lg:flex-row items-center justify-center gap-12">
                             {/* Gauge */}
                             <div className="flex flex-col items-center">
                                 {renderGauge(credibility.credibility_score)}
                                 <p className="text-gray-400 text-sm mt-4">Credibility Score</p>
                             </div>
-
                             {/* Score Details */}
                             <div className="flex flex-col items-center lg:items-start gap-6">
                                 {/* Badge */}
@@ -179,7 +157,6 @@ const FreelancerReviews = () => {
                                         <p className="text-xl font-bold text-white">{credibility.badge}</p>
                                     </div>
                                 </div>
-
                                 {/* Stats */}
                                 <div className="flex gap-10">
                                     <div className="text-center lg:text-left">
@@ -205,7 +182,6 @@ const FreelancerReviews = () => {
                                         </>
                                     )}
                                 </div>
-
                                 {/* Score Breakdown */}
                                 <div className="grid grid-cols-3 gap-4 w-full max-w-md">
                                     <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
@@ -221,7 +197,6 @@ const FreelancerReviews = () => {
                                         <p className="text-lg font-bold text-emerald-500">{credibility.breakdown?.badges || 0}</p>
                                     </div>
                                 </div>
-
                                 {/* Recalculate Button */}
                                 <button
                                     onClick={handleRecalculate}
@@ -244,13 +219,11 @@ const FreelancerReviews = () => {
                         </div>
                     </div>
                 </div>
-
                 {/* ═══════════════════════════════════════
                     REVIEWS SECTION — GROUPED BY MONTH
                 ═══════════════════════════════════════ */}
                 <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 shadow-xl">
                     <h2 className="text-2xl font-bold text-white mb-8">All Reviews</h2>
-
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
@@ -274,7 +247,6 @@ const FreelancerReviews = () => {
                                             {monthReviews.length} review{monthReviews.length !== 1 ? 's' : ''}
                                         </span>
                                     </div>
-
                                     {/* Reviews for this month */}
                                     <div className="space-y-4">
                                         {monthReviews.map((review) => (
@@ -287,7 +259,7 @@ const FreelancerReviews = () => {
                                                     <div className="flex-shrink-0">
                                                         {review.reviewer_photo ? (
                                                             <img
-                                                                src={review.reviewer_photo.startsWith('http') ? review.reviewer_photo : `http://localhost:4000${review.reviewer_photo}`}
+                                                                src={review.reviewer_photo.startsWith('http') ? review.reviewer_photo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${review.reviewer_photo}`}
                                                                 alt={review.reviewer_name}
                                                                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-700 group-hover:border-blue-500/50 transition-colors"
                                                             />
@@ -297,7 +269,6 @@ const FreelancerReviews = () => {
                                                             </div>
                                                         )}
                                                     </div>
-
                                                     {/* Review Content */}
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
@@ -326,7 +297,6 @@ const FreelancerReviews = () => {
                                                                 </span>
                                                             </div>
                                                         </div>
-
                                                         {/* Comment */}
                                                         <p className="text-gray-300 text-sm leading-relaxed mt-3">
                                                             "{review.review_text}"
@@ -342,10 +312,8 @@ const FreelancerReviews = () => {
                     )}
                 </div>
             </div>
-
             <Footer />
         </div>
     );
 };
-
 export default FreelancerReviews;

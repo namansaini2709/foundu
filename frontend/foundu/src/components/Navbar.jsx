@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Bell } from "lucide-react";
+import { Bell, PlusSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
@@ -58,16 +58,17 @@ function Navbar() {
 
       if (userId) {
         try {
-          const response = await axios.get(`http://localhost:4000/api/users/${userId}`, { withCredentials: true });
-          setUser(response.data);
+          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`, { withCredentials: true });
+          const userData = response.data.success ? response.data.data : response.data;
+          setUser(userData);
 
           // Connect Socket purely for notifications
           socket.connect();
           socket.emit("register", userId);
 
           // Get initial unread count
-          const notifRes = await axios.get("http://localhost:4000/api/notifications", { withCredentials: true });
-          if (notifRes.data.success) {
+          const notifRes = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, { withCredentials: true });
+          if(notifRes.data.success) {
             setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
           }
         } catch (error) {
@@ -131,7 +132,7 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       toast.info("Logging out...", { theme: "dark" });
-      await axios.post("http://localhost:4000/api/logout");
+      await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/logout`);
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
@@ -165,7 +166,7 @@ function Navbar() {
     try {
       toast.info("Deleting account...", { theme: "dark" });
       const userId = localStorage.getItem("user_id");
-      await axios.delete(`http://localhost:4000/api/users/${userId}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_type");
       setUser(null);
@@ -322,6 +323,16 @@ function Navbar() {
               </Link>
             )}
 
+            {(isLoggedIn() || user) && (
+              <Link
+                to="/create-post"
+                className="p-2 text-gray-400 hover:text-white transition-all duration-300 group"
+                title="Create Post"
+              >
+                <PlusSquare className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              </Link>
+            )}
+
             {(isLoggedIn() || user) ? (
               // Logged in user - show profile dropdown
               <div className="relative profile-dropdown">
@@ -384,6 +395,27 @@ function Navbar() {
                           />
                         </svg>
                         User Profile
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate("/live-feed?view=my-posts")}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-blue-600/20 transition-colors w-full text-left"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                          />
+                        </svg>
+                        View all post
                       </button>
 
                       <button
