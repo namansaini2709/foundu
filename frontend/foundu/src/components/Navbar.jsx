@@ -306,7 +306,7 @@ function Navbar() {
               </Link>
             ))}
           </div>
-
+                
           {/* User profile or login buttons */}
           <div className="flex items-center gap-4">
             {(isLoggedIn() || user) && (
