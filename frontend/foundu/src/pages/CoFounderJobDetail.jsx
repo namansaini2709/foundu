@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { getUserId, getUserType } from "../utils/authUtils";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -45,8 +46,8 @@ function CoFounderJobDetail() {
           }
         }
       }
-      const directUserId = localStorage.getItem("user_id");
-      const directUserType = localStorage.getItem("user_type");
+      const directUserId = getUserId();
+      const directUserType = getUserType();
       if (directUserId && directUserType) {
         return { user_id: directUserId, user_type: directUserType };
       }

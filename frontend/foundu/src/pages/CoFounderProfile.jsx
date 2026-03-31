@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
+import { getUserId } from "../utils/authUtils";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import ProfilePreview from "../components/ProfilePreview";
-const getUserId = () => {
-  return localStorage.getItem("user_id");
-};
 /**
  * Co-Founder Profile Page Component
  * Multi-step profile completion page for co-founders
@@ -81,7 +79,7 @@ const CoFounderProfile = () => {
   }, [navigate]);
   const fetchReviews = async (userId) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
+      const res = await api.get(`/api/reviews/user/${userId}`);
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -90,8 +88,8 @@ const CoFounderProfile = () => {
   // Fetch user data to populate name
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`
+      const response = await api.get(
+        `/api/users/${userId}`
       );
       const user = response.data.success ? response.data.data : response.data;
       setUserBasicInfo(user);
@@ -108,8 +106,8 @@ const CoFounderProfile = () => {
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/cofounder-profiles/user/${userId}`
+      const response = await api.get(
+        `/api/cofounder-profiles/user/${userId}`
       );
       const profile = response.data;
       // Map database fields to form fields
@@ -317,8 +315,8 @@ const CoFounderProfile = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/cofounder-profiles`,
+      const response = await api.post(
+        `/api/cofounder-profiles`,
         {
           user_id: Number(userId),
           fullLegalName: formData.fullLegalName,

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { getUserId, isAdmin, logout } from "../utils/authUtils";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 
-const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API = `/api`;
 
 const navItems = [
   { label: "Dashboard", icon: "📊", path: "/admin/dashboard" },
@@ -17,25 +18,27 @@ export default function AdminLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const adminName = localStorage.getItem("admin_name") || "Admin";
-  const isAdmin = localStorage.getItem("is_admin") === "true";
   const [pendingCount, setPendingCount] = useState(0);
 
   // Guard — redirect non-admins away
   useEffect(() => {
-    if (!isAdmin) navigate("/login-signup");
-  }, [isAdmin]);
+    const adminId = getUserId();
+    if (!adminId || !isAdmin()) {
+      navigate("/login-signup");
+      return;
+    }
+  }, [navigate]);
 
   useEffect(() => {
-    if (!isAdmin) return;
-    axios
-      .get(`${API}/admin/dashboard/stats`, { withCredentials: true })
+    if (!isAdmin()) return;
+    api
+      .get(`${API}/admin/dashboard/stats`)
       .then((r) => setPendingCount(r.data.stats?.pendingBlueTickRequests || 0))
       .catch(() => { });
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("is_admin");
-    localStorage.removeItem("admin_name");
+    logout();
     navigate("/login-signup");
   };
 

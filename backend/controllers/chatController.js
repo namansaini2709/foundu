@@ -2,9 +2,8 @@ const db = require("../config/db");
 
 // Get all chats for the current user
 exports.getMyChats = (req, res) => {
-  console.log("Session User:", req.session.user);
-  console.log("Cookies:", req.headers.cookie);
-  const userId = req.session.user ? req.session.user.id : null;
+  // req.user is set by authMiddleware (JWT or session)
+  const userId = req.user?.id || req.session?.user?.id || null;
 
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -39,7 +38,7 @@ exports.getMyChats = (req, res) => {
 
 // Get messages for a specific chat
 exports.getMessages = (req, res) => {
-  const userId = req.session.user ? req.session.user.id : null;
+  const userId = req.user?.id || req.session?.user?.id || null;
   const chatId = req.params.chatId;
 
   if (!userId) {
@@ -74,7 +73,7 @@ exports.getMessages = (req, res) => {
 
 // Send a message
 exports.sendMessage = (req, res) => {
-  const senderId = req.session.user ? req.session.user.id : null;
+  const senderId = req.user?.id || req.session?.user?.id || null;
   const { chatId, content } = req.body;
 
   if (!senderId) return res.status(401).json({ message: "Unauthorized" });
@@ -104,7 +103,7 @@ exports.sendMessage = (req, res) => {
 
 // Create a chat (if not exists)
 exports.createChat = (req, res) => {
-  const myId = req.session?.user?.id || req.body.userId || null;
+  const myId = req.user?.id || req.session?.user?.id || req.body.userId || null;
   const { otherUserId } = req.body;
 
   console.log(`[CHAT CREATE] myId=${myId}, otherUserId=${otherUserId}`);

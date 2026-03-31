@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
+import { getUserId } from "../utils/authUtils";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
-const getUserId = () => {
-  return localStorage.getItem("user_id");
-};
 /**
  * Startup Profile Page Component
  * Multi-step profile completion page for startups
@@ -73,7 +71,7 @@ const StartupProfile = () => {
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
+      const response = await api.get(`/api/users/${userId}`);
       const user = response.data.success ? response.data.data : response.data;
       setUserBasicInfo(user);
       // Auto-fill startupName if it's currently empty
@@ -88,8 +86,8 @@ const StartupProfile = () => {
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles/user/${userId}`
+      const response = await api.get(
+        `/api/startup-profiles/user/${userId}`
       );
       const profile = response.data;
       // Map database fields to form fields
@@ -326,8 +324,8 @@ const StartupProfile = () => {
       data.append("magicFix", formData.magicFix);
       data.append("dashboards", JSON.stringify(formData.dashboards));
       data.append("currentTools", formData.currentTools);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`,
+      const response = await api.post(
+        `/api/startup-profiles`,
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },

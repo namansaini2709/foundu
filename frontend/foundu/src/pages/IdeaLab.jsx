@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { getUserId } from "../utils/authUtils";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { Lightbulb, Send, CheckCircle, Circle, Trash2, Rocket, ArrowRight, BookOpen } from "lucide-react";
 import Footer from "../components/Footer";
 import "./IdeaLab.css";
-const API_BASE = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API_BASE = `/api`;
 const IdeaLab = () => {
-    const userId = localStorage.getItem("user_id");
+    const userId = getUserId();
     const [ideas, setIdeas] = useState([]);
     const [newIdea, setNewIdea] = useState({ title: "", description: "" });
     const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ const IdeaLab = () => {
     }, []);
     const fetchIdeas = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/ideas/user/${userId}`);
+            const res = await api.get(`${API_BASE}/ideas/user/${userId}`);
             if (res.data.success) {
                 setIdeas(res.data.ideas);
                 if (res.data.ideas.length > 0 && !selectedIdea) {
@@ -34,7 +35,7 @@ const IdeaLab = () => {
         }
         setLoading(true);
         try {
-            const res = await axios.post(`${API_BASE}/ideas/create`, {
+            const res = await api.post(`${API_BASE}/ideas/create`, {
                 user_id: userId,
                 ...newIdea
             });
@@ -51,7 +52,7 @@ const IdeaLab = () => {
     };
     const handleToggleMilestone = async (mId, currentStatus) => {
         try {
-            const res = await axios.put(`${API_BASE}/ideas/milestone/${mId}`, {
+            const res = await api.put(`${API_BASE}/ideas/milestone/${mId}`, {
                 is_completed: !currentStatus
             });
             if (res.data.success) {
@@ -74,7 +75,7 @@ const IdeaLab = () => {
     const handleDeleteIdea = async (id) => {
         if (!window.confirm("Are you sure you want to delete this idea?")) return;
         try {
-            const res = await axios.delete(`${API_BASE}/ideas/${id}`);
+            const res = await api.delete(`${API_BASE}/ideas/${id}`);
             if (res.data.success) {
                 toast.info("Idea deleted");
                 const filtered = ideas.filter(i => i.id !== id);

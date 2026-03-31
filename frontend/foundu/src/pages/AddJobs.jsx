@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { getUserId } from "../utils/authUtils";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const ROLE_CATEGORIES = [
@@ -109,7 +110,7 @@ export default function AddJobs() {
     }
   });
   useEffect(() => {
-    const userId = localStorage.getItem("user_id");
+    const userId = getUserId();
     if (!userId) {
       toast.error("Please log in to post a job");
       navigate("/login-signup");
@@ -200,7 +201,7 @@ export default function AddJobs() {
       errors.forEach((error) => toast.error(error));
       return;
     }
-    const userId = localStorage.getItem("user_id");
+    const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
       navigate("/login-signup");
@@ -210,7 +211,7 @@ export default function AddJobs() {
     try {
       const { hiringType, common, freelancer, cofounder } = formData;
       if (hiringType === "freelancer" || hiringType === "both") {
-        await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/freelancer`, {
+        await api.post(`/api/jobs/freelancer`, {
           user_id: Number(userId),
           domain: common.domain,
           role_category: common.roleCategories.join(", "),
@@ -229,7 +230,7 @@ export default function AddJobs() {
         toast.success("Freelancer job posted successfully!");
       }
       if (hiringType === "cofounder" || hiringType === "both") {
-        await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/cofounder`, {
+        await api.post(`/api/jobs/cofounder`, {
           user_id: Number(userId),
           domain: common.domain,
           role_type: cofounder.roleType,

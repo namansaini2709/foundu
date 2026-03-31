@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { getUserId, getUserType } from "../utils/authUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -30,36 +31,13 @@ function FreelancerJobDetail() {
   // Get user data from localStorage
   const getUserData = () => {
     try {
-      // Try multiple possible localStorage keys
-      const possibleKeys = ["user", "userData", "currentUser", "authUser"];
-      for (const key of possibleKeys) {
-        const userDataString = localStorage.getItem(key);
-        if (userDataString) {
-          try {
-            const userData = JSON.parse(userDataString);
-            // Extract user_id and user_type from various possible structures
-            const userId = userData.user_id || userData.id || userData.userId;
-            const userType = userData.user_type || userData.userType || userData.applicant_type || userData.type;
-            if (userId && userType) {
-              console.log("✅ Found user data:", { userId, userType, key });
-              return {
-                user_id: userId,
-                user_type: userType,
-              };
-            }
-          } catch (parseError) {
-            console.error(`Failed to parse ${key}:`, parseError);
-          }
-        }
-      }
-      // Also check for direct values without JSON parsing
-      const directUserId = localStorage.getItem("user_id");
-      const directUserType = localStorage.getItem("user_type");
-      if (directUserId && directUserType) {
-        console.log("✅ Found direct user data:", { directUserId, directUserType });
+      const userId = getUserId();
+      const userType = getUserType();
+      if (userId && userType) {
+        console.log("✅ Found user data:", { userId, userType });
         return {
-          user_id: directUserId,
-          user_type: directUserType,
+          user_id: userId,
+          user_type: userType,
         };
       }
       console.error("❌ No user data found in localStorage");

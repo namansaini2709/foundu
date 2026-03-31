@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../utils/axiosConfig";
+import { getUserId } from "../utils/authUtils";
 import {
   FaPaperPlane,
   FaSearch,
   FaCircle,
   FaCheckDouble,
 } from "react-icons/fa";
-const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/chat`;
+const API_URL = `/api/chat`;
 const Chatbox = () => {
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -18,7 +19,7 @@ const Chatbox = () => {
   const [searchResults, setSearchResults] = useState([]);
   const messagesEndRef = useRef(null);
   useEffect(() => {
-    const storedUserId = localStorage.getItem("user_id");
+    const storedUserId = getUserId();
     if (storedUserId) setCurrentUserId(parseInt(storedUserId));
     fetchChats();
   }, []);
@@ -41,9 +42,7 @@ const Chatbox = () => {
   };
   const fetchChats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/my-chats`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`${API_URL}/my-chats`);
       setChats(res.data);
       setLoading(false);
     } catch (err) {
@@ -53,9 +52,7 @@ const Chatbox = () => {
   };
   const fetchMessages = async (chatId) => {
     try {
-      const res = await axios.get(`${API_URL}/${chatId}/messages`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`${API_URL}/${chatId}/messages`);
       setMessages(res.data);
     } catch (err) {
       console.error("Error fetching messages:", err);
@@ -64,14 +61,10 @@ const Chatbox = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeChat) return;
     try {
-      await axios.post(
-        `${API_URL}/message`,
-        {
-          chatId: activeChat.chat_id,
-          content: newMessage,
-        },
-        { withCredentials: true },
-      );
+      await api.post(`${API_URL}/message`, {
+        chatId: activeChat.chat_id,
+        content: newMessage,
+      });
       setNewMessage("");
       fetchMessages(activeChat.chat_id); // Refresh messages immediately
       fetchChats(); // Update last message in sidebar
@@ -90,7 +83,7 @@ const Chatbox = () => {
         return;
       }
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/users`, { withCredentials: true });
+        const res = await api.get(`/api/users`);
         const filtered = res.data.filter(
           (u) =>
             u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -109,11 +102,7 @@ const Chatbox = () => {
   // Start new chat
   const handleStartChat = async (otherUserId) => {
     try {
-      const res = await axios.post(
-        `${API_URL}/create`,
-        { otherUserId },
-        { withCredentials: true },
-      );
+      const res = await api.post(`${API_URL}/create`, { otherUserId });
       const { chatId } = res.data;
       setSearchQuery(""); // Clear search
       setSearchResults([]);

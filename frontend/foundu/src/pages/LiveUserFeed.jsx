@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { getUserId } from "../utils/authUtils";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import Footer from "../components/Footer";
 import {
   Heart,
@@ -32,7 +33,7 @@ const LiveUserFeed = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const viewMode = queryParams.get("view");
-  const currentUserId = localStorage.getItem("user_id");
+  const currentUserId = getUserId();
 
   useEffect(() => {
     fetchPosts();
@@ -41,7 +42,7 @@ const LiveUserFeed = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/posts`);
+      const response = await api.get(`/api/posts`);
       if (response.data.success) {
         let allPosts = response.data.data;
         if (viewMode === "my-posts" && currentUserId) {
@@ -60,7 +61,7 @@ const LiveUserFeed = () => {
     setSelectedPost(post);
     // Fetch full profile details
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${post.user_id}`);
+      const res = await api.get(`/api/users/${post.user_id}`);
       if (res.data.success) {
         setUserDetails(res.data.data);
       }
@@ -118,7 +119,7 @@ const LiveUserFeed = () => {
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [loadingReviews, setLoadingReviews] = useState(true);
 
-    const reviewerId = localStorage.getItem("user_id");
+    const reviewerId = getUserId();
 
     useEffect(() => {
       if (post && post.user_id) {
@@ -129,7 +130,7 @@ const LiveUserFeed = () => {
 
     const fetchReviews = async (userId) => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
+        const res = await api.get(`/api/reviews/user/${userId}`);
         setModalReviews(res.data);
       } catch (err) {
         console.error("Error fetching modal reviews:", err);
@@ -140,7 +141,7 @@ const LiveUserFeed = () => {
 
     const fetchCredibility = async (userId) => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/credibility/${userId}`);
+        const res = await api.get(`/api/reviews/credibility/${userId}`);
         setModalCredibility(res.data);
       } catch (err) {
         console.error("Error fetching modal credibility:", err);
@@ -157,7 +158,7 @@ const LiveUserFeed = () => {
 
       setIsSubmittingReview(true);
       try {
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews`, {
+        const res = await api.post(`/api/reviews`, {
           user_id: post.user_id,
           reviewer_id: reviewerId,
           review_text: newReviewText,
@@ -169,7 +170,7 @@ const LiveUserFeed = () => {
           setNewReviewStars(5);
           await fetchReviews(post.user_id);
           await fetchCredibility(post.user_id);
-          await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/recalculate-credibility`, { user_id: post.user_id });
+          await api.post(`/api/reviews/recalculate-credibility`, { user_id: post.user_id });
         }
       } catch (err) {
         console.error("Error submitting review:", err);

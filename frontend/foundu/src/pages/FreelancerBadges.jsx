@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getUserId } from "../utils/authUtils";
 import Footer from "../components/Footer";
 import { X, Loader2, TrendingUp, Star, CheckCircle } from "lucide-react";
 import blueBadge from "../assets/bluebadge.png";
@@ -8,10 +9,10 @@ import red1 from "../assets/9095.png";
 import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API = `/api`;
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -59,12 +60,12 @@ const FreelancerBadges = () => {
     portfolio: "",
     profilePhoto: null // Now holds File or URL string
   });
-  const userId = localStorage.getItem("user_id");
+  const userId = getUserId();
   /* ── Load existing social data + blue tick status on mount ── */
   useEffect(() => {
     if (!userId) return;
-    axios
-      .get(`${API}/user-socials/${userId}`, { withCredentials: true })
+    api
+      .get(`${API}/user-socials/${userId}`)
       .then((res) => {
         const d = res.data.data;
         if (d) {
@@ -82,8 +83,8 @@ const FreelancerBadges = () => {
       })
       .catch(() => {});
     // Load golden tick progress
-    axios
-      .get(`${API}/badges/golden-status/${userId}`, { withCredentials: true })
+    api
+      .get(`${API}/badges/golden-status/${userId}`)
       .then((res) => setGoldenData(res.data.data))
       .catch(() => {});
   }, [userId]);
@@ -125,21 +126,19 @@ const FreelancerBadges = () => {
         data.append("profile_picture_url", formData.profilePhoto);
       }
       // Step 1 — Save social data to users_socials table
-      await axios.post(
+      await api.post(
         `${API}/user-socials`,
         data,
         { 
-          withCredentials: true,
           headers: { 'Content-Type': 'multipart/form-data' }
         },
       );
       // Step 2 — Apply for Blue Tick (sets blue_tick_status = 'pending')
-      await axios.post(
+      await api.post(
         `${API}/badges/apply/blue`,
         {
           user_id: userId,
         },
-        { withCredentials: true },
       );
       setBlueTickStatus("pending");
       setIsModalOpen(false);

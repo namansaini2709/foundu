@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
+import { getUserId } from "../utils/authUtils";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import ProfilePreview from "../components/ProfilePreview";
-const getUserId = () => {
-  return localStorage.getItem("user_id");
-};
 const FreelancerProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -51,7 +49,7 @@ const FreelancerProfile = () => {
   }, [navigate]);
   const fetchReviews = async (userId) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reviews/user/${userId}`);
+      const res = await api.get(`/api/reviews/user/${userId}`);
       setReviews(res.data);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -59,7 +57,7 @@ const FreelancerProfile = () => {
   };
   const fetchUser = async (userId) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
+      const res = await api.get(`/api/users/${userId}`);
       const user = res.data.success ? res.data.data : res.data;
       setUserBasicInfo(user);
       const name = user.full_name?.split(" ") || [];
@@ -76,8 +74,8 @@ const FreelancerProfile = () => {
   };
   const fetchProfile = async (userId) => {
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/freelancer-profiles/user/${userId}`
+      const res = await api.get(
+        `/api/freelancer-profiles/user/${userId}`
       );
       const p = res.data;
       setProfileData(p);
@@ -240,8 +238,8 @@ const FreelancerProfile = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/freelancer-profiles`,
+      const response = await api.post(
+        `/api/freelancer-profiles`,
         {
           user_id: Number(userId),
           first_name: formData.firstName,

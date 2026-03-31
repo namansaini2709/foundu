@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import {
   Lightbulb,
@@ -89,7 +89,7 @@ const IdeaLabPopup = ({ userId }) => {
   }, [isOpen, userId]);
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/ideas/user/${userId}`);
+      const res = await api.get(`${API_BASE}/ideas/user/${userId}`);
       if (res.data.success) setHistory(res.data.ideas);
     } catch (err) {
       console.error("History fetch error:", err);
@@ -100,7 +100,7 @@ const IdeaLabPopup = ({ userId }) => {
     setPhase("loading");
     
     try {
-      const response = await axios.post(`${API_BASE}/ai/analyze-idea`, {
+      const response = await api.post(`${API_BASE}/ai/analyze-idea`, {
         mode: mode,
         text: text,
         context: mode === 'discover' ? answers : { title: customTitle }

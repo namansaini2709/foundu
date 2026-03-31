@@ -1,10 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
+import { getUserId } from "../../utils/authUtils";
+import api from "../../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { Megaphone, Users, Mail, Bell, Send, AlertTriangle, CheckCircle } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 
-const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API = `/api`;
 
 export default function AdminBroadcast() {
   const [targetType, setTargetType] = useState("freelancer");
@@ -14,6 +15,7 @@ export default function AdminBroadcast() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [broadcastStats, setBroadcastStats] = useState(null);
+  const adminId = getUserId();
 
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
@@ -23,11 +25,11 @@ export default function AdminBroadcast() {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/admin/broadcast`, {
+      const res = await api.post(`${API}/admin/broadcast`, {
         targetType,
         title,
         message
-      }, { withCredentials: true });
+      });
 
       if (res.data.success) {
         setBroadcastStats(res.data.results);

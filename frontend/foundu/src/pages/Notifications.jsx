@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { getUserId } from "../utils/authUtils";
 import { Bell, Check, Trash2, Info, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Footer from '../components/Footer';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 import { socket } from '../socket';
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -10,9 +11,7 @@ const Notifications = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, {
-                    withCredentials: true
-                });
+                const res = await api.get(`/api/notifications`);
                 if (res.data.success) {
                     setNotifications(res.data.data);
                 }
@@ -29,14 +28,14 @@ const Notifications = () => {
             setNotifications(prev => [notif, ...prev]);
         };
         if (!socket.connected) socket.connect();
-        const userId = localStorage.getItem("user_id");
+        const userId = getUserId();
         if (userId) socket.emit("register", userId);
         socket.on("new_notification", handleLiveNotif);
         return () => socket.off("new_notification", handleLiveNotif);
     }, []);
     const markAsRead = async (id) => {
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}/read`, {}, { withCredentials: true });
+            await api.put(`/api/notifications/${id}/read`);
             setNotifications(notifications.map(n =>
                 n.id === id ? { ...n, is_read: 1 } : n
             ));
@@ -48,7 +47,7 @@ const Notifications = () => {
     };
     const deleteNotification = async (id, isUnread) => {
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/${id}`, { withCredentials: true });
+            await api.delete(`/api/notifications/${id}`);
             setNotifications(notifications.filter(n => n.id !== id));
             if (isUnread) {
                 window.dispatchEvent(new Event("notification_read"));

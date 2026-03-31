@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { 
     Briefcase, X, Zap, Rocket, CheckCircle2, 
@@ -66,7 +66,7 @@ const QuickJobPopup = ({ userId }) => {
         setPhase("loading");
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/ai/enrich-job`, {
+            const response = await api.post(`/api/ai/enrich-job`, {
                 role: hiringType,
                 inputs: inputs
             });
@@ -207,7 +207,7 @@ const QuickJobPopup = ({ userId }) => {
                 full_job_description: previewData.cofounder.jobDescription
             };
 
-            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api${endpoint}`, payload);
+            await api.post(`/api${endpoint}`, payload);
             toast.success("🚀 Job Successfully Published!");
             setIsOpen(false);
             setPhase("selection");

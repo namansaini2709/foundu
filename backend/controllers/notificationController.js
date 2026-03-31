@@ -3,7 +3,7 @@ const notificationService = require("../services/notificationService");
 
 // Get all recent notifications for a user (persistence)
 exports.getNotifications = (req, res) => {
-  const userId = req.session.user?.id;
+  const userId = req.user?.id || req.session?.user?.id;
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   // Get active notifications (both read and unread for persistence)
@@ -23,7 +23,7 @@ exports.getNotifications = (req, res) => {
 // Mark a specific notification as read
 exports.markAsRead = (req, res) => {
   const notifId = req.params.id;
-  const userId = req.session.user?.id;
+  const userId = req.user?.id || req.session?.user?.id;
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   db.query(
@@ -54,7 +54,7 @@ exports.testNotification = async (req, res) => {
 // Delete a specific notification
 exports.deleteNotification = (req, res) => {
   const notifId = req.params.id;
-  const userId = req.session.user?.id;
+  const userId = req.user?.id || req.session?.user?.id;
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   db.query(

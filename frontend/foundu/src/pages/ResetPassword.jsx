@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import { Lock, Eye, EyeOff } from 'lucide-react'
 import Footer from '../components/Footer'
-import axios from 'axios'
+import api from '../utils/axiosConfig'
 import { toast } from 'react-toastify'
 import AnimatedCardVisual from '../components/ui/AnimatedCardVisual'
 function ResetPassword() {
@@ -25,7 +25,7 @@ function ResetPassword() {
         }
         setLoading(true)
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/reset-password`, {
+            const res = await api.post(`/api/reset-password`, {
                 token,
                 newPassword
             })

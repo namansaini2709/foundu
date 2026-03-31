@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../utils/axiosConfig";
+import { getUserId, getUserType } from "../utils/authUtils";
 import "./SmartChatbot.css";
 /* ================================================================
    CONVERSATION FLOWS — per role, 5 questions each
@@ -361,8 +362,8 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
   const handleSend = async () => {
     setSent(true);
     try {
-      const currentUserId = localStorage.getItem("user_id");
-      await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/invite`, {
+      const currentUserId = getUserId();
+      await api.post(`/api/ai/invite`, {
         sender_id: currentUserId,
         receiver_id: candidate.user_id || candidate.id, // candidate.id for jobs, user_id for candidates
         message: msg,
@@ -373,7 +374,7 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
       onClose();
 
       // IF it's a job (has jobContext), redirect to the job page for formal application
-      if (jobContext && (localStorage.getItem("user_type") === "freelancer" || localStorage.getItem("user_type") === "cofounder")) {
+      if (jobContext && (getUserType() === "freelancer" || getUserType() === "cofounder")) {
         window.location.href = `/job/${jobContext}`;
       }
     } catch (error) {
@@ -408,7 +409,7 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
 export default function SmartChatbot({ userRole: propRole, userId }) {
   const location = useLocation();
   /* ── Detect role from localStorage if not passed as prop ── */
-  const userRole = propRole || localStorage.getItem("user_type") || "founder";
+  const userRole = propRole || getUserType() || "founder";
   /* ── Detect job_id from URL ─────────────────────────────── */
   const jobMatch = location.pathname.match(/\/job(?:posting)?[/=?]?(\d+)/i);
   const queryJobId = new URLSearchParams(location.search).get("job_id");
@@ -495,7 +496,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       setStep("loading");
       
       try {
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/ai/chat-suggestions`, {
+        const res = await api.post(`/api/ai/chat-suggestions`, {
           role: userRole,
           filters: newFilters
         });

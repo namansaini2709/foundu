@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { getUserId } from "../utils/authUtils";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
@@ -9,7 +10,7 @@ import red1 from "../assets/9095.png";
 import red2 from "../assets/8590.png";
 import red3 from "../assets/8085.png";
 import red4 from "../assets/below80.png";
-const API_URL = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API_URL = `/api`;
 const FreelancerDashboard = () => {
   const [activeTab, setActiveTab] = useState("projects");
   const [applications, setApplications] = useState([]);
@@ -17,7 +18,7 @@ const FreelancerDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [badgeData, setBadgeData] = useState(null);
   const [credibilityData, setCredibilityData] = useState(null);
-  const userId = localStorage.getItem("user_id");
+  const userId = getUserId();
   const gradientBlackToBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -37,11 +38,11 @@ const FreelancerDashboard = () => {
   // Fetch badge statuses and credibility score
   useEffect(() => {
     if (userId) {
-      axios
+      api
         .get(`${API_URL}/user-socials/${userId}`)
         .then((res) => setBadgeData(res.data.data))
         .catch((err) => console.error("Error fetching badges:", err));
-      axios
+      api
         .get(`${API_URL}/reviews/credibility/${userId}`)
         .then((res) => setCredibilityData(res.data))
         .catch((err) => console.error("Error fetching credibility:", err));
@@ -50,7 +51,7 @@ const FreelancerDashboard = () => {
   const fetchApplications = async () => {
     setLoadingApps(true);
     try {
-      const res = await axios.get(`${API_URL}/user/${userId}/applications`);
+      const res = await api.get(`${API_URL}/user/${userId}/applications`);
       setApplications(res.data);
     } catch (err) {
       console.error("Error fetching applications:", err);
@@ -59,9 +60,9 @@ const FreelancerDashboard = () => {
   };
   const refreshBadges = async () => {
     try {
-      await axios.post(`${API_URL}/badges/recalculate`, { user_id: userId });
+      await api.post(`${API_URL}/badges/recalculate`, { user_id: userId });
       // Refetch badge data
-      const res = await axios.get(`${API_URL}/user-socials/${userId}`);
+      const res = await api.get(`${API_URL}/user-socials/${userId}`);
       setBadgeData(res.data.data);
       toast.success("Badges refreshed successfully!");
     } catch (err) {

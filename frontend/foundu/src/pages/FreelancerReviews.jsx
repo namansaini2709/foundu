@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getUserId } from '../utils/authUtils';
+import api from '../utils/axiosConfig';
 import Footer from '../components/Footer';
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
+const API_URL = `/api`;
 const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [credibility, setCredibility] = useState({ 
@@ -14,7 +15,7 @@ const FreelancerReviews = () => {
     });
     const [loading, setLoading] = useState(true);
     const [recalculating, setRecalculating] = useState(false);
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     const gradientBlackToBlue = {
         background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
     };
@@ -26,7 +27,7 @@ const FreelancerReviews = () => {
     }, [userId]);
     const fetchReviews = async () => {
         try {
-            const res = await axios.get(`${API_URL}/reviews/user/${userId}`);
+            const res = await api.get(`${API_URL}/reviews/user/${userId}`);
             setReviews(res.data);
         } catch (err) {
             console.error('Error fetching reviews:', err);
@@ -38,10 +39,10 @@ const FreelancerReviews = () => {
             let res;
             if (isRecalculate) {
                 // EXPLICIT RECALCULATION: This triggers AI analysis and user notification
-                res = await axios.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: parseInt(userId) });
+                res = await api.post(`${API_URL}/reviews/recalculate-credibility`, { user_id: parseInt(userId) });
             } else {
                 // INITIAL LOAD: Fetch stored score/badge (No AI, No notification)
-                res = await axios.get(`${API_URL}/reviews/credibility/${userId}`);
+                res = await api.get(`${API_URL}/reviews/credibility/${userId}`);
             }
             setCredibility(res.data);
         } catch (err) {

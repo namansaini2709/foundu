@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/userController");
-const { isAuthenticated } = require("../middlewares/authMiddleware");
+const { isAuthenticated, verifyJWT } = require("../middlewares/authMiddleware");
 
 router.post("/signup", controller.signup);
 router.post("/login", controller.login);
 router.post("/logout", controller.logout);
+
+router.get("/me", verifyJWT, controller.getMe);
 
 router.post("/forgot-password", controller.forgotPassword);
 router.post("/reset-password", controller.resetPassword);

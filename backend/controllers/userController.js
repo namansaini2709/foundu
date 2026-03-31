@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const db = require("../config/db");
 const mailService = require("../services/mailService");
 const { generateToken } = require("../utils/token");
+const { generateJWT } = require("../utils/jwtUtils");
 const notificationService = require("../services/notificationService");
 const emailNotificationService = require("../services/emailNotificationService");
 
@@ -226,9 +227,13 @@ exports.login = async (req, res) => {
         },
       );
 
+      // 🔑 Generate JWT Token
+      const token = generateJWT(user);
+
       res.json({
         success: true,
         message: "Logged in successfully",
+        token, // ⭐ JWT Token for frontend storage
         user: {
           id: user.id,
           full_name: user.full_name,
@@ -404,6 +409,25 @@ exports.getUserById = (req, res) => {
         .json({ success: false, message: "User not found" });
     }
     res.json({ success: true, data: rows[0] });
+  });
+};
+
+/* =========================
+   GET ME (Current User)
+========================= */
+exports.getMe = (req, res) => {
+  const id = req.user.id;
+  db.query("SELECT * FROM users WHERE id = ?", [id], (err, rows) => {
+    if (err) {
+      console.error("Error in getMe:", err);
+      return res.status(500).json({ success: false, message: "Database Error" });
+    }
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    const user = rows[0];
+    delete user.password;
+    res.json({ success: true, data: user });
   });
 };
 

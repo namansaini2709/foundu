@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getUserId } from "../../utils/authUtils";
+import api from "../../utils/axiosConfig";
 import AdminLayout from "../AdminLayout";
 
-const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API = `/api`;
 
 const STATUS_COLORS = {
   pending:  "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
@@ -33,8 +34,8 @@ export default function AdminBadges() {
 
   const fetchRequests = (status = filter) => {
     setLoading(true);
-    axios
-      .get(`${API}/admin/badges/all?status=${status}`, { withCredentials: true })
+    api
+      .get(`${API}/admin/badges/all?status=${status}`)
       .then((r) => setRequests(r.data.requests || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -45,10 +46,11 @@ export default function AdminBadges() {
   }, [filter]);
 
   const handleApprove = async (user_id) => {
+    const adminId = getUserId();
     if (!window.confirm("Approve Blue Tick for this user?")) return;
     setActionId(user_id);
     try {
-      await axios.post(`${API}/admin/badges/approve`, { user_id }, { withCredentials: true });
+      await api.post(`${API}/admin/badges/approve`, { user_id, adminId });
       fetchRequests(filter);
     } catch (err) {
       alert(err.response?.data?.message || "Error approving");
@@ -61,7 +63,7 @@ export default function AdminBadges() {
     if (!window.confirm("Reject Blue Tick for this user?")) return;
     setActionId(user_id);
     try {
-      await axios.post(`${API}/admin/badges/reject`, { user_id }, { withCredentials: true });
+      await api.post(`${API}/admin/badges/reject`, { user_id });
       fetchRequests(filter);
     } catch (err) {
       alert(err.response?.data?.message || "Error rejecting");

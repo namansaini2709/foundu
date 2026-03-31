@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getUserId } from "../../utils/authUtils";
+import api from "../../utils/axiosConfig";
 import AdminLayout from "../AdminLayout";
 import { Trash2, Edit2, Plus, X, Check, Eye, EyeOff } from "lucide-react";
 
-const API = "http://localhost:4000/api";
+const API = "/api";
 
 export default function AdminTestimonials() {
     const [testimonials, setTestimonials] = useState([]);
     const [loading, setLoading] = useState(true);
+    const adminId = getUserId();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
@@ -25,7 +27,7 @@ export default function AdminTestimonials() {
 
     const fetchTestimonials = async () => {
         try {
-            const res = await axios.get(`${API}/admin/testimonials`, { withCredentials: true });
+            const res = await api.get(`${API}/admin/testimonials`);
             setTestimonials(res.data.testimonials);
         } catch (err) {
             console.error("Fetch error:", err);
@@ -38,9 +40,9 @@ export default function AdminTestimonials() {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`${API}/admin/testimonials/${editingId}`, formData, { withCredentials: true });
+                await api.put(`${API}/admin/testimonials/${editingId}`, formData);
             } else {
-                await axios.post(`${API}/admin/testimonials`, formData, { withCredentials: true });
+                await api.post(`${API}/admin/testimonials`, formData);
             }
             setIsModalOpen(false);
             setEditingId(null);
@@ -67,7 +69,7 @@ export default function AdminTestimonials() {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this testimonial?")) return;
         try {
-            await axios.delete(`${API}/admin/testimonials/${id}`, { withCredentials: true });
+            await api.delete(`${API}/admin/testimonials/${id}`);
             fetchTestimonials();
         } catch (err) {
             alert("Error deleting");
@@ -76,7 +78,7 @@ export default function AdminTestimonials() {
 
     const toggleActive = async (t) => {
         try {
-            await axios.put(`${API}/admin/testimonials/${t.id}`, { ...t, is_active: !t.is_active }, { withCredentials: true });
+            await api.put(`${API}/admin/testimonials/${t.id}`, { ...t, is_active: !t.is_active });
             fetchTestimonials();
         } catch (err) {
             alert("Error toggling status");

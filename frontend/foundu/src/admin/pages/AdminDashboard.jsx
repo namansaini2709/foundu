@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getUserId } from "../../utils/authUtils";
+import api from "../../utils/axiosConfig";
 import AdminLayout from "../AdminLayout";
 
-const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API = `/api`;
 
 const StatCard = ({ icon, label, value, color, sub }) => (
   <div className={`bg-gray-800/40 backdrop-blur-sm border rounded-xl p-5 hover:scale-[1.02] transition-all duration-200 ${color}`}>
@@ -18,12 +19,13 @@ const StatCard = ({ icon, label, value, color, sub }) => (
 );
 
 export default function AdminDashboard() {
+  const adminId = getUserId();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get(`${API}/admin/dashboard/stats`, { withCredentials: true })
+    api
+      .get(`${API}/admin/dashboard/stats`)
       .then((r) => setStats(r.data.stats))
       .catch(() => { })
       .finally(() => setLoading(false));

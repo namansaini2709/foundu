@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const db = require("../config/db");
 const notificationService = require("../services/notificationService");
 const emailNotificationService = require("../services/emailNotificationService");
+const { generateAdminJWT } = require("../utils/jwtUtils");
 
 /* =========================
    ADMIN LOGIN
@@ -45,9 +46,13 @@ exports.adminLogin = async (req, res) => {
         return res.status(500).json({ message: "Session error" });
       }
 
+      // 🔑 Generate Admin JWT Token
+      const token = generateAdminJWT(admin);
+
       res.json({
         success: true,
         message: "Admin logged in successfully",
+        token, // ⭐ JWT Token for frontend storage
         admin: {
           id: admin.id,
           name: admin.name,
@@ -75,10 +80,10 @@ exports.adminLogout = (req, res) => {
    CHECK SESSION (for frontend to verify on refresh)
 ========================= */
 exports.getAdminSession = (req, res) => {
-  if (!req.session.admin) {
+  if (!req.admin && !req.session?.admin) {
     return res.status(401).json({ message: "Not authenticated" });
   }
-  res.json({ success: true, admin: req.session.admin });
+  res.json({ success: true, admin: req.admin || req.session.admin });
 };
 
 /* =========================

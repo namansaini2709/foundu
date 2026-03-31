@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { getUserId } from '../utils/authUtils';
 import Footer from '../components/Footer';
 import { X, Loader2, Building2, Star, CheckCircle } from 'lucide-react';
 import blueBadge from '../assets/blue-badge.jpg';
 import greenBadge from '../assets/green-badge.jpg';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const API = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
+const API = `/api`;
 const gradientBlackToBlue = {
     background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
 };
@@ -41,11 +42,11 @@ const FounderBadges = () => {
         dpiitNumber:     '',
         profilePhoto:    null
     });
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     /* Load existing status on mount */
     useEffect(() => {
         if (!userId) return;
-        axios.get(`${API}/user-socials/${userId}`, { withCredentials: true })
+        api.get(`${API}/user-socials/${userId}`)
             .then(res => {
                 const d = res.data.data;
                 if (d) {
@@ -89,12 +90,11 @@ const FounderBadges = () => {
                 data.append('profile_picture_url', formData.profilePhoto);
             }
             // Save company social details to users_socials
-            await axios.post(`${API}/user-socials`, data, { 
-                withCredentials: true,
+            await api.post(`${API}/user-socials`, data, { 
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             // Apply for Blue Tick
-            await axios.post(`${API}/badges/apply/blue`, { user_id: userId }, { withCredentials: true });
+            await api.post(`${API}/badges/apply/blue`, { user_id: userId });
             setBlueTickStatus('pending');
             setIsModalOpen(false);
             toast.success('Verification submitted! Under review by admin.', { theme: 'dark' });

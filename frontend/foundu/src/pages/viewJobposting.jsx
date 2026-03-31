@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import {
   X,
   Briefcase,
@@ -41,38 +41,14 @@ export default function JobApplicationsDashboard() {
   // Get user data from localStorage (Same logic as FreelancerJobDetail)
   const getUserData = useCallback(() => {
     try {
-      const possibleKeys = ["user", "userData", "currentUser", "authUser"];
-      for (const key of possibleKeys) {
-        const userDataString = localStorage.getItem(key);
-        if (userDataString) {
-          try {
-            const userData = JSON.parse(userDataString);
-            const userId = userData.user_id || userData.id || userData.userId;
-            const userType = userData.user_type || userData.userType || userData.applicant_type || userData.type;
-            const founderId = userData.founder_id || userData.founderId;
-            const freelancerId = userData.freelancer_id || userData.freelancerId;
-            const cofounderId = userData.cofounder_id || userData.cofounderId;
-            if (userId && userType) {
-              console.log("Found user data:", { userId, founderId, userType });
-              return {
-                user_id: userId,
-                user_type: userType,
-                founder_id: founderId,
-                freelancer_id: freelancerId,
-                cofounder_id: cofounderId
-              };
-            }
-          } catch (e) { }
-        }
-      }
-      const directUserId = localStorage.getItem("user_id");
-      const directUserType = localStorage.getItem("user_type");
+      const directUserId = getUserId();
+      const directUserType = getUserType();
       if (directUserId && directUserType) {
         return { user_id: directUserId, user_type: directUserType };
       }
       return null;
-    } catch (error) {
-      console.error("Error in getUserData:", error);
+    } catch (e) {
+      console.error("Error getting user data:", e);
       return null;
     }
   }, []);
@@ -339,8 +315,8 @@ export default function JobApplicationsDashboard() {
     if (!selectedJob) return;
     console.log(`[FRONTEND] Updating status: job=${selectedJob}, applicant=${applicantId}, status=${newStatus}`);
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants/${applicantId}/status`,
+      const response = await api.put(
+        `/api/jobs/${selectedJob}/applicants/${applicantId}/status`,
         { status: newStatus }
       );
       console.log('[FRONTEND] Update response:', response.data);
@@ -394,11 +370,10 @@ export default function JobApplicationsDashboard() {
   };
   const handleContact = async (applicantId) => {
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/chat/create`,
-        { otherUserId: applicantId, userId: parseInt(localStorage.getItem('user_id')) },
-        { withCredentials: true }
-      );
+      const res = await api.post(`/api/chat/create`, {
+        otherUserId: applicantId,
+        userId: parseInt(getUserId())
+      });
       toast.success('Redirecting to chat...', { theme: 'dark', autoClose: 1000 });
       setTimeout(() => {
         navigate('/chatbox');
@@ -417,7 +392,7 @@ export default function JobApplicationsDashboard() {
     useEffect(() => {
       const fetchUser = async () => {
         try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${applicant.id}`);
+          const res = await api.get(`/api/users/${applicant.id}`);
           // getUserById returns { success: true, data: {...} }
           setUserDetails(res.data?.data || res.data);
         } catch (err) {
@@ -428,7 +403,7 @@ export default function JobApplicationsDashboard() {
       };
       const fetchPosts = async () => {
         try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/posts/user/${applicant.id}`);
+          const res = await api.get(`/api/posts/user/${applicant.id}`);
           setUserPosts(Array.isArray(res.data) ? res.data : (res.data?.data || []));
         } catch (err) {
           console.error('Error fetching user posts:', err);

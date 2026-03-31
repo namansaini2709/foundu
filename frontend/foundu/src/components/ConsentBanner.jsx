@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { getUserId } from '../utils/authUtils';
 
 const ConsentBanner = () => {
     const [isVisible, setIsVisible] = useState(false);
-    const isLoggedIn = !!localStorage.getItem('user_id');
+    const isLoggedIn = !!getUserId();
 
     useEffect(() => {
         if (isLoggedIn) return; // Don't show if logged in

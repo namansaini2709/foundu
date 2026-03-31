@@ -2,7 +2,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useState } from 'react'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Footer from '../components/Footer'
-import axios from 'axios'
+import api from '../utils/axiosConfig'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import AnimatedCardVisual from '../components/ui/AnimatedCardVisual'
@@ -68,14 +68,13 @@ function LoginSignup() {
           return
         }
         // ── NORMAL LOGIN ────────────────────────────────────
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
+        const res = await api.post(`/api/login`, {
           email,
           password
-        }, { withCredentials: true })
-        // Store user_id and user_type in localStorage
-        localStorage.setItem('user_id', res.data.user.id)
-        localStorage.setItem('user_type', res.data.user.user_type)
-        toast.success('Login successful', { theme: 'dark' })
+        })
+        // Store JWT token in localStorage
+        if (res.data.token) localStorage.setItem('token', res.data.token);
+        toast.success(res.data.message || 'Login successful', { theme: 'dark' })
         // Full reload to target page to ensure clean state
         setTimeout(() => {
           const type = res.data.user.user_type.toLowerCase();
@@ -89,23 +88,22 @@ function LoginSignup() {
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
           ? userType
           : 'freelancer'
-        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/signup`, {
+        await api.post(`/api/signup`, {
           full_name: fullName,
           email,
           password,
           user_type: validUserType
         })
-        const loginRes = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/login`, {
+        const loginRes = await api.post(`/api/login`, {
           email,
           password
-        }, { withCredentials: true })
+        })
         const userData = loginRes.data.user;
         if (!userData || !userData.id) {
           throw new Error("Invalid response from server");
         }
-        // Store user_id and user_type in localStorage
-        localStorage.setItem('user_id', userData.id)
-        localStorage.setItem('user_type', userData.user_type || userType)
+        // Store JWT token in localStorage
+        if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
         toast.success('Signup successful', { theme: 'dark' })
         // Full reload to target page to ensure clean state
         setTimeout(() => {
@@ -132,7 +130,7 @@ function LoginSignup() {
       return toast.error('Invalid email format', { theme: 'dark' })
     }
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/forgot-password`, {
+      await api.post(`/api/forgot-password`, {
         email: resetEmail
       })
       toast.success('Password reset link sent to your email', { theme: 'dark' })

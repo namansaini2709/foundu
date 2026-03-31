@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/axiosConfig";
 import { Bell, PlusSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
+import { getUserId, getUserType, logout } from "../utils/authUtils";
 import logo from "../assets/whitelogo.png"
 
 
@@ -53,38 +54,38 @@ function Navbar() {
 
   // Fetch user data if logged in
   useEffect(() => {
-    const fetchUserData = async () => {
-      const userId = localStorage.getItem("user_id");
+    const fetchUserProfile = async () => {
+      const userId = getUserId();
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await api.get(`/api/users/${userId}`);
+        const userData = response.data.success ? response.data.data : response.data;
+        setUser(userData);
 
-      if (userId) {
-        try {
-          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`, { withCredentials: true });
-          const userData = response.data.success ? response.data.data : response.data;
-          setUser(userData);
+        // Connect Socket purely for notifications
+        socket.connect();
+        socket.emit("register", userId);
 
-          // Connect Socket purely for notifications
-          socket.connect();
-          socket.emit("register", userId);
-
-          // Get initial unread count
-          const notifRes = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, { withCredentials: true });
-          if(notifRes.data.success) {
-            setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          // Only clear session if it's a 401 Unauthorized or 403 Forbidden
-          if (error.response?.status === 401 || error.response?.status === 403) {
-            localStorage.removeItem("user_id");
-            localStorage.removeItem("user_type");
-            setUser(null);
-          }
+        // Get initial unread count
+        const notifRes = await api.get(`/api/notifications`);
+        if (notifRes.data.success) {
+          setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        // Only clear session if it's a 401 Unauthorized or 403 Forbidden
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          logout();
+          setUser(null);
         }
       }
       setLoading(false);
     };
 
-    fetchUserData();
+    fetchUserProfile();
 
     // Listen for live socket notifications
     const handleNewNotification = (notification) => {
@@ -132,28 +133,20 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       toast.info("Logging out...", { theme: "dark" });
-      await axios.post(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/logout`);
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_type");
+      await api.post(`/api/logout`);
+      logout();
       setUser(null);
       setUnreadCount(0);
       socket.disconnect();
-
       toast.success("Logged out successfully!", { theme: "dark" });
-
-      // Full reload to clear all states and socket connections
       setTimeout(() => {
         window.location.href = "/";
       }, 1000);
     } catch (error) {
       console.error("Error logging out:", error);
-      // Still clear local data even if API fails
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_type");
+      logout();
       setUser(null);
-
       toast.success("Logged out successfully!", { theme: "dark" });
-
       setTimeout(() => {
         window.location.href = "/";
       }, 1000);
@@ -165,10 +158,9 @@ function Navbar() {
 
     try {
       toast.info("Deleting account...", { theme: "dark" });
-      const userId = localStorage.getItem("user_id");
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/users/${userId}`);
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_type");
+      const userId = getUserId();
+      await api.delete(`/api/users/${userId}`);
+      logout();
       setUser(null);
 
       toast.success("Account deleted successfully!", { theme: "dark" });
@@ -183,12 +175,10 @@ function Navbar() {
   };
 
   const getProfileRoute = () => {
-    // Prioritize localStorage user_type, fallback to user object
-    const userType = (localStorage.getItem("user_type") || user?.user_type || "").toLowerCase();
-
+    const userType = getUserType();
     if (!userType) return "/";
 
-    switch (userType) {
+    switch (userType.toLowerCase()) {
       case "freelancer":
         return "/freelancer-profile";
       case "founder":
@@ -201,12 +191,10 @@ function Navbar() {
   };
 
   const getDashboardRoute = () => {
-    // Prioritize localStorage user_type, fallback to user object
-    const userType = (localStorage.getItem("user_type") || user?.user_type || "").toLowerCase();
-
+    const userType = getUserType();
     if (!userType) return "/";
 
-    switch (userType) {
+    switch (userType.toLowerCase()) {
       case "freelancer":
         return "/freelancer-dashboard";
       case "founder":
@@ -223,13 +211,11 @@ function Navbar() {
     return user.full_name || user.name || user.email || "User";
   };
 
-  const isLoggedIn = () => {
-    return !!localStorage.getItem("user_id");
-  };
+  const isLoggedIn = () => !!getUserId();
 
   const handleProfileNavigation = () => {
     const route = getProfileRoute();
-    const userType = localStorage.getItem("user_type");
+    const userType = getUserType();
     const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
 
     toast.info(`Redirecting to ${userTypeDisplay} Profile...`, { theme: "dark", autoClose: 1000 });
@@ -240,7 +226,7 @@ function Navbar() {
 
   const handleDashboardNavigation = () => {
     const route = getDashboardRoute();
-    const userType = localStorage.getItem("user_type");
+    const userType = getUserType();
     const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
 
     toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, { theme: "dark", autoClose: 1000 });
@@ -251,7 +237,7 @@ function Navbar() {
 
   // Get navigation links based on user type
   const getNavLinks = () => {
-    const userType = (localStorage.getItem("user_type") || "").toLowerCase();
+    const userType = (getUserType() || "").toLowerCase();
 
     if (!userType || !isLoggedIn()) {
       return defaultNavLinks;

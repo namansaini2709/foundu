@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { getUserId } from '../utils/authUtils';
+import api from '../utils/axiosConfig';
 import { 
     Image, 
     Type, 
@@ -33,7 +34,7 @@ const CreatePost = () => {
     };
 
     const handlePost = async () => {
-        const userId = localStorage.getItem("user_id");
+        const userId = getUserId();
         if (!userId) {
             toast.error("Please login to post");
             return;
@@ -51,9 +52,8 @@ const CreatePost = () => {
         formData.append('caption', caption);
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/posts`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                withCredentials: true
+            const response = await api.post(`/api/posts`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
 
             if (response.data.success) {

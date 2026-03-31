@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import { getUserId, getUserType } from "./utils/authUtils";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
@@ -44,7 +50,7 @@ import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 import OurTeam from "./pages/OurTeam";
-import ContactUs from "./pages/ContactUs";
+import ContactUs from "./pages/contactUs";
 import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
 
@@ -56,15 +62,18 @@ function NavbarWrapper() {
     "/admin/broadcast",
   ];
   // Note: /chatbox or others can be added here if needed to hide Navbar there
-  if (hideNavbarRoutes.includes(location.pathname) || location.pathname.startsWith('/admin')) {
+  if (
+    hideNavbarRoutes.includes(location.pathname) ||
+    location.pathname.startsWith("/admin")
+  ) {
     return null;
   }
   return <Navbar />;
 }
 
 function App() {
-  const userRole = localStorage.getItem("user_type") || null;
-  const userId = localStorage.getItem("user_id") || null;
+  const userRole = getUserType() || null;
+  const userId = getUserId() || null;
   const isLoggedIn = !!userId;
   return (
     <Router>
@@ -121,7 +130,10 @@ function App() {
         <Route path="/about-details" element={<AboutDetails />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/influencer-marketplace" element={<InfluencerMarketplace />} />
+        <Route
+          path="/influencer-marketplace"
+          element={<InfluencerMarketplace />}
+        />
         <Route path="/our-team" element={<OurTeam />} />
         <Route path="/contact-us" element={<ContactUs />} />
       </Routes>
