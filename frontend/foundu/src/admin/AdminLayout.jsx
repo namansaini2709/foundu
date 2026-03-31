@@ -5,18 +5,19 @@ import axios from "axios";
 const API = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
 
 const navItems = [
-  { label: "Dashboard",   icon: "📊", path: "/admin/dashboard" },
-  { label: "Broadcast",   icon: "📣", path: "/admin/broadcast" },
-  { label: "Blue Tick",   icon: "✅", path: "/admin/badges",   badge: true },
-  { label: "Users",       icon: "👥", path: "/admin/users",    soon: true },
-  { label: "Jobs",        icon: "💼", path: "/admin/jobs",     soon: true },
+  { label: "Dashboard", icon: "📊", path: "/admin/dashboard" },
+  { label: "Broadcast", icon: "📣", path: "/admin/broadcast" },
+  { label: "Blue Tick", icon: "✅", path: "/admin/badges", badge: true },
+  { label: "Testimonials", icon: "⭐", path: "/admin/testimonials" },
+  { label: "Users", icon: "👥", path: "/admin/users", soon: true },
+  { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true },
 ];
 
 export default function AdminLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const adminName = localStorage.getItem("admin_name") || "Admin";
-  const isAdmin   = localStorage.getItem("is_admin") === "true";
+  const isAdmin = localStorage.getItem("is_admin") === "true";
   const [pendingCount, setPendingCount] = useState(0);
 
   // Guard — redirect non-admins away
@@ -29,7 +30,7 @@ export default function AdminLayout({ children }) {
     axios
       .get(`${API}/admin/dashboard/stats`, { withCredentials: true })
       .then((r) => setPendingCount(r.data.stats?.pendingBlueTickRequests || 0))
-      .catch(() => {});
+      .catch(() => { });
   }, [location.pathname]);
 
   const handleLogout = () => {

@@ -15,6 +15,7 @@ router.post("/reset-password", controller.resetPassword);
 // router.delete("/users/:id", isAuthenticated, controller.deleteUser);
 
 router.get("/users", controller.getAllUsers);
+router.get("/public-stats", controller.getPublicStats);
 router.get("/live-feed", controller.getLiveFeed);
 router.get("/users/:id", controller.getUserById);
 router.delete("/users/:id", controller.deleteUser);

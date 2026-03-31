@@ -35,25 +35,26 @@ const footerLinks = [
     items: [
       { label: "foundu@example.com", href: "mailto:foundu@example.com" },
       { label: "+1 (555) 123-4567", href: "tel:+15551234567" },
+      { label: "Direct Contact", to: "/contact-us" },
     ],
   },
   {
     title: "Resources",
     items: [
-      { label: "About Us", href: "#" },
-      { label: "Our Team", href: "#" },
+      { label: "About Us", to: "/about-details" },
+      { label: "Our Team", to: "/our-team" },
       { label: "FAQ", href: "#" },
-      { label: "Contact Us", href: "#" },
+      { label: "Contact Us", to: "/contact-us" },
     ],
   },
   {
     title: "For Startups",
     items: [
-      { label: "Browse Talent", href: "#" },
-      { label: "Create Profile", href: "#" },
-      { label: "Post Gig", href: "#" },
-      { label: "Explore Community", href: "#" },
-      { label: "Partner With Us", href: "#" },
+      { label: "Browse Talent", to: "/live-feed" },
+      { label: "Create Profile", to: "/login-signup" },
+      { label: "Post Gig", to: "/add-job" },
+      { label: "Explore Community", to: "/live-feed" },
+      { label: "Partner With Us", to: "/contact-us" },
     ],
   },
 ];
@@ -100,12 +101,21 @@ function Footer() {
                 <ul className="space-y-2">
                   {section.items.map((item) => (
                     <li key={item.label}>
-                      <a
-                        href={item.href}
-                        className="text-white/80 hover:text-white transition-colors text-sm"
-                      >
-                        {item.label}
-                      </a>
+                      {item.to ? (
+                        <Link
+                          to={item.to}
+                          className="text-white/80 hover:text-white transition-colors text-sm"
+                        >
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <a
+                          href={item.href}
+                          className="text-white/80 hover:text-white transition-colors text-sm"
+                        >
+                          {item.label}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>

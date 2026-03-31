@@ -98,6 +98,9 @@ exports.getDashboardStats = async (req, res) => {
     const [[totalJobs]] = await db.promise().query(
       "SELECT COUNT(*) as count FROM foundu_jobs"
     );
+    const [[totalTestimonials]] = await db.promise().query(
+      "SELECT COUNT(*) as count FROM homepage_testimonials"
+    );
 
     res.json({
       success: true,
@@ -106,6 +109,7 @@ exports.getDashboardStats = async (req, res) => {
         totalUsers: totalUsers.count,
         approvedBlueTick: approvedBlueTick.count,
         totalJobs: totalJobs.count,
+        totalTestimonials: totalTestimonials.count,
       },
     });
   } catch (error) {

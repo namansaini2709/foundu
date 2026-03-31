@@ -5,6 +5,7 @@ import { Bell, PlusSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
+import logo from "../assets/whitelogo.png"
 
 
 
@@ -139,7 +140,7 @@ function Navbar() {
       socket.disconnect();
 
       toast.success("Logged out successfully!", { theme: "dark" });
-      
+
       // Full reload to clear all states and socket connections
       setTimeout(() => {
         window.location.href = "/";
@@ -285,10 +286,9 @@ function Navbar() {
           : "bg-transparent border-transparent"
           }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-blue-300">F</span>
-            <span className="text-xl font-bold text-white">OUNDU</span>
+            <img src={logo} alt="logo" className="h-16 md:h-20 w-auto object-contain" />
           </Link>
 
           {/* Navigation links shifted to the right */}
@@ -306,7 +306,7 @@ function Navbar() {
               </Link>
             ))}
           </div>
-
+                
           {/* User profile or login buttons */}
           <div className="flex items-center gap-4">
             {(isLoggedIn() || user) && (

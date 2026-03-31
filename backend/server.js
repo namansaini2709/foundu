@@ -74,6 +74,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
 const postRoutes = require("./routes/postRoutes");
 const testEmailRoutes = require("./routes/testEmailRoutes");
 
@@ -112,6 +113,7 @@ app.use("/api", adminRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api", ideaRoutes);
 app.use("/api", notificationRoutes);
+app.use("/api", testimonialRoutes);
 app.use("/api", postRoutes);
 app.use("/api", testEmailRoutes);
 
