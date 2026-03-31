@@ -24,10 +24,9 @@ exports.signup = async (req, res) => {
     }
 
     // 🔍 Check email uniqueness
-    const [existing] = await db.promise().query(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
-    );
+    const [existing] = await db
+      .promise()
+      .query("SELECT id FROM users WHERE email = ?", [email]);
 
     if (existing.length) {
       return res.status(409).json({ message: "Email already registered" });
@@ -41,23 +40,29 @@ exports.signup = async (req, res) => {
 
     // 🔢 Generate role-based ID
     if (user_type === "freelancer") {
-      const [r] = await db.promise().query(
-        "SELECT COALESCE(MAX(freelancer_id),0)+1 AS next_id FROM users WHERE user_type='freelancer'"
-      );
+      const [r] = await db
+        .promise()
+        .query(
+          "SELECT COALESCE(MAX(freelancer_id),0)+1 AS next_id FROM users WHERE user_type='freelancer'",
+        );
       freelancer_id = r[0].next_id;
     }
 
     if (user_type === "founder") {
-      const [r] = await db.promise().query(
-        "SELECT COALESCE(MAX(founder_id),0)+1 AS next_id FROM users WHERE user_type='founder'"
-      );
+      const [r] = await db
+        .promise()
+        .query(
+          "SELECT COALESCE(MAX(founder_id),0)+1 AS next_id FROM users WHERE user_type='founder'",
+        );
       founder_id = r[0].next_id;
     }
 
     if (user_type === "cofounder") {
-      const [r] = await db.promise().query(
-        "SELECT COALESCE(MAX(cofounder_id),0)+1 AS next_id FROM users WHERE user_type='cofounder'"
-      );
+      const [r] = await db
+        .promise()
+        .query(
+          "SELECT COALESCE(MAX(cofounder_id),0)+1 AS next_id FROM users WHERE user_type='cofounder'",
+        );
       cofounder_id = r[0].next_id;
     }
 
@@ -80,8 +85,8 @@ exports.signup = async (req, res) => {
         user_type,
         freelancer_id,
         founder_id,
-        cofounder_id
-      ]
+        cofounder_id,
+      ],
     );
 
     res.status(201).json({
@@ -91,7 +96,7 @@ exports.signup = async (req, res) => {
       user_type,
       freelancer_id,
       founder_id,
-      cofounder_id
+      cofounder_id,
     });
 
     // Send Welcome Notification
@@ -100,7 +105,7 @@ exports.signup = async (req, res) => {
       "Welcome to FoundU! 🎉",
       "Your account has been successfully created. Complete your profile to get started.",
       "welcome",
-      "/profile"
+      "/profile",
     );
 
     // Send Welcome Email
@@ -109,7 +114,7 @@ exports.signup = async (req, res) => {
       "Welcome to FoundU! 🎉",
       "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
       "Complete Your Profile",
-      `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile`,
     );
   } catch (error) {
     console.error("Signup error:", error);
@@ -124,10 +129,9 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const [rows] = await db.promise().query(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
+    const [rows] = await db
+      .promise()
+      .query("SELECT * FROM users WHERE email = ?", [email]);
 
     if (!rows.length) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -150,7 +154,7 @@ exports.login = async (req, res) => {
       is_profile_complete: user.is_profile_complete,
       freelancer_id: user.freelancer_id,
       founder_id: user.founder_id,
-      cofounder_id: user.cofounder_id
+      cofounder_id: user.cofounder_id,
     };
 
     // Force session save
@@ -170,7 +174,7 @@ exports.login = async (req, res) => {
         [user.id],
         (auditErr) => {
           if (auditErr) console.error("Login audit error:", auditErr);
-        }
+        },
       );
 
       // ── AUTO-CHECK GOLDEN TICK after login ──
@@ -195,8 +199,7 @@ exports.login = async (req, res) => {
             const row = checkRows[0];
             console.log("Golden Tick Debug - User 4 Stats:", row);
             const eligible =
-              row.blue_tick_verified == 1 &&
-              row.login_days_this_month >= 20;
+              row.blue_tick_verified == 1 && row.login_days_this_month >= 20;
             const alreadyAwarded =
               row.golden_tick_verified == 1 &&
               row.golden_tick_month === row.current_month;
@@ -206,9 +209,9 @@ exports.login = async (req, res) => {
                 `UPDATE users 
                  SET golden_tick_verified = 1, golden_tick_month = DATE_FORMAT(CURDATE(), '%Y-%m')
                  WHERE id = ?`,
-                [user.id]
+                [user.id],
               );
-              
+
               // Push live Golden Tick notification
               const notificationService = require("../services/notificationService");
               notificationService.sendNotification(
@@ -216,11 +219,11 @@ exports.login = async (req, res) => {
                 "Golden Tick Awarded! 🟡",
                 "Amazing! You've logged in for 20 days this month and unlocked the Golden Tick.",
                 "badge",
-                "/dashboard"
+                "/dashboard",
               );
             }
           }
-        }
+        },
       );
 
       res.json({
@@ -234,8 +237,8 @@ exports.login = async (req, res) => {
           is_profile_complete: user.is_profile_complete,
           freelancer_id: user.freelancer_id,
           founder_id: user.founder_id,
-          cofounder_id: user.cofounder_id
-        }
+          cofounder_id: user.cofounder_id,
+        },
       });
 
       // Send Login Notification
@@ -244,10 +247,9 @@ exports.login = async (req, res) => {
         "New Login Detected",
         "You successfully logged in to FoundU.",
         "security",
-        "/profile"
+        "/profile",
       );
     });
-
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: error.message });
@@ -271,13 +273,14 @@ exports.forgotPassword = async (req, res) => {
 
   try {
     // 🔍 Check if user exists
-    const [rows] = await db.promise().query(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
-    );
+    const [rows] = await db
+      .promise()
+      .query("SELECT id FROM users WHERE email = ?", [email]);
 
     if (!rows.length) {
-      return res.status(404).json({ message: "User with this email does not exist" });
+      return res
+        .status(404)
+        .json({ message: "User with this email does not exist" });
     }
 
     const token = generateToken();
@@ -301,7 +304,10 @@ exports.forgotPassword = async (req, res) => {
 
     await mailService.sendEmail(email, subject, text, html);
 
-    res.json({ success: true, message: "A reset password link has been sent to your email address." });
+    res.json({
+      success: true,
+      message: "A reset password link has been sent to your email address.",
+    });
 
     // Send Notification
     notificationService.sendNotification(
@@ -309,11 +315,13 @@ exports.forgotPassword = async (req, res) => {
       "Password Reset Requested",
       "We received a request to reset your password. Check your email for instructions.",
       "security",
-      "#"
+      "#",
     );
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.status(500).json({ error: "Failed to send reset link. Please try again later." });
+    res
+      .status(500)
+      .json({ error: "Failed to send reset link. Please try again later." });
   }
 };
 
@@ -325,26 +333,34 @@ exports.resetPassword = async (req, res) => {
 
   try {
     if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
     }
 
     const email = resetTokens[token];
     if (!email) {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
     }
 
     const hash = await bcrypt.hash(newPassword, 10);
 
-    await db.promise().query(
-      "UPDATE users SET password_hash=? WHERE email=?",
-      [hash, email]
-    );
+    await db
+      .promise()
+      .query("UPDATE users SET password_hash=? WHERE email=?", [hash, email]);
 
     delete resetTokens[token];
-    res.json({ success: true, message: "Your password has been updated successfully." });
+    res.json({
+      success: true,
+      message: "Your password has been updated successfully.",
+    });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ error: "Failed to reset password. Please try again later." });
+    res
+      .status(500)
+      .json({ error: "Failed to reset password. Please try again later." });
   }
 };
 
@@ -383,7 +399,9 @@ exports.getUserById = (req, res) => {
       return res.status(500).json({ success: false, error: err.message });
     }
     if (!rows.length) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     res.json({ success: true, data: rows[0] });
   });
@@ -442,9 +460,6 @@ exports.getLiveFeed = (req, res) => {
    DELETE USER
 ========================= */
 exports.deleteUser = async (req, res) => {
-  await db.promise().query(
-    "DELETE FROM users WHERE id=?",
-    [req.params.id]
-  );
+  await db.promise().query("DELETE FROM users WHERE id=?", [req.params.id]);
   res.json({ message: "User deleted" });
 };

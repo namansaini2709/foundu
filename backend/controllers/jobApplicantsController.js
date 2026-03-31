@@ -66,9 +66,9 @@ exports.applyToJob = (req, res) => {
                 notificationService.sendNotification(
                   resJob[0].owner_id,
                   "New Job Applicant",
-                  `${user.full_name || 'A user'} applied for your startup.`,
+                  `${user.full_name || "A user"} applied for your startup.`,
                   "application",
-                  `/job/${job_id}`
+                  `/job/${job_id}`,
                 );
 
                 // Notify Applicant (Confirmation)
@@ -77,7 +77,7 @@ exports.applyToJob = (req, res) => {
                   "Application Submitted! 🚀",
                   `Your application for "${resJob[0].job_title}" has been successfully sent.`,
                   "success",
-                  "/dashboard"
+                  "/dashboard",
                 );
 
                 // 🔥 Email Notification (Owner)
@@ -86,7 +86,7 @@ exports.applyToJob = (req, res) => {
                   "New Candidate Applied! 👤",
                   `A new candidate has recently applied for your job listing "${resJob[0].job_title}". Log in to your dashboard to review their profile and experience.`,
                   "Review Applications",
-                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${job_id}`
+                  `${process.env.FRONTEND_URL || "http://localhost:5173"}/job/${job_id}`,
                 );
 
                 // 🔥 Email Notification (Applicant Confirmation)
@@ -95,10 +95,10 @@ exports.applyToJob = (req, res) => {
                   "Application Received 🤝",
                   `Your application for "${resJob[0].job_title}" has been successfully submitted to the founder. We will notify you once they review your profile.`,
                   "Go to Dashboard",
-                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
+                  `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
                 );
               }
-            }
+            },
           );
         },
       );
@@ -233,7 +233,7 @@ exports.updateApplicantStatus = (req, res) => {
         "Application Updated",
         `Your job application status was updated to: ${status.toUpperCase()}.`,
         "application",
-        "/dashboard"
+        "/dashboard",
       );
 
       // 🔥 Email Notification (Status Update)
@@ -242,7 +242,7 @@ exports.updateApplicantStatus = (req, res) => {
         "Application Status Update 📢",
         `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
         "View Application Status",
-        `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
+        `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
       );
     },
   );
@@ -306,15 +306,16 @@ exports.getAIMatchedApplicants = async (req, res) => {
 
   try {
     // 1. Get job details
-    const [jobRows] = await db.promise().query(
-      "SELECT * FROM foundu_jobs WHERE job_id = ?", [job_id]
-    );
+    const [jobRows] = await db
+      .promise()
+      .query("SELECT * FROM foundu_jobs WHERE job_id = ?", [job_id]);
     if (!jobRows.length) {
       return res.status(404).json({ message: "Job not found" });
     }
 
     // 2. Get all applicants for this job
-    const [applicants] = await db.promise().query(`
+    const [applicants] = await db.promise().query(
+      `
       SELECT 
         ja.user_id, ja.status, ja.created_at,
         u.full_name, u.email, u.user_type, u.credibility_score,
@@ -333,30 +334,37 @@ exports.getAIMatchedApplicants = async (req, res) => {
       LEFT JOIN cofounder_profiles cp ON cp.user_id = u.id
       WHERE ja.job_id = ?
       ORDER BY ja.created_at DESC
-    `, [job_id]);
+    `,
+      [job_id],
+    );
 
     if (applicants.length === 0) {
       return res.json([]);
     }
 
     // 3. Call Gemini AI
-    const aiResults = await geminiService.matchApplicants(jobRows[0], applicants);
+    const aiResults = await geminiService.matchApplicants(
+      jobRows[0],
+      applicants,
+    );
 
     // 4. Merge AI results with full applicant data
-    const merged = aiResults.map(aiMatch => {
-      const full = applicants.find(a => a.user_id === aiMatch.user_id);
-      if (!full) return null;
-      return {
-        ...full,
-        match_score: aiMatch.match_score,
-        ai_reason: aiMatch.reason,
-        isAI: true
-      };
-    }).filter(Boolean);
+    const merged = aiResults
+      .map((aiMatch) => {
+        const full = applicants.find((a) => a.user_id === aiMatch.user_id);
+        if (!full) return null;
+        return {
+          ...full,
+          match_score: aiMatch.match_score,
+          ai_reason: aiMatch.reason,
+          isAI: true,
+        };
+      })
+      .filter(Boolean);
 
     res.json(merged);
   } catch (error) {
     console.error("AI Match Error:", error);
     res.status(500).json({ error: error.message });
   }
-};
+};
