@@ -8,6 +8,17 @@ const emailNotificationService = require("../services/emailNotificationService")
 
 const resetTokens = {}; // temporary (move to DB/Redis later)
 
+const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME);
+
+// httpOnly cookie options for JWT
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days (match JWT_EXPIRES_IN)
+  path: "/",
+});
+
 /* =========================
    SIGNUP
 ========================= */
@@ -230,10 +241,13 @@ exports.login = async (req, res) => {
       // 🔑 Generate JWT Token
       const token = generateJWT(user);
 
+      // 🍪 Set httpOnly cookie
+      res.cookie("jwt", token, getCookieOptions());
+
       res.json({
         success: true,
         message: "Logged in successfully",
-        token, // ⭐ JWT Token for frontend storage
+        token, // Still return token for backward compatibility
         user: {
           id: user.id,
           full_name: user.full_name,
@@ -265,6 +279,13 @@ exports.login = async (req, res) => {
    LOGOUT
 ========================= */
 exports.logout = (req, res) => {
+  // Clear httpOnly JWT cookie
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+  });
   req.session.destroy(() => {
     res.json({ message: "Logged out" });
   });
