@@ -50,7 +50,7 @@ import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 import OurTeam from "./pages/OurTeam";
-import ContactUs from "./pages/contactUs";
+import ContactUs from "./pages/ContactUs";
 import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
 
