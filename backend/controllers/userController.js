@@ -14,9 +14,10 @@ const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAI
 const getCookieOptions = () => ({
   httpOnly: true,
   secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
+  sameSite: isProduction ? "lax" : "lax", // "lax" works since frontend & backend share .foundu.in
   maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days (match JWT_EXPIRES_IN)
   path: "/",
+  domain: isProduction ? ".foundu.in" : undefined, // Share cookie across foundu.in & api.foundu.in
 });
 
 /* =========================
@@ -283,8 +284,9 @@ exports.logout = (req, res) => {
   res.clearCookie("jwt", {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
     path: "/",
+    domain: isProduction ? ".foundu.in" : undefined,
   });
   req.session.destroy(() => {
     res.json({ message: "Logged out" });

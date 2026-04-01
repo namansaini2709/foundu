@@ -27,6 +27,8 @@ const allowedOrigins = [
   "http://localhost:5174",
   (process.env.FRONTEND_URL || "").replace(/\/+$/, ""), // strip trailing slash
   "https://rare-dedication-production-f321.up.railway.app",
+  "https://foundu.in",
+  "https://www.foundu.in",
 ].filter(Boolean); // Remove undefined entries
 
 app.use(
