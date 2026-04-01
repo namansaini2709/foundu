@@ -20,10 +20,34 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 /* =========================
    MIDDLEWARES
 ========================= */
+
+// Allowed frontend origins (explicit list for iOS Safari compatibility)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  (process.env.FRONTEND_URL || "").replace(/\/+$/, ""), // strip trailing slash
+  "https://rare-dedication-production-f321.up.railway.app",
+].filter(Boolean); // Remove undefined entries
+
 app.use(
   cors({
-    origin: true,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, origin);
+      }
+      // Also allow any *.up.railway.app subdomain
+      if (origin.endsWith(".up.railway.app")) {
+        return callback(null, origin);
+      }
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      return callback(null, false);
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Set-Cookie"],
   }),
 );
 
@@ -37,12 +61,12 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || "foundu_secret",
     resave: false,
-    saveUninitialized: true, // Force session to be saved
-    name: "foundu_sid", // Custom name to avoid conflicts
+    saveUninitialized: false, // Don't create empty sessions
+    name: "foundu_sid",
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
-      secure: isProduction ? true : false, // Must be true for cross-site
-      sameSite: isProduction ? "none" : "lax", // 'none' for cross-domain
+      secure: isProduction ? true : false,
+      sameSite: isProduction ? "none" : "lax",
     },
   }),
 );
@@ -135,7 +159,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: true,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || (origin && origin.endsWith(".up.railway.app"))) {
+        return callback(null, origin);
+      }
+      return callback(null, false);
+    },
     credentials: true,
   },
 });
