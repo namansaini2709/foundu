@@ -15,7 +15,7 @@ const sendEmail = async (to, subject, text, html = "") => {
         if (resend) {
             console.log("[MAIL] Using Resend API to send email...");
             const { data, error } = await resend.emails.send({
-                from: "FoundU <onboarding@resend.dev>", // Default free-tier sender
+                from: "FoundU <noreply@foundu.in>", // Custom domain sender
                 to,
                 subject,
                 text,
