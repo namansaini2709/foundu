@@ -55,17 +55,38 @@ function Navbar() {
   // Fetch user data if logged in
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const userId = getUserId();
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
       try {
-        const response = await api.get(`/api/users/${userId}`);
-        const userData = response.data.success ? response.data.data : response.data;
-        setUser(userData);
+        // Primary: try getUserId from localStorage token
+        let userId = getUserId();
 
-        // Connect Socket purely for notifications
+        // If no localStorage token, try fetching from API using httpOnly cookie
+        if (!userId) {
+          try {
+            const meRes = await api.get("/api/me");
+            if (meRes.data.success && meRes.data.data) {
+              userId = String(meRes.data.data.id);
+              setUser(meRes.data.data);
+            }
+          } catch (e) {
+            // No cookie either — user is genuinely not logged in
+            setLoading(false);
+            return;
+          }
+        }
+
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+
+        // If we don't have user data yet (got userId from localStorage), fetch it
+        if (!user) {
+          const response = await api.get(`/api/users/${userId}`);
+          const userData = response.data.success ? response.data.data : response.data;
+          setUser(userData);
+        }
+
+        // Connect Socket for notifications
         socket.connect();
         socket.emit("register", userId);
 
@@ -76,7 +97,6 @@ function Navbar() {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        // Only clear session if it's a 401 Unauthorized or 403 Forbidden
         if (error.response?.status === 401 || error.response?.status === 403) {
           logout();
           setUser(null);
