@@ -60,14 +60,21 @@ export const fetchCurrentUser = async () => {
 };
 
 /**
- * Gets the user ID (synchronous, from localStorage fallback).
- * For the httpOnly cookie path, components should use fetchCurrentUser() instead.
+ * Gets the user ID (synchronous).
+ * Checks: JWT decode → explicit user_id key → cached user.
  */
 export const getUserId = () => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    const decoded = decodeToken(token);
-    return decoded ? String(decoded.id) : null;
+  try {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = decodeToken(token);
+      if (decoded && decoded.id) return String(decoded.id);
+    }
+    // Fallback: explicit user_id key (iOS-safe, no JWT decoding needed)
+    const storedId = localStorage.getItem("user_id");
+    if (storedId) return storedId;
+  } catch (e) {
+    // localStorage might not be available (iOS private browsing)
   }
   if (_cachedUser) return String(_cachedUser.id);
   return null;
@@ -75,12 +82,20 @@ export const getUserId = () => {
 
 /**
  * Gets the user type (synchronous).
+ * Checks: JWT decode → explicit user_type key → cached user.
  */
 export const getUserType = () => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    const decoded = decodeToken(token);
-    return decoded ? decoded.user_type : null;
+  try {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = decodeToken(token);
+      if (decoded && decoded.user_type) return decoded.user_type;
+    }
+    // Fallback: explicit user_type key (iOS-safe)
+    const storedType = localStorage.getItem("user_type");
+    if (storedType) return storedType;
+  } catch (e) {
+    // localStorage might not be available
   }
   if (_cachedUser) return _cachedUser.user_type;
   return null;

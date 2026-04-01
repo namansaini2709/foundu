@@ -72,8 +72,16 @@ function LoginSignup() {
           email,
           password
         })
-        // Store JWT token in localStorage
-        if (res.data.token) localStorage.setItem('token', res.data.token);
+        // Store auth data in localStorage (try-catch for iOS private browsing)
+        try {
+          if (res.data.token) localStorage.setItem('token', res.data.token);
+          if (res.data.user) {
+            localStorage.setItem('user_id', String(res.data.user.id));
+            localStorage.setItem('user_type', res.data.user.user_type);
+          }
+        } catch (storageErr) {
+          console.warn('localStorage unavailable:', storageErr);
+        }
         toast.success(res.data.message || 'Login successful', { theme: 'dark' })
         // Full reload to target page to ensure clean state
         setTimeout(() => {
@@ -82,7 +90,7 @@ function LoginSignup() {
           else if (type === 'cofounder') window.location.href = '/cofounder-jobs';
           else if (type === 'founder') window.location.href = '/startup-services';
           else window.location.href = '/';
-        }, 1000);
+        }, 1500);
       } else {
         // Ensure userType is one of the valid enum values
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
@@ -102,8 +110,14 @@ function LoginSignup() {
         if (!userData || !userData.id) {
           throw new Error("Invalid response from server");
         }
-        // Store JWT token in localStorage
-        if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
+        // Store auth data in localStorage
+        try {
+          if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
+          localStorage.setItem('user_id', String(userData.id));
+          localStorage.setItem('user_type', userData.user_type);
+        } catch (storageErr) {
+          console.warn('localStorage unavailable:', storageErr);
+        }
         toast.success('Signup successful', { theme: 'dark' })
         // Full reload to target page to ensure clean state
         setTimeout(() => {
@@ -112,7 +126,7 @@ function LoginSignup() {
           else if (type === 'cofounder') window.location.href = '/cofounder-profile';
           else if (type === 'founder') window.location.href = '/startup-profile';
           else window.location.href = '/';
-        }, 1000);
+        }, 1500);
       }
     } catch (err) {
       console.error('Login/Signup error:', err)
