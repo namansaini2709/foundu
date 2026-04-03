@@ -1,0 +1,5 @@
+
+[2026-04-03T09:00:56.920Z] Error: Field 'password_hash' doesn't have a default value
+    at PromisePool.query (C:\All vs code projects\foundU\FoundUU\foundu\backend\node_modules\mysql2\lib\promise\pool.js:36:22)
+    at Strategy._verify (C:\All vs code projects\foundU\FoundUU\foundu\backend\config\passport.js:44:43)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

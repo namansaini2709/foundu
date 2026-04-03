@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Footer from '../components/Footer'
 import api from '../utils/axiosConfig'
@@ -11,9 +11,35 @@ const gradientBlackToBlue = {
 }
 function LoginSignup() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const userType = searchParams.get('type') || 'freelancer'
+  const authStatus = searchParams.get('auth')
   const [isLogin, setIsLogin] = useState(true)
+
+  // 🚨 SUCCESS REDIRECT: Immediate redirect if success is in URL
+  if (authStatus === 'success') {
+    const t = searchParams.get('redirect') || '/';
+    localStorage.setItem('auth_sync_pending', 'true');
+    localStorage.removeItem('token');
+    window.location.replace(t);
+    return null; // Stop rendering the login page entirely
+  }
+
+  // Handle incoming auth status from Social Redirects (Errors & No Account)
+  useEffect(() => {
+    if (authStatus === 'no_account') {
+      toast.error('No account found for this Google email. Please Sign Up first!', { 
+        theme: 'dark'
+      });
+      setIsLogin(false);
+      // Clean URL params
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('auth');
+      setSearchParams(newParams);
+    } else if (authStatus === 'error') {
+      toast.error('Authentication failed. Please try again.', { theme: 'dark' });
+    }
+  }, [authStatus]);
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
@@ -85,61 +111,75 @@ function LoginSignup() {
           email,
           password
         })
-        // Store auth data in localStorage (try-catch for iOS private browsing)
-        try {
-          if (res.data.token) localStorage.setItem('token', res.data.token);
-          if (res.data.user) {
-            localStorage.setItem('user_id', String(res.data.user.id));
-            localStorage.setItem('user_type', res.data.user.user_type);
-          }
-        } catch (storageErr) {
-          console.warn('localStorage unavailable:', storageErr);
-        }
+        
+        const userData = res.data.user;
+        if (!userData || !userData.id) throw new Error("Invalid response");
+
+        // Use the unified sync guard to show the loader and prevent toasts
+        localStorage.setItem('auth_sync_pending', 'true');
+        localStorage.removeItem('token'); 
+
+        // Store basic data synchronously for the bridge
+        localStorage.setItem('user_id', String(userData.id));
+        localStorage.setItem('user_type', userData.user_type);
+        if (userData.token) localStorage.setItem('token', userData.token);
+
         toast.success(res.data.message || 'Login successful', { theme: 'dark' })
-        // Full reload to target page to ensure clean state
-        setTimeout(() => {
-          const type = res.data.user.user_type.toLowerCase();
-          if (type === 'freelancer') window.location.href = '/freelancer-jobs';
-          else if (type === 'cofounder') window.location.href = '/cofounder-jobs';
-          else if (type === 'founder') window.location.href = '/startup-services';
-          else window.location.href = '/';
-        }, 1500);
+        
+        // Determine target based on profile completeness (same as Google)
+        const isComplete = userData.is_profile_complete === 1;
+        const type = userData.user_type.toLowerCase();
+        let target = '/';
+
+        if (!isComplete) {
+          if (type === 'freelancer') target = '/freelancer-profile';
+          else if (type === 'cofounder') target = '/cofounder-profile';
+          else if (type === 'founder') target = '/startup-profile';
+        } else {
+          if (type === 'freelancer') target = '/freelancer-dashboard';
+          else if (type === 'cofounder') target = '/cofounder-dashboard';
+          else if (type === 'founder') target = '/startup-dashboard';
+        }
+
+        // Full reload to target to ensure clean state and trigger sync
+        window.location.href = target;
       } else {
-        // Ensure userType is one of the valid enum values
+        // ... Signup Block ...
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
           ? userType
           : 'freelancer'
+        
         await api.post(`/api/signup`, {
           full_name: fullName,
           email,
           password,
           user_type: validUserType
         })
+
+        // Auto-login after signup
         const loginRes = await api.post(`/api/login`, {
           email,
           password
         })
+        
         const userData = loginRes.data.user;
-        if (!userData || !userData.id) {
-          throw new Error("Invalid response from server");
-        }
-        // Store auth data in localStorage
-        try {
-          if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
-          localStorage.setItem('user_id', String(userData.id));
-          localStorage.setItem('user_type', userData.user_type);
-        } catch (storageErr) {
-          console.warn('localStorage unavailable:', storageErr);
-        }
+        if (!userData) throw new Error("Auto-login failed");
+
+        localStorage.setItem('auth_sync_pending', 'true');
+        localStorage.setItem('user_id', String(userData.id));
+        localStorage.setItem('user_type', userData.user_type);
+        if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
+
         toast.success('Signup successful', { theme: 'dark' })
-        // Full reload to target page to ensure clean state
-        setTimeout(() => {
-          const type = (userData.user_type || userType).toLowerCase();
-          if (type === 'freelancer') window.location.href = '/freelancer-profile';
-          else if (type === 'cofounder') window.location.href = '/cofounder-profile';
-          else if (type === 'founder') window.location.href = '/startup-profile';
-          else window.location.href = '/';
-        }, 1500);
+        
+        // New users always go to profile completion
+        const type = userData.user_type.toLowerCase();
+        let target = '/';
+        if (type === 'freelancer') target = '/freelancer-profile';
+        else if (type === 'cofounder') target = '/cofounder-profile';
+        else if (type === 'founder') target = '/startup-profile';
+
+        window.location.href = target;
       }
     } catch (err) {
       console.error('Login/Signup error:', err)
@@ -173,6 +213,14 @@ function LoginSignup() {
       })
     }
   }
+  const handleGoogleLogin = () => {
+    // Redirect the entire window to the backend auth route
+    // STRICT MODE: We pass the mode (login or signup) to avoid accidental account creation
+    const mode = isLogin ? 'login' : 'signup';
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    window.location.href = `${backendUrl}/api/auth/google?type=${userType}&mode=${mode}`;
+  };
+
   return (
     <div className="min-h-screen" >
       <section className="min-h-screen flex items-center justify-center p-4 pt-20 pb-20">
@@ -381,6 +429,7 @@ function LoginSignup() {
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <button
                   type="button"
+                  onClick={handleGoogleLogin}
                   className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[#1A1F2C] border border-gray-700/50 text-white hover:bg-gray-800 hover:border-gray-600 transition-all duration-200 group font-medium"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">

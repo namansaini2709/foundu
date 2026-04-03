@@ -427,7 +427,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   /* ── Pages where chatbot should be HIDDEN ───────────────── */
   const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
   const shouldHide = hiddenPaths.some(
-    (p) => location.pathname === p || location.pathname.startsWith("/login")
+    (p) => location.pathname === p || location.pathname.startsWith("/login-signup")
   );
   if (shouldHide) return null;
 

@@ -54,6 +54,9 @@ function Navbar() {
 
   // Fetch user data if logged in
   useEffect(() => {
+    const isPending = localStorage.getItem("auth_sync_pending") === "true" || 
+                     sessionStorage.getItem("auth_sync_pending") === "true";
+
     const fetchUserProfile = async () => {
       try {
         // Special case: Admin user
@@ -65,22 +68,36 @@ function Navbar() {
           return;
         }
 
-        // Primary: try getUserId from localStorage token
+        // Check if we are already logged in via localStorage
         let userId = getUserId();
 
-        // If no localStorage token, try fetching from API using httpOnly cookie
-        if (!userId) {
+        // If we are pending an auth sync, WE MUST fetch /api/me to bridge the cookie session
+        if (!userId || isPending) {
           try {
             const meRes = await api.get("/api/me");
             if (meRes.data.success && meRes.data.data) {
-              userId = String(meRes.data.data.id);
-              setUser(meRes.data.data);
+              const u = meRes.data.data;
+              userId = String(u.id);
+              setUser(u);
+              
+              localStorage.setItem("user_id", userId);
+              localStorage.setItem("user_type", u.user_type);
+              if (u.full_name) localStorage.setItem("user_name", u.full_name);
             }
           } catch (e) {
-            // No cookie either — user is genuinely not logged in
-            setLoading(false);
-            return;
+            console.warn("[Auth] /api/me failed or no cookie present.");
           }
+        }
+
+        if (isPending) {
+          localStorage.removeItem("auth_sync_pending");
+          sessionStorage.removeItem("auth_sync_pending");
+          window.dispatchEvent(new Event('auth-change'));
+        }
+
+        if (!userId) {
+          setLoading(false);
+          return;
         }
 
         if (!userId) {

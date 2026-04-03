@@ -39,8 +39,14 @@ const FreelancerProfile = () => {
   useEffect(() => {
     const userId = getUserId();
     if (!userId) {
+      // If we are currently in the middle of an auth sync transition,
+      // don't show the error toast or redirect yet to avoid double-toasts.
+      if (localStorage.getItem("auth_sync_pending") === "true") {
+        console.log("[Auth] Sync pending, skipping 'Not logged in' toast.");
+        return;
+      }
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/login-signup");
       return;
     }
     fetchUser(userId);
@@ -233,7 +239,7 @@ const FreelancerProfile = () => {
     const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
-      navigate("/login");
+      navigate("/login-signup");
       return;
     }
     setLoading(true);

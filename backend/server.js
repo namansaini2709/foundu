@@ -11,6 +11,8 @@ const http = require("http");
 const { Server } = require("socket.io");
 const notificationService = require("./services/notificationService");
 const onboardingReminderService = require("./services/onboardingReminderService");
+const passport = require("passport");
+require("./config/passport");
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
   (process.env.FRONTEND_URL || "").replace(/\/+$/, ""), // strip trailing slash
   "https://rare-dedication-production-f321.up.railway.app",
   "https://foundu.in",
@@ -73,6 +77,8 @@ app.use(
   }),
 );
 
+app.use(passport.initialize());
+
 // DEBUG: Log all requests
 app.use((req, res, next) => {
   const log = `\n[${new Date().toISOString()}] [REQUEST] ${req.method} ${req.url}\nHeaders: ${JSON.stringify(req.headers)}\n`;
@@ -105,6 +111,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const testimonialRoutes = require("./routes/testimonialRoutes");
 const postRoutes = require("./routes/postRoutes");
 const testEmailRoutes = require("./routes/testEmailRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -144,6 +151,7 @@ app.use("/api", notificationRoutes);
 app.use("/api", testimonialRoutes);
 app.use("/api", postRoutes);
 app.use("/api", testEmailRoutes);
+app.use("/api/auth", authRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -161,15 +169,25 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
+      // Allow handshakes with no origin (internal polling)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || (origin && origin.endsWith(".up.railway.app"))) {
-        return callback(null, origin);
+      
+      const isAllowed = allowedOrigins.some(o => o === origin) || 
+                       origin.endsWith(".up.railway.app") ||
+                       origin.includes("localhost");
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[SOCKET] Blocked origin: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
       }
-      return callback(null, false);
     },
     credentials: true,
   },
+  transports: ["websocket", "polling"],
+  allowEIO3: true,
 });
 
 notificationService.setIO(io);

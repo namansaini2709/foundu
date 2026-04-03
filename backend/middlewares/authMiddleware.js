@@ -18,7 +18,8 @@ exports.isAuthenticated = (req, res, next) => {
       req.user = decoded;
       return next();
     }
-    return res.status(401).json({ message: "Invalid or expired token" });
+    // No return here - if header token is bad, we continue to check the cookie!
+    console.log("[AUTH] Header token invalid/expired, checking other methods...");
   }
 
   // ── METHOD 2: JWT from httpOnly Cookie ──
@@ -29,7 +30,7 @@ exports.isAuthenticated = (req, res, next) => {
       req.user = decoded;
       return next();
     }
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.warn("[AUTH] JWT Cookie verification failed.");
   }
 
   // ── METHOD 3: Session Cookie (backward compatibility) ──
@@ -38,6 +39,7 @@ exports.isAuthenticated = (req, res, next) => {
     return next();
   }
 
+  console.warn("[AUTH] No valid authentication found (Header, Cookie, or Session).");
   return res.status(401).json({ message: "Unauthorized" });
 };
 

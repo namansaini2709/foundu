@@ -57,7 +57,7 @@ export default function JobApplicationsDashboard() {
     const userData = getUserData();
     if (!userData || !userData.user_id) {
       toast.error("Please login to view your dashboard");
-      navigate("/login");
+      navigate("/login-signup");
       return;
     }
     try {

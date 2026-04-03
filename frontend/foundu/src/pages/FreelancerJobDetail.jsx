@@ -81,7 +81,7 @@ function FreelancerJobDetail() {
     if (!userData || !userData.user_id) {
       toast.error("Please login to apply for this job");
       setTimeout(() => {
-        navigate("/login");
+        navigate("/login-signup");
       }, 1500);
       return;
     }

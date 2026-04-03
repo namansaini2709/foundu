@@ -61,6 +61,10 @@ const StartupProfile = () => {
   useEffect(() => {
     const userId = getUserId();
     if (!userId) {
+      if (localStorage.getItem("auth_sync_pending") === "true") {
+        console.log("[Auth] Sync pending, skipping 'Not logged in' toast.");
+        return;
+      }
       toast.error("User not logged in");
       navigate("/login-signup");
       return;

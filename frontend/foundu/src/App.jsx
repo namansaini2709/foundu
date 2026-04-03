@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -72,9 +73,45 @@ function NavbarWrapper() {
 }
 
 function App() {
-  const userRole = getUserType() || null;
-  const userId = getUserId() || null;
-  const isLoggedIn = !!userId;
+  const [authState, setAuthState] = useState({
+    userId: getUserId(),
+    userRole: getUserType(),
+    isLoggedIn: !!getUserId(),
+    isSyncing: localStorage.getItem('auth_sync_pending') === 'true'
+  });
+
+  // Listen for sync events from Navbar/LoginSignup
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setAuthState({
+        userId: getUserId(),
+        userRole: getUserType(),
+        isLoggedIn: !!getUserId(),
+        isSyncing: localStorage.getItem('auth_sync_pending') === 'true'
+      });
+    };
+
+    // Safety timeout: If syncing has been on for more than 5 seconds, clear it.
+    let safetyTimeout;
+    if (authState.isSyncing) {
+      safetyTimeout = setTimeout(() => {
+        console.warn("[Auth] Syncing timed out. Forcing app unlock.");
+        localStorage.removeItem('auth_sync_pending');
+        handleAuthChange();
+      }, 5000); 
+    }
+
+    window.addEventListener('auth-change', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      if (safetyTimeout) clearTimeout(safetyTimeout);
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, [authState.isSyncing]);
+
+  const { userId, userRole, isLoggedIn, isSyncing } = authState;
+
   return (
     <Router>
       <ScrollToTop />

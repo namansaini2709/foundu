@@ -69,8 +69,12 @@ const CoFounderProfile = () => {
   useEffect(() => {
     const userId = getUserId();
     if (!userId) {
+      if (localStorage.getItem("auth_sync_pending") === "true") {
+        console.log("[Auth] Sync pending, skipping 'Not logged in' toast.");
+        return;
+      }
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/login-signup");
       return;
     }
     fetchUserData(userId);
@@ -310,7 +314,7 @@ const CoFounderProfile = () => {
     const userId = getUserId();
     if (!userId) {
       toast.error("User not logged in. Please log in again.");
-      navigate("/login");
+      navigate("/login-signup");
       return;
     }
     setLoading(true);
