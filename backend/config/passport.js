@@ -21,8 +21,8 @@ passport.use(new GoogleStrategy({
       if (req.query.state) {
         try {
           const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
-          if (stateData.type) userType = stateData.type;
-          if (stateData.mode) mode = stateData.mode;
+          if (stateData.type) userType = String(stateData.type).trim();
+          if (stateData.mode) mode = String(stateData.mode).trim();
         } catch (e) {
           console.error("Error parsing OAuth state:", e);
         }

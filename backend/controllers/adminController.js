@@ -21,7 +21,8 @@ const getCookieOptions = () => ({
    Same pattern as userController.login
 ========================= */
 exports.adminLogin = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body.email || "").trim();
+  const password = req.body.password;
 
   try {
     if (!email || !password) {

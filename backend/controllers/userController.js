@@ -139,7 +139,8 @@ exports.signup = async (req, res) => {
    LOGIN
 ========================= */
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body.email || "").trim();
+  const password = req.body.password;
 
   try {
     const [rows] = await db
@@ -151,8 +152,14 @@ exports.login = async (req, res) => {
     }
 
     const user = rows[0];
+    const user_hash = user.password_hash || user.password;
 
-    const match = await bcrypt.compare(password, user.password_hash);
+    if (!user_hash) {
+      console.warn("[Auth] No password hash found for user:", user.email);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const match = await bcrypt.compare(password, user_hash);
 
     if (!match) {
       return res.status(401).json({ message: "Invalid credentials" });

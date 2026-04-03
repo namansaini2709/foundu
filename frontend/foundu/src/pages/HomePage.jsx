@@ -15,7 +15,7 @@ const gradientBlueToBlack = {
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
 
-const API_BASE = "http://localhost:4000/api";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4000") + "/api";
 
 function HomePage() {
   const navigate = useNavigate();

@@ -50,11 +50,9 @@ router.get('/google/callback', (req, res, next) => {
       const token = generateJWT(user);
       res.cookie("jwt", token, getCookieOptions());
 
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      
       // If profile is incomplete, redirect to the specific onboarding page
       if (user.is_profile_complete === 0) {
-        const type = user.user_type;
+        const type = String(user.user_type || 'freelancer').trim();
         let onboardingPath = "/profile";
         if (type === 'freelancer') onboardingPath = "/freelancer-profile";
         else if (type === 'founder') onboardingPath = "/startup-profile";
@@ -64,7 +62,7 @@ router.get('/google/callback', (req, res, next) => {
       }
 
       // Normal dashboard redirect for existing users (specific to role)
-      const type = user.user_type;
+      const type = String(user.user_type || 'freelancer').trim();
       let dashboardPath = "/";
       if (type === 'freelancer') dashboardPath = "/freelancer-dashboard";
       else if (type === 'founder') dashboardPath = "/startup-dashboard";
