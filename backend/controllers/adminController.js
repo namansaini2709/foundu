@@ -4,6 +4,18 @@ const notificationService = require("../services/notificationService");
 const emailNotificationService = require("../services/emailNotificationService");
 const { generateAdminJWT } = require("../utils/jwtUtils");
 
+const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME);
+
+// httpOnly cookie options for JWT
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "lax" : "lax", // Share cookie across foundu.in & api.foundu.in
+  maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+  path: "/",
+  domain: isProduction ? ".foundu.in" : undefined,
+});
+
 /* =========================
    ADMIN LOGIN
    Same pattern as userController.login
@@ -49,6 +61,9 @@ exports.adminLogin = async (req, res) => {
       // 🔑 Generate Admin JWT Token
       const token = generateAdminJWT(admin);
 
+      // ⭐ Set httpOnly cookie for backend auth (Required for .foundu.in cross-origin)
+      res.cookie("jwt", token, getCookieOptions());
+
       res.json({
         success: true,
         message: "Admin logged in successfully",
@@ -71,6 +86,7 @@ exports.adminLogin = async (req, res) => {
    ADMIN LOGOUT
 ========================= */
 exports.adminLogout = (req, res) => {
+  res.clearCookie("jwt", getCookieOptions());
   req.session.destroy(() => {
     res.json({ success: true, message: "Admin logged out" });
   });

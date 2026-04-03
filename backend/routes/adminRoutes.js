@@ -1,16 +1,21 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
 const adminController = require("../controllers/adminController");
+const { isAdminAuthenticated } = require("../middlewares/adminAuthMiddleware");
 
 /* =========================
    ADMIN ROUTES
-   Auth handled on frontend via localStorage (is_admin flag).
-   No backend session middleware needed for this simple setup.
+   JWT-based auth using cookies
 ========================= */
-router.get("/admin/dashboard/stats",  adminController.getDashboardStats);
-router.get("/admin/badges/pending",   adminController.getPendingBlueTickRequests);
-router.get("/admin/badges/all",       adminController.getAllBlueTickRequests);
-router.post("/admin/badges/approve",  adminController.approveBlueTick);
-router.post("/admin/badges/reject",   adminController.rejectBlueTick);
-router.post("/admin/broadcast",       adminController.sendBulkNotification);
+router.post("/admin/login",            adminController.adminLogin);
+router.post("/admin/logout",           adminController.adminLogout);
+router.get("/admin/dashboard/stats",  isAdminAuthenticated, adminController.getDashboardStats);
+
+router.get("/admin/badges/pending",   isAdminAuthenticated, adminController.getPendingBlueTickRequests);
+router.get("/admin/badges/all",       isAdminAuthenticated, adminController.getAllBlueTickRequests);
+router.post("/admin/badges/approve",  isAdminAuthenticated, adminController.approveBlueTick);
+router.post("/admin/badges/reject",   isAdminAuthenticated, adminController.rejectBlueTick);
+router.post("/admin/broadcast",       isAdminAuthenticated, adminController.sendBulkNotification);
 
 module.exports = router;
+

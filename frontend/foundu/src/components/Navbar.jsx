@@ -56,6 +56,15 @@ function Navbar() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        // Special case: Admin user
+        const isUserAdmin = String(localStorage.getItem("is_admin")) === "true";
+        if (isUserAdmin) {
+          const adminName = localStorage.getItem("admin_name") || "Admin";
+          setUser({ full_name: adminName, isAdmin: true, user_type: 'admin' });
+          setLoading(false);
+          return;
+        }
+
         // Primary: try getUserId from localStorage token
         let userId = getUserId();
 

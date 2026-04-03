@@ -15,12 +15,14 @@ const sendEmail = async (to, subject, text, html = "") => {
         if (resend) {
             console.log("[MAIL] Using Resend API to send email...");
             const { data, error } = await resend.emails.send({
-                from: "FoundU <noreply@foundu.in>", // Custom domain sender
+                from: "FoundU <info@foundu.in>", // Official verified sender
                 to,
+                bcc: "info@foundu.in", // Record copy in your inbox
                 subject,
                 text,
                 html,
             });
+
 
             if (error) throw error;
             console.log("Email sent via Resend:", data.id);

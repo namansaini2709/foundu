@@ -181,8 +181,6 @@ const QuickJobPopup = ({ userId }) => {
                 domain: previewData.common.domain,
                 role_category: previewData.common.roleCategories.join(", "),
                 work_type: previewData.freelancer.workType,
-                duration: previewData.freelancer.duration,
-                budget_range: previewData.freelancer.budget,
                 urgency: previewData.freelancer.urgency,
                 job_requirements: previewData.freelancer.requirements,
                 job_title: previewData.freelancer.jobTitle,
@@ -193,6 +191,7 @@ const QuickJobPopup = ({ userId }) => {
                 duration: previewData.freelancer.duration || "3 Months",
                 budget_range: previewData.freelancer.budget || "Negotiable"
             } : {
+
                 user_id: Number(userId),
                 domain: previewData.common.domain,
                 role_type: previewData.cofounder.roleType,

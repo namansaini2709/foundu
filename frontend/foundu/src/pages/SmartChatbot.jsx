@@ -414,13 +414,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   const jobMatch = location.pathname.match(/\/job(?:posting)?[/=?]?(\d+)/i);
   const queryJobId = new URLSearchParams(location.search).get("job_id");
   const jobId = jobMatch?.[1] || queryJobId || null;
-  /* ── Pages where chatbot should be HIDDEN ───────────────── */
-  const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
-  const shouldHide = hiddenPaths.some(
-    (p) => location.pathname === p || location.pathname.startsWith("/login")
-  );
-  if (shouldHide) return null;
-  /* ── State ──────────────────────────────────────────────── */
   const [isOpen, setIsOpen]         = useState(false);
   const [step, setStep]             = useState(0);       // 0=greeting, 1-5=questions, 6=results
   const [messages, setMessages]     = useState([]);
@@ -430,6 +423,14 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   const [inviteTarget, setInviteTarget] = useState(null);
   const [hasNotif, setHasNotif]     = useState(true);
   const messagesEndRef               = useRef(null);
+
+  /* ── Pages where chatbot should be HIDDEN ───────────────── */
+  const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
+  const shouldHide = hiddenPaths.some(
+    (p) => location.pathname === p || location.pathname.startsWith("/login")
+  );
+  if (shouldHide) return null;
+
   const flow = FLOWS[userRole] || FLOWS.founder;
   /* ── Auto-scroll to bottom on new messages ──────────────── */
   useEffect(() => {

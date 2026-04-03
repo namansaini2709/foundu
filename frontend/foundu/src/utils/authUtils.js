@@ -105,14 +105,29 @@ export const getUserType = () => {
  * Checks if the user is an admin.
  */
 export const isAdmin = () => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    const decoded = decodeToken(token);
-    return decoded ? (decoded.isAdmin || decoded.role === 'admin' || decoded.user_type === 'admin') : false;
-  }
+  try {
+    if (localStorage.getItem("is_admin") === "true") return true;
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = decodeToken(token);
+      if (decoded && (decoded.isAdmin || decoded.role === 'admin' || decoded.user_type === 'admin')) return true;
+    }
+  } catch (e) {}
   if (_cachedUser) return _cachedUser.user_type === 'admin';
   return false;
 };
+
+/**
+ * Gets the admin's name.
+ */
+export const getAdminName = () => {
+  try {
+    return localStorage.getItem("admin_name");
+  } catch (e) {
+    return null;
+  }
+};
+
 
 /**
  * Gets the user's full name.

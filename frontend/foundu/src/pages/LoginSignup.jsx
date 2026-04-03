@@ -59,14 +59,27 @@ function LoginSignup() {
     }
     try {
       if (isLogin) {
-        // ── ADMIN SHORTCUT ──────────────────────────────────
-        if (email === 'admin@gmail.com' && password === '123456') {
-          localStorage.setItem('is_admin', 'true')
-          localStorage.setItem('admin_name', 'FoundU Admin')
-          toast.success('Welcome, Admin!', { theme: 'dark' })
-          setTimeout(() => navigate('/admin/dashboard'), 500)
-          return
+        // ── ADMIN LOGIN ────────────────────────────────────
+        if (email === 'admin@gmail.com') {
+          try {
+            const adminRes = await api.post(`/api/admin/login`, { email, password });
+            if (adminRes.data.success) {
+              localStorage.setItem('is_admin', 'true');
+              localStorage.setItem('admin_name', adminRes.data.admin?.name || 'Admin');
+              if (adminRes.data.token) localStorage.setItem('token', adminRes.data.token);
+              
+              toast.success('Welcome, Admin!', { theme: 'dark' });
+              setTimeout(() => {
+                window.location.href = '/admin/dashboard';
+              }, 1000);
+              return;
+            }
+          } catch (adminErr) {
+            // If it's not a valid admin, fall through to normal login
+            console.log("Not an admin or admin login failed, trying normal login...");
+          }
         }
+
         // ── NORMAL LOGIN ────────────────────────────────────
         const res = await api.post(`/api/login`, {
           email,
