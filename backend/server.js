@@ -163,6 +163,32 @@ app.get("/health", (req, res) => {
 /* =========================
    START SERVER
 ========================= */
+// ── DIAGNOSTIC ROUTE (HIDDEN) ──
+app.get("/api/debug-auth", async (req, res) => {
+  try {
+    const [[adminCount]] = await db.promise().query("SELECT COUNT(*) as count FROM admin_users");
+    const [[userCount]] = await db.promise().query("SELECT COUNT(*) as count FROM users");
+    const [adminCols] = await db.promise().query("DESCRIBE admin_users");
+    const [userCols] = await db.promise().query("DESCRIBE users");
+
+    res.json({
+      success: true,
+      tables: {
+        admin_users: { count: adminCount.count, columns: adminCols.map(c => c.Field) },
+        users: { count: userCount.count, columns: userCols.map(c => c.Field) }
+      },
+      env: {
+        NODE_ENV: process.env.NODE_ENV,
+        FRONTEND_URL: process.env.FRONTEND_URL ? "SET" : "MISSING",
+        GOOGLE_ID: process.env.GOOGLE_CLIENT_ID ? "SET" : "MISSING"
+      },
+      msg: "If YOU SEE THIS, THE NEW CODE IS RUNNING!"
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 
 const server = http.createServer(app);
