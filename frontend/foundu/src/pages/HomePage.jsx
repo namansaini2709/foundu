@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight } from 'lucide-react';
+import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight, Lightbulb, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
@@ -27,6 +30,12 @@ function HomePage() {
 
   // Fetch public stats and startup profiles
   useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+      easing: 'ease-out-back'
+    });
+
     fetch(`${API_BASE}/public-stats`)
       .then(res => res.json())
       .then(data => { if (data.success) setPublicStats(data.stats); })
@@ -62,8 +71,9 @@ function HomePage() {
       <Navbar />
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
+      <FoundUAIs />
       <UsersWeCater navigate={navigate} />
-      <StepsSection />
+      <CategorySteps />
       <NumbersSection publicStats={publicStats} />
       <TrustedBy startups={startups} />
       <Testimonials testimonialsList={testimonialsList} />
@@ -200,7 +210,7 @@ const TrustedBy = ({ startups }) => {
   return (
     <section
       className="py-20 px-4 overflow-hidden relative"
-      style={gradientBlueToBlack}
+      style={gradientBlackToBlue}
     >
       <h2 className="text-center text-4xl md:text-5xl font-bold mb-12 relative z-10">
         <span className="text-white">Trusted by </span>
@@ -350,7 +360,7 @@ const UsersWeCater = ({ navigate }) => {
   ];
 
   return (
-    <section className="py-20 md:py-32 px-4 relative" style={gradientBlackToBlue}>
+    <section className="py-20 md:py-32 px-4 relative" style={gradientBlueToBlack}>
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center mb-12 md:mb-20">
           <h2 className="text-center text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6">
@@ -362,9 +372,13 @@ const UsersWeCater = ({ navigate }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {userTypes.map((type, index) => (
-            <div
+            <motion.div
               key={index}
-              className={`group relative bg-gradient-to-b ${type.bgColor} backdrop-blur-xl border ${type.borderColor} ${type.hoverBorder} rounded-3xl p-6 md:p-10 h-full transition-all duration-500 hover:-translate-y-4 hover:shadow-2xl ${type.shadowColor} flex flex-col items-start`}
+              data-aos="fade-up"
+              data-aos-delay={index * 100}
+              whileHover={{ scale: 1.05, translateY: -10 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className={`group relative bg-gradient-to-b ${type.bgColor} backdrop-blur-xl border ${type.borderColor} ${type.hoverBorder} rounded-3xl p-6 md:p-10 h-full transition-all duration-500 hover:shadow-2xl ${type.shadowColor} flex flex-col items-start`}
             >
               <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${type.iconContainer} flex items-center justify-center mb-6 md:mb-8 border group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg`}>
                 {type.icon}
@@ -382,6 +396,100 @@ const UsersWeCater = ({ navigate }) => {
                 <span className="relative z-10">{type.buttonText}</span>
                 <Zap className="w-4 h-4 relative z-10 group-hover/btn:translate-x-1 transition-transform" />
               </button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Category Steps Section (Ladder Layout)
+const CategorySteps = () => {
+  const categories = [
+    {
+      type: "Freelancer",
+      description: "Your journey from expert to verified professional.",
+      alignment: "left",
+      steps: [
+        "Create your verified expert profile",
+        "Showcase best visual highlights in the feed",
+        "Earn credibility badges via successful jobs",
+        "Get AI-matched with top funded startups"
+      ]
+    },
+    {
+      type: "Co-founder",
+      description: "Partner with visionaries to build the next unicorn.",
+      alignment: "right",
+      steps: [
+        "Pitch your skills to the AI Genie",
+        "Discover startups looking for partners",
+        "Collaborate & validate idea-market fit",
+        "Secure equity & build your legacy"
+      ]
+    },
+    {
+      type: "Founder",
+      description: "Scale your startup with elite talent on demand.",
+      alignment: "left",
+      steps: [
+        "Draft JDs in seconds with Quick Hire AI",
+        "Browse AI-ranked talent and co-founders",
+        "Analyze credibility via verified badges",
+        "Hire, manage & scale your dream team"
+      ]
+    }
+  ];
+
+  return (
+    <section className="py-20 md:py-32 bg-[#020024] relative overflow-hidden" style={gradientBlackToBlue}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-28">
+          <h2 className="text-4xl md:text-7xl font-black text-white mb-6 uppercase tracking-tight">THE ROADMAP</h2>
+          <div className="h-1.5 w-24 bg-blue-500 mx-auto rounded-full mb-6"></div>
+          <p className="text-blue-400 font-bold uppercase tracking-[0.4em] text-xs">Clear steps for every role</p>
+        </div>
+
+        <div className="space-y-40 md:space-y-60">
+          {categories.map((cat, idx) => (
+            <div key={idx} className={`flex flex-col ${cat.alignment === 'left' ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-24 relative`}>
+              {/* Heading Side */}
+              <div
+                data-aos={cat.alignment === 'left' ? 'fade-right' : 'fade-left'}
+                className={`w-full md:w-1/2 ${cat.alignment === 'left' ? 'text-left' : 'text-right'}`}
+              >
+                <div className="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-6">
+                  Category Profile
+                </div>
+                <h3 className={`text-6xl md:text-9xl font-black text-white/5 mb-[-0.5em] uppercase leading-none select-none ${cat.alignment === 'left' ? 'text-left' : 'text-right'}`}>{cat.type}</h3>
+                <h4 className="text-3xl md:text-5xl font-black text-white mb-8 relative z-10">{cat.type} Journey</h4>
+                <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed">"{cat.description}"</p>
+              </div>
+
+              {/* Ladder Steps Side */}
+              <div className="w-full md:w-1/2 relative">
+                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/50 via-blue-500/20 to-transparent -translate-x-1/2 hidden md:block"></div>
+                <div className="space-y-8 relative z-10">
+                  {cat.steps.map((step, sIdx) => (
+                    <motion.div
+                      key={sIdx}
+                      initial={{ opacity: 0, x: cat.alignment === 'left' ? 50 : -50 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.5, delay: sIdx * 0.1 }}
+                      className={`flex items-center gap-6 group`}
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-white/10 flex items-center justify-center text-white/20 font-black text-2xl shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-500 transform group-hover:scale-110">
+                        {sIdx + 1}
+                      </div>
+                      <div className="bg-white/5 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-[2.5rem] w-full group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 hover:translate-x-4 shadow-xl">
+                        <p className="text-white font-bold text-base md:text-xl leading-relaxed">{step}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -390,77 +498,91 @@ const UsersWeCater = ({ navigate }) => {
   );
 };
 
-// Steps Section (Blue to Black)
-const StepsSection = () => {
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = [
+// FoundU AIs Section (Neon Theme)
+const FoundUAIs = () => {
+  const aiModels = [
     {
-      number: "01",
-      title: "Create Your Profile",
-      description: "Build your startup profile with details about your vision, needs, and goals. Our AI analyzes your requirements.",
+      title: "FoundU Genie",
+      subtitle: "The Master Matcher",
+      description: "Our core AI engine that powers the ecosystem. It analyzes credibility scores and badge verifications to find the perfect match for Founders, Co-founders, and Freelancers alike.",
+      icon: <Sparkles className="w-10 h-10 text-cyan-400" />,
+      glow: "shadow-cyan-500/20",
+      border: "border-cyan-500/30",
+      text: "text-cyan-400",
+      bg: "bg-cyan-500/10",
+      tags: ["Matching", "Verification", "Insights"]
     },
     {
-      number: "02",
-      title: "AI Matching",
-      description: "Get AI-powered recommendations for freelancers and co-founders that match your startup's unique needs.",
+      title: "Idea Lab",
+      subtitle: "Incubation on Autopilot",
+      description: "Pitch your raw startup concepts and watch our AI polish them into viable business models. Generates detailed roadmaps and milestones for Founders and Co-founders.",
+      icon: <Lightbulb className="w-10 h-10 text-pink-400" />,
+      glow: "shadow-pink-500/20",
+      border: "border-pink-500/30",
+      text: "text-pink-400",
+      bg: "bg-pink-500/10",
+      tags: ["Strategy", "Incubation", "Roadmaps"]
     },
     {
-      number: "03",
-      title: "Connect & Collaborate",
-      description: "Reach out to matched talent, discuss projects, and start building your dream team with confidence.",
-    },
-    {
-      number: "04",
-      title: "Scale Your Business",
-      description: "Grow your startup with the right team members. Track progress and expand your network seamlessly.",
-    },
+      title: "Quick Job Posting",
+      subtitle: "Hire in 60 Seconds",
+      description: "Just provide a budget and a one-liner about your needs. Our AI instantly drafts a professional JD and publishes it across the network. Built for rapid scaling.",
+      icon: <Zap className="w-10 h-10 text-lime-400" />,
+      glow: "shadow-lime-500/20",
+      border: "border-lime-500/30",
+      text: "text-lime-400",
+      bg: "bg-lime-500/10",
+      tags: ["JD Generation", "Fast Hire", "Efficiency"]
+    }
   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % steps.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [steps.length]);
-
   return (
-    <section className="py-20 md:py-32 px-4 relative" style={gradientBlueToBlack}>
-      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-12 md:mb-16">
-        <span className="text-white">STEPS TO </span>
-        <span className="text-blue-300">USE THE APP</span>
-      </h2>
-      <div className="max-w-7xl mx-auto">
-        <div className="relative mb-12">
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gray-700/50 z-0" />
-          <div
-            className="hidden lg:block absolute top-1/2 left-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 z-10 transition-all duration-1000"
-            style={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
-          />
+    <section className="py-20 md:py-32 px-4 relative bg-[#020024] overflow-hidden" style={gradientBlackToBlue}>
+      <div className="absolute top-1/2 left-0 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-8xl font-black mb-6 uppercase tracking-tighter">
+            <span className="text-white">POWERED BY </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-lime-400 animate-gradient">FOUNDU AI</span>
+          </h2>
+          <p className="text-gray-400 text-lg md:text-2xl font-light max-w-3xl mx-auto italic">
+            "Leveraging world-class artificial intelligence to bridge the gap between vision and execution."
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className={`relative z-20 transition-all duration-500 ${index <= activeStep ? "scale-105" : "scale-100 opacity-60"}`}
-              onMouseEnter={() => setActiveStep(index)}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {aiModels.map((ai, idx) => (
+            <motion.div
+              key={idx}
+              data-aos="zoom-in-up"
+              data-aos-delay={idx * 150}
+              whileHover={{ scale: 1.05, translateY: -10 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="group relative h-full"
             >
-              <div
-                className={`bg-gray-800/40 backdrop-blur-sm border-2 rounded-xl p-6 h-full transition-all duration-300 ${index <= activeStep ? "border-blue-400 shadow-lg shadow-blue-400/50" : "border-gray-700"}`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className={`text-2xl font-bold ${index <= activeStep ? "text-blue-300" : "text-gray-500"}`}>{step.number}</span>
-                  {index <= activeStep && (
-                    <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
+              <div className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}></div>
+              <div className="relative h-full bg-gray-950/40 backdrop-blur-3xl border border-white/5 p-12 rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+                <div className={`w-24 h-24 rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}>
+                  {ai.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-gray-300 text-sm">{step.description}</p>
+                <div className="mb-6">
+                  <h3 className="text-3xl font-black text-white mb-2">{ai.title}</h3>
+                  <p className={`text-[11px] font-black uppercase tracking-[0.4em] ${ai.text}`}>{ai.subtitle}</p>
+                </div>
+                <p className="text-gray-400 text-lg leading-relaxed mb-10 flex-grow font-medium">
+                  {ai.description}
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center pt-6 border-t border-white/5 w-full">
+                  {ai.tags.map(tag => (
+                    <span key={tag} className="text-[10px] font-bold uppercase px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-500">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -477,15 +599,15 @@ const WhatIsFoundu = ({ navigate }) => (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="hidden lg:block">
           {/* <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-blue-700/30 shadow-2xl relative overflow-hidden group"> */}
-            <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-hover:bg-blue-500/10 transition-all duration-700"></div>
-            <div className="w-full h-[450px] relative z-10 flex items-center justify-center">
-              <DotLottieReact
-                src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
-                loop
-                autoplay
-                className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
+          <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-hover:bg-blue-500/10 transition-all duration-700"></div>
+          <div className="w-full h-[450px] relative z-10 flex items-center justify-center">
+            <DotLottieReact
+              src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
+              loop
+              autoplay
+              className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
+            />
+          </div>
           {/* </div> */}
         </div>
         <div className="relative">
@@ -525,7 +647,7 @@ const NumbersSection = ({ publicStats }) => {
   ];
 
   return (
-    <section className="py-20 md:py-32 px-4 relative" style={gradientBlackToBlue}>
+    <section className="py-20 md:py-32 px-4 relative" style={gradientBlueToBlack}>
       <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
         <span className="text-white">OUR </span>
         <span className="text-blue-300">ACHIEVEMENT</span>
@@ -562,7 +684,7 @@ const Testimonials = ({ testimonialsList }) => {
   const displayList = testimonialsList && testimonialsList.length > 0 ? testimonialsList : staticTestimonials;
 
   return (
-    <section className="py-20 md:py-32 px-4 overflow-hidden relative" style={gradientBlackToBlue}>
+    <section className="py-20 md:py-32 px-4 overflow-hidden relative" style={gradientBlueToBlack}>
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
           <span className="text-white">What our </span>

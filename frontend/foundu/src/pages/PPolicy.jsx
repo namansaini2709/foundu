@@ -1,5 +1,6 @@
 import React from 'react'
 import Footer from '../components/Footer'
+import Navbar from "../components/Navbar";
 import { Shield, Lock, Eye, Database, Globe, UserCheck, Mail, CheckCircle, ShieldAlert, Cpu, Briefcase, Info, Clock } from 'lucide-react'
 
 const gradientBlackToBlue = {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const ConsentBanner = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -33,9 +34,9 @@ const ConsentBanner = () => {
                 <div className="relative z-10">
                     <p className="text-gray-200 text-sm leading-relaxed mb-8 font-medium">
                         We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-                        <a href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 ml-1 underline underline-offset-4 decoration-cyan-400/30">
+                        <Link to="/cookie-policy" className="text-cyan-400 hover:text-cyan-300 ml-1 underline underline-offset-4 decoration-cyan-400/30">
                             Learn more
-                        </a>
+                        </Link>
                     </p>
 
                     <div className="flex items-center gap-4 mt-2">

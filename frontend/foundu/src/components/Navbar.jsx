@@ -14,7 +14,7 @@ const defaultNavLinks = [
   { label: "Hire Freelancer", to: "/freelancer-jobs" },
   { label: "Find Best Match", to: "/signup" },
   { label: "For Startups", to: "/startup-services" },
-  { label: "About Us", to: "/" },
+  { label: "About Us", to: "/about-details" },
 ];
 
 // Links based on user type
@@ -68,7 +68,7 @@ function Navbar() {
 
           // Get initial unread count
           const notifRes = await axios.get(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/notifications`, { withCredentials: true });
-          if(notifRes.data.success) {
+          if (notifRes.data.success) {
             setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
           }
         } catch (error) {
@@ -282,7 +282,7 @@ function Navbar() {
     >
       <div
         className={`transition-all duration-300 ${scrolled
-          ? "bg-black/30 backdrop-blur-md border-b border-blue-700/30 shadow-lg"
+          ? "bg-[#020024]/80 backdrop-blur-md border-b border-blue-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
           : "bg-transparent border-transparent"
           }`}
       >
@@ -306,7 +306,7 @@ function Navbar() {
               </Link>
             ))}
           </div>
-                
+
           {/* User profile or login buttons */}
           <div className="flex items-center gap-4">
             {(isLoggedIn() || user) && (
