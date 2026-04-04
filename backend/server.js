@@ -1,12 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const dotenv = require("dotenv");
 const path = require("path");
 const db = require("./config/db");
-
-dotenv.config();
 
 const http = require("http");
 const { Server } = require("socket.io");

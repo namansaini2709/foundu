@@ -34,6 +34,13 @@ exports.adminLogin = async (req, res) => {
       [email]
     );
 
+    console.log("[DEBUG] Admin Login Attempt:", email);
+    if (rows.length > 0) {
+      console.log("[DEBUG] Admin Found. Available Columns:", Object.keys(rows[0]));
+    } else {
+      console.log("[DEBUG] Admin NOT Found in DB.");
+    }
+
     if (!rows.length) {
       return res.status(401).json({ message: "Invalid credentials" });
     }

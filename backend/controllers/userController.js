@@ -147,6 +147,13 @@ exports.login = async (req, res) => {
       .promise()
       .query("SELECT * FROM users WHERE email = ?", [email]);
 
+    console.log("[DEBUG] User Login Attempt:", email);
+    if (rows.length > 0) {
+      console.log("[DEBUG] User Found. Available Columns:", Object.keys(rows[0]));
+    } else {
+      console.log("[DEBUG] User NOT Found in DB.");
+    }
+
     if (!rows.length) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -315,7 +322,7 @@ exports.forgotPassword = async (req, res) => {
     if (!rows.length) {
       return res
         .status(404)
-        .json({ message: "User with this email does not exist" });
+        .json({ message: "No user found with this email" });
     }
 
     const token = generateToken();
