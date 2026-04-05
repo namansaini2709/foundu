@@ -26,6 +26,8 @@ const generateWithFallback = async (prompt) => {
   throw lastError;
 };
 
+exports.generateWithFallback = generateWithFallback;
+
 /**
  * Robust JSON extraction and parsing.
  * Gemini sometimes wraps JSON in markdown blocks or adds extra text.
@@ -51,6 +53,8 @@ const extractAndParseJSON = (text) => {
     throw error;
   }
 };
+
+exports.extractAndParseJSON = extractAndParseJSON;
 
 /**
  * Analyzes review sentiment and quality to help determine credibility.

@@ -111,6 +111,7 @@ const testimonialRoutes = require("./routes/testimonialRoutes");
 const postRoutes = require("./routes/postRoutes");
 const testEmailRoutes = require("./routes/testEmailRoutes");
 const authRoutes = require("./routes/authRoutes");
+const aiMatchRoutes = require("./routes/aiMatchRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -145,6 +146,7 @@ app.use("/api", jobApplicantsRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/ai", aiMatchRoutes);
 app.use("/api", ideaRoutes);
 app.use("/api", notificationRoutes);
 app.use("/api", testimonialRoutes);
