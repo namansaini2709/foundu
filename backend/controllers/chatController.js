@@ -36,7 +36,7 @@ exports.getMyChats = (req, res) => {
   });
 };
 
-// Get messages for a specific chat
+// Get messages for a specific chats
 exports.getMessages = (req, res) => {
   const userId = req.user?.id || req.session?.user?.id || null;
   const chatId = req.params.chatId;
@@ -65,9 +65,9 @@ exports.getMessages = (req, res) => {
         (err, messages) => {
           if (err) return res.status(500).json({ error: err.message });
           res.json(messages);
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -83,7 +83,8 @@ exports.sendMessage = (req, res) => {
     "SELECT * FROM chat_participants WHERE chat_id = ? AND user_id = ?",
     [chatId, senderId],
     (err, results) => {
-      if (err || results.length === 0) return res.status(403).json({ message: "Access denied" });
+      if (err || results.length === 0)
+        return res.status(403).json({ message: "Access denied" });
 
       db.query(
         "INSERT INTO messages (chat_id, sender_id, content) VALUES (?, ?, ?)",
@@ -92,12 +93,15 @@ exports.sendMessage = (req, res) => {
           if (err) return res.status(500).json({ error: err.message });
 
           // Update chat timestamp
-          db.query("UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [chatId]);
+          db.query(
+            "UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [chatId],
+          );
 
           res.json({ success: true, messageId: result.insertId });
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -108,8 +112,10 @@ exports.createChat = (req, res) => {
 
   console.log(`[CHAT CREATE] myId=${myId}, otherUserId=${otherUserId}`);
 
-  if (!myId) return res.status(401).json({ message: "Unauthorized - no user ID found" });
-  if (!otherUserId) return res.status(400).json({ message: "otherUserId is required" });
+  if (!myId)
+    return res.status(401).json({ message: "Unauthorized - no user ID found" });
+  if (!otherUserId)
+    return res.status(400).json({ message: "otherUserId is required" });
 
   // Check if chat already exists
   // A bit complex in SQL: Find a chat_id where both users are participants
@@ -138,12 +144,16 @@ exports.createChat = (req, res) => {
       // Add participants
       const values = [
         [newChatId, myId],
-        [newChatId, otherUserId]
+        [newChatId, otherUserId],
       ];
-      db.query("INSERT INTO chat_participants (chat_id, user_id) VALUES ?", [values], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ chatId: newChatId, alreadyExists: false });
-      });
+      db.query(
+        "INSERT INTO chat_participants (chat_id, user_id) VALUES ?",
+        [values],
+        (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ chatId: newChatId, alreadyExists: false });
+        },
+      );
     });
   });
 };

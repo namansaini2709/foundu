@@ -546,13 +546,6 @@ function Navbar() {
                 >
                   Log in
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/signup")}
-                  className="hidden sm:inline-flex bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-lg"
-                >
-                  Get started
-                </button>
               </>
             )}
 
@@ -705,13 +698,6 @@ function Navbar() {
                     className="flex-1 bg-transparent border border-blue-400 text-blue-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600/20 transition-all duration-300"
                   >
                     Log in
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/signup")}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-lg"
-                  >
-                    Get started
                   </button>
                 </div>
               )}

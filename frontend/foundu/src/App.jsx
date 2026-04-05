@@ -19,7 +19,6 @@ import FreelancerJobDetail from "./pages/FreelancerJobDetail";
 import CoFounderJobs from "./pages/CoFounderJobs";
 import CoFounderJobDetail from "./pages/CoFounderJobDetail";
 import CoFounderDashboard from "./pages/CoFounderDashboard";
-import UserTypeSelection from "./pages/UserTypeSelection";
 import LoginSignup from "./pages/LoginSignup";
 import FreelancerJobs from "./pages/FreelancerJobs";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
@@ -139,7 +138,6 @@ function App() {
         <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
         <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
         <Route path="/cofounder-dashboard" element={<CoFounderDashboard />} />
-        <Route path="/signup" element={<UserTypeSelection />} />
         <Route path="/login-signup" element={<LoginSignup />} />
         <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
         <Route path="/job-description" element={<FreelancerJobDetail />} />

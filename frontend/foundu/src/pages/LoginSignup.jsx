@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ChevronDown } from 'lucide-react'
 import Footer from '../components/Footer'
 import api from '../utils/axiosConfig'
 import { ToastContainer, toast } from 'react-toastify'
@@ -12,7 +12,7 @@ const gradientBlackToBlue = {
 function LoginSignup() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const userType = searchParams.get('type') || 'freelancer'
+  const [userType, setUserType] = useState(searchParams.get('type') || 'freelancer')
   const authStatus = searchParams.get('auth')
   const [isLogin, setIsLogin] = useState(true)
 
@@ -359,6 +359,25 @@ function LoginSignup() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                           />
+                        </div>
+                      </div>
+                    )}
+                    {!isLogin && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
+                          I am a...
+                        </label>
+                        <div className="relative group">
+                          <select
+                            value={userType}
+                            onChange={(e) => setUserType(e.target.value)}
+                            className="w-full px-4 py-3.5 rounded-xl bg-[#1A1F2C] border border-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium appearance-none cursor-pointer"
+                          >
+                            <option value="freelancer">Freelancer - Looking for exciting projects</option>
+                            <option value="founder">Startup / Founder - Looking for talent</option>
+                            <option value="cofounder">Co-founder - Looking for a business partner</option>
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none w-5 h-5 group-hover:text-blue-400 transition-colors" />
                         </div>
                       </div>
                     )}
