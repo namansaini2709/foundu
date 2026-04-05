@@ -1,9 +1,5 @@
 import { Link } from "react-router-dom";
-
-const gradientBlueToBlack = {
-  background:
-    "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
-};
+import logo from "../assets/whitelogo.png";
 
 const socialLinks = [
   {
@@ -33,8 +29,8 @@ const footerLinks = [
   {
     title: "Contact Us",
     items: [
-      { label: "foundu@example.com", href: "mailto:foundu@example.com" },
-      { label: "+1 (555) 123-4567", href: "tel:+15551234567" },
+      { label: "info@foundu.in", href: "mailto:info@foundu.in" },
+      // { label: "+1 (555) 123-4567", href: "tel:+15551234567" },
       { label: "Direct Contact", to: "/contact-us" },
     ],
   },
@@ -63,21 +59,20 @@ function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative py-16 px-4" style={gradientBlueToBlack}>
+    <footer className="relative py-16 px-4 bg-gradient-to-b from-[#020024] to-[#000]">
       <div className="max-w-7xl mx-auto">
         <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-12 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="md:col-span-1">
-              <div className="flex items-center mb-4">
-                <span className="text-3xl font-bold text-white">F</span>
-                <span className="text-white text-2xl font-bold ml-2">OUNDU</span>
+            <div className="md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start mb-2 overflow-hidden h-16 md:h-20 w-full">
+                <img src={logo} alt="FoundU Logo" className="h-32 md:h-40 w-auto object-contain scale-110" />
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed mb-4">
+              <p className="text-gray-300 text-sm leading-relaxed mb-4 font-light">
                 The central platform for startups to discover, connect, and
                 collaborate with skilled freelancers and co-founders. AI-powered
                 matching, instant connections.
               </p>
-              <div className="flex gap-4">
+              <div className="flex gap-4 justify-center md:justify-start">
                 {socialLinks.map((social) => (
                   <a
                     key={social.label}
@@ -124,11 +119,11 @@ function Footer() {
           </div>
         </div>
 
-        <div className="text-center">
-          <div className="text-6xl md:text-8xl font-bold text-white/10 mb-6">
+        <div className="text-center relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl md:text-[15rem] font-black text-white/5 select-none pointer-events-none uppercase tracking-tighter leading-none w-full text-center">
             FOUNDU
           </div>
-          <div className="flex justify-center gap-8 mb-6">
+          <div className="flex flex-wrap justify-center gap-8 mb-6 relative z-10">
             <Link
               to="/privacy-policy"
               className="text-white/60 hover:text-white transition-colors text-sm"
@@ -148,7 +143,7 @@ function Footer() {
               Cookie Policy
             </Link>
           </div>
-          <div className="text-white/60 text-sm">
+          <div className="text-white/60 text-sm relative z-10">
             © {currentYear} Foundu, All rights reserved.
           </div>
         </div>

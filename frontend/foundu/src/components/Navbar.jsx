@@ -6,16 +6,14 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
 import { getUserId, getUserType, logout } from "../utils/authUtils";
-import logo from "../assets/whitelogo.png"
-
-
+import logo from "../assets/whitelogo.png";
 
 // Default links for non-logged-in users
 const defaultNavLinks = [
   { label: "Hire Freelancer", to: "/freelancer-jobs" },
   { label: "Find Best Match", to: "/signup" },
   { label: "For Startups", to: "/startup-services" },
-  { label: "About Us", to: "/" },
+  { label: "About Us", to: "/about-details" },
 ];
 
 // Links based on user type
@@ -54,8 +52,9 @@ function Navbar() {
 
   // Fetch user data if logged in
   useEffect(() => {
-    const isPending = localStorage.getItem("auth_sync_pending") === "true" || 
-                     sessionStorage.getItem("auth_sync_pending") === "true";
+    const isPending =
+      localStorage.getItem("auth_sync_pending") === "true" ||
+      sessionStorage.getItem("auth_sync_pending") === "true";
 
     const fetchUserProfile = async () => {
       try {
@@ -63,7 +62,7 @@ function Navbar() {
         const isUserAdmin = String(localStorage.getItem("is_admin")) === "true";
         if (isUserAdmin) {
           const adminName = localStorage.getItem("admin_name") || "Admin";
-          setUser({ full_name: adminName, isAdmin: true, user_type: 'admin' });
+          setUser({ full_name: adminName, isAdmin: true, user_type: "admin" });
           setLoading(false);
           return;
         }
@@ -79,7 +78,7 @@ function Navbar() {
               const u = meRes.data.data;
               userId = String(u.id);
               setUser(u);
-              
+
               localStorage.setItem("user_id", userId);
               localStorage.setItem("user_type", u.user_type);
               if (u.full_name) localStorage.setItem("user_name", u.full_name);
@@ -92,7 +91,7 @@ function Navbar() {
         if (isPending) {
           localStorage.removeItem("auth_sync_pending");
           sessionStorage.removeItem("auth_sync_pending");
-          window.dispatchEvent(new Event('auth-change'));
+          window.dispatchEvent(new Event("auth-change"));
         }
 
         if (!userId) {
@@ -108,7 +107,9 @@ function Navbar() {
         // If we don't have user data yet (got userId from localStorage), fetch it
         if (!user) {
           const response = await api.get(`/api/users/${userId}`);
-          const userData = response.data.success ? response.data.data : response.data;
+          const userData = response.data.success
+            ? response.data.data
+            : response.data;
           setUser(userData);
         }
 
@@ -119,7 +120,7 @@ function Navbar() {
         // Get initial unread count
         const notifRes = await api.get(`/api/notifications`);
         if (notifRes.data.success) {
-          setUnreadCount(notifRes.data.data.filter(n => !n.is_read).length);
+          setUnreadCount(notifRes.data.data.filter((n) => !n.is_read).length);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -167,13 +168,13 @@ function Navbar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isProfileOpen && !event.target.closest('.profile-dropdown')) {
+      if (isProfileOpen && !event.target.closest(".profile-dropdown")) {
         setIsProfileOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isProfileOpen]);
 
   const handleLogout = async () => {
@@ -216,7 +217,9 @@ function Navbar() {
       }, 1500);
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Failed to delete account. Please try again.", { theme: "dark" });
+      toast.error("Failed to delete account. Please try again.", {
+        theme: "dark",
+      });
     }
   };
 
@@ -262,9 +265,15 @@ function Navbar() {
   const handleProfileNavigation = () => {
     const route = getProfileRoute();
     const userType = getUserType();
-    const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+    const userTypeDisplay =
+      userType === "founder"
+        ? "Startup"
+        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
 
-    toast.info(`Redirecting to ${userTypeDisplay} Profile...`, { theme: "dark", autoClose: 1000 });
+    toast.info(`Redirecting to ${userTypeDisplay} Profile...`, {
+      theme: "dark",
+      autoClose: 1000,
+    });
     setTimeout(() => {
       navigate(route);
     }, 1000);
@@ -273,9 +282,15 @@ function Navbar() {
   const handleDashboardNavigation = () => {
     const route = getDashboardRoute();
     const userType = getUserType();
-    const userTypeDisplay = userType === "founder" ? "Startup" : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+    const userTypeDisplay =
+      userType === "founder"
+        ? "Startup"
+        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
 
-    toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, { theme: "dark", autoClose: 1000 });
+    toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, {
+      theme: "dark",
+      autoClose: 1000,
+    });
     setTimeout(() => {
       navigate(route);
     }, 1000);
@@ -294,9 +309,7 @@ function Navbar() {
 
   if (loading) {
     return (
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      >
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         <div className="transition-all duration-300 bg-transparent border-transparent">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="h-8 animate-pulse bg-blue-500/20 rounded"></div>
@@ -309,18 +322,21 @@ function Navbar() {
   const navLinks = getNavLinks();
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div
-        className={`transition-all duration-300 ${scrolled
-          ? "bg-black/30 backdrop-blur-md border-b border-blue-700/30 shadow-lg"
-          : "bg-transparent border-transparent"
-          }`}
+        className={`transition-all duration-300 ${
+          scrolled
+            ? "bg-[#020024]/80 backdrop-blur-md border-b border-blue-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
+            : "bg-transparent border-transparent"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="logo" className="h-16 md:h-20 w-auto object-contain" />
+            <img
+              src={logo}
+              alt="logo"
+              className="h-16 md:h-20 w-auto object-contain"
+            />
           </Link>
 
           {/* Navigation links shifted to the right */}
@@ -329,16 +345,17 @@ function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-medium transition-colors ${location.pathname === link.to
-                  ? "text-blue-300"
-                  : "text-white hover:text-blue-300"
-                  }`}
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === link.to
+                    ? "text-blue-300"
+                    : "text-white hover:text-blue-300"
+                }`}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-                
+
           {/* User profile or login buttons */}
           <div className="flex items-center gap-4">
             {(isLoggedIn() || user) && (
@@ -349,7 +366,7 @@ function Navbar() {
                 <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </Link>
@@ -365,7 +382,7 @@ function Navbar() {
               </Link>
             )}
 
-            {(isLoggedIn() || user) ? (
+            {isLoggedIn() || user ? (
               // Logged in user - show profile dropdown
               <div className="relative profile-dropdown">
                 <button
@@ -390,8 +407,9 @@ function Navbar() {
                     {getUserDisplayName()}
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${isProfileOpen ? "rotate-180" : ""
-                      }`}
+                    className={`w-4 h-4 transition-transform ${
+                      isProfileOpen ? "rotate-180" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -579,16 +597,17 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-sm font-medium ${location.pathname === link.to
-                    ? "text-blue-300"
-                    : "text-white"
-                    }`}
+                  className={`text-sm font-medium ${
+                    location.pathname === link.to
+                      ? "text-blue-300"
+                      : "text-white"
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
 
-              {(isLoggedIn() || user) ? (
+              {isLoggedIn() || user ? (
                 // Mobile - Logged in user menu
                 <>
                   <div className="border-t border-blue-700/30 pt-3 mt-2">
@@ -728,7 +747,8 @@ function Navbar() {
             </h3>
 
             <p className="text-gray-300 text-center mb-6">
-              Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
+              Are you sure you want to delete your account? This action cannot
+              be undone and all your data will be permanently removed.
             </p>
 
             <div className="flex gap-4">

@@ -160,7 +160,7 @@ const ContactUs = () => {
                                             </div>
                                             <div>
                                                 <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">Email Us</p>
-                                                <p className="text-white font-medium">support@foundu.ai</p>
+                                                <p className="text-white font-medium">info@foundu.in</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4 bg-gray-800/30 p-4 rounded-2xl border border-white/5 hover:border-blue-300/30 transition-all">
@@ -169,7 +169,7 @@ const ContactUs = () => {
                                             </div>
                                             <div>
                                                 <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">Call Us</p>
-                                                <p className="text-white font-medium">+1 (555) FOUNDU</p>
+                                                <p className="text-white font-medium">+91 9311293521</p>
                                             </div>
                                         </div>
                                     </div>
