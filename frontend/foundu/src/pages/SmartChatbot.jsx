@@ -429,7 +429,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   const shouldHide = hiddenPaths.some(
     (p) => location.pathname === p || location.pathname.startsWith("/login-signup")
   );
-  if (shouldHide) return null;
+
 
   const flow = FLOWS[userRole] || FLOWS.founder;
   /* ── Auto-scroll to bottom on new messages ──────────────── */
@@ -645,7 +645,10 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   /* ================================================================
      RENDER
      ================================================================ */
+  if (shouldHide) return null;
+
   return (
+
     <>
       {/* Floating trigger button */}
       <button

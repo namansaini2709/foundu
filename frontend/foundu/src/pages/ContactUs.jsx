@@ -18,7 +18,18 @@ const ContactUs = () => {
         message: ''
     });
 
+    const [renderLottie, setRenderLottie] = useState(false);
+
+    React.useEffect(() => {
+        // SAFETY DELAY: Prevent WASM engine from starting during rapid navigation.
+        const timer = setTimeout(() => {
+            setRenderLottie(true);
+        }, 800);
+        return () => clearTimeout(timer);
+    }, []);
+
     const handleChange = (e) => {
+
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
@@ -147,12 +158,24 @@ const ContactUs = () => {
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/20 rounded-full blur-[80px] group-hover:bg-blue-500/30 transition-all duration-700"></div>
 
                                 <div className="w-full h-full max-w-md relative z-10 flex flex-col items-center justify-center">
-                                    <DotLottieReact
-                                        src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
-                                        loop
-                                        autoplay
-                                        className="w-full h-full object-contain transform hover:scale-105 transition-transform duration-700"
-                                    />
+                                    {renderLottie ? (
+                                        <DotLottieReact
+                                            key="contact-animation"
+                                            src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
+                                            loop
+                                            autoplay
+                                            className="w-full h-full object-contain transform hover:scale-105 transition-transform duration-700"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center space-y-4 animate-pulse">
+                                            <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
+                                                <MessageSquare className="w-10 h-10 text-blue-400 opacity-50" />
+                                            </div>
+                                            <p className="text-blue-400/50 font-bold uppercase tracking-widest text-[10px]">Preparing Scene...</p>
+                                        </div>
+                                    )}
+
+
                                     <div className="mt-8 space-y-4 w-full">
                                         <div className="flex items-center gap-4 bg-gray-800/30 p-4 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all">
                                             <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">

@@ -5,7 +5,6 @@ import { Rocket, Search, Users, Handshake, Sparkles, Target, Zap, ArrowRight, Li
 import { motion } from 'framer-motion';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 // Gradient styles - alternating
@@ -28,13 +27,21 @@ function HomePage() {
   const [startups, setStartups] = useState([]);
   const [testimonialsList, setTestimonialsList] = useState([]);
 
-  // Fetch public stats and startup profiles
+  const [renderLottie, setRenderLottie] = useState(false);
+
+  // Sync state and AOS
   useEffect(() => {
     AOS.init({
       duration: 1000,
       once: true,
       easing: 'ease-out-back'
     });
+
+    // SAFETY DELAY: Only start the heavy WASM animation engine after the page is stable.
+    // This prevents the "borrowed Rust value" and "unreachable" crashes during rapid navigation.
+    const lottieTimeout = setTimeout(() => {
+      setRenderLottie(true);
+    }, 800);
 
     fetch(`${API_BASE}/public-stats`)
       .then(res => res.json())
@@ -54,7 +61,12 @@ function HomePage() {
         }
       })
       .catch(err => console.error("Testimonials fetch error:", err));
+
+    return () => {
+      clearTimeout(lottieTimeout);
+    };
   }, []);
+
 
   // Navbar scroll detection
   useEffect(() => {
@@ -68,9 +80,9 @@ function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <Hero navigate={navigate} />
-      <WhatIsFoundu navigate={navigate} />
+
+      <WhatIsFoundu navigate={navigate} renderLottie={renderLottie} />
       <FoundUAIs />
       <UsersWeCater navigate={navigate} />
       <CategorySteps />
@@ -591,7 +603,7 @@ const FoundUAIs = () => {
 };
 
 // What is Foundu Section
-const WhatIsFoundu = ({ navigate }) => (
+const WhatIsFoundu = ({ navigate, renderLottie }) => (
   <section className="py-32 px-4 relative min-h-screen flex items-center overflow-hidden" style={gradientBlueToBlack}>
     <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
     <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -601,13 +613,25 @@ const WhatIsFoundu = ({ navigate }) => (
           {/* <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-blue-700/30 shadow-2xl relative overflow-hidden group"> */}
           <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-hover:bg-blue-500/10 transition-all duration-700"></div>
           <div className="w-full h-[450px] relative z-10 flex items-center justify-center">
-            <DotLottieReact
-              src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
-              loop
-              autoplay
-              className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
-            />
+            {renderLottie ? (
+              <DotLottieReact
+                key="hero-animation"
+                src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
+                loop
+                autoplay
+                className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center space-y-4 animate-pulse">
+                <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
+                  <Rocket className="w-12 h-12 text-blue-400 opacity-50" />
+                </div>
+                <p className="text-blue-400/50 font-bold uppercase tracking-widest text-xs">FoundU AI Initiating...</p>
+              </div>
+            )}
           </div>
+
+
           {/* </div> */}
         </div>
         <div className="relative">

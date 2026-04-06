@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
@@ -57,20 +57,21 @@ const StartupProfile = () => {
     dashboards: [],
     currentTools: "",
   });
+
+  const hasFetched = useRef(false);
+
   // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
     if (!userId) {
-      if (localStorage.getItem("auth_sync_pending") === "true") {
-        console.log("[Auth] Sync pending, skipping 'Not logged in' toast.");
-        return;
-      }
-      toast.error("User not logged in");
       navigate("/login-signup");
       return;
     }
-    fetchUserData(userId);
-    fetchProfile(userId);
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchUserData(userId);
+      fetchProfile(userId);
+    }
   }, [navigate]);
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {

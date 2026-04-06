@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
+import { getUserId, getUserType } from "../utils/authUtils";
 import {
   X,
   Briefcase,

@@ -119,7 +119,7 @@ function Navbar() {
 
         // Get initial unread count
         const notifRes = await api.get(`/api/notifications`);
-        if (notifRes.data.success) {
+        if (notifRes.data.success && Array.isArray(notifRes.data.data)) {
           setUnreadCount(notifRes.data.data.filter((n) => !n.is_read).length);
         }
       } catch (error) {
@@ -129,6 +129,7 @@ function Navbar() {
           setUser(null);
         }
       }
+
       setLoading(false);
     };
 
@@ -256,9 +257,10 @@ function Navbar() {
   };
 
   const getUserDisplayName = () => {
-    if (!user) return "";
+    if (!user) return "User";
     return user.full_name || user.name || user.email || "User";
   };
+
 
   const isLoggedIn = () => !!getUserId();
 
@@ -268,12 +270,13 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
 
     toast.info(`Redirecting to ${userTypeDisplay} Profile...`, {
       theme: "dark",
       autoClose: 1000,
     });
+
     setTimeout(() => {
       navigate(route);
     }, 1000);
@@ -285,12 +288,13 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
 
     toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, {
       theme: "dark",
       autoClose: 1000,
     });
+
     setTimeout(() => {
       navigate(route);
     }, 1000);

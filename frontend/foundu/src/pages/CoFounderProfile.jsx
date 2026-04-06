@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
@@ -65,6 +65,9 @@ const CoFounderProfile = () => {
     equityMinimum: "",
     vibeKeywords: "",
   });
+
+  const hasFetched = useRef(false);
+
   // Get user data and fetch existing profile
   useEffect(() => {
     const userId = getUserId();
@@ -77,10 +80,14 @@ const CoFounderProfile = () => {
       navigate("/login-signup");
       return;
     }
-    fetchUserData(userId);
-    fetchProfile(userId);
-    fetchReviews(userId);
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchUserData(userId);
+      fetchProfile(userId);
+      fetchReviews(userId);
+    }
   }, [navigate]);
+
   const fetchReviews = async (userId) => {
     try {
       const res = await api.get(`/api/reviews/user/${userId}`);
