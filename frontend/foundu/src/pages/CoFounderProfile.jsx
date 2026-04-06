@@ -114,6 +114,19 @@ const CoFounderProfile = () => {
         `/api/cofounder-profiles/user/${userId}`
       );
       const profile = response.data;
+      // Helper to parse JSON safely
+      const safeParse = (data) => {
+        if (!data) return [];
+        if (typeof data === 'string') {
+          try {
+            return JSON.parse(data);
+          } catch (e) {
+            return [];
+          }
+        }
+        return Array.isArray(data) ? data : [];
+      };
+
       // Map database fields to form fields
       setFormData({
         fullLegalName: profile.full_legal_name || "",
@@ -148,10 +161,11 @@ const CoFounderProfile = () => {
         redLine: profile.red_line || "",
         diversityOfThought: profile.diversity_of_thought || "",
         missingHalfProfile: profile.missing_half_profile || "",
-        industrySpecificity: profile.industry_specificity || [],
+        industrySpecificity: safeParse(profile.industry_specificity),
         equityMinimum: profile.equity_minimum || "",
         vibeKeywords: profile.vibe_keywords || "",
       });
+
       setProfileData(profile);
       toast.success("Profile loaded successfully");
     } catch (err) {

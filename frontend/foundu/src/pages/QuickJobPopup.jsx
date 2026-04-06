@@ -181,6 +181,8 @@ const QuickJobPopup = ({ userId }) => {
                 domain: previewData.common.domain,
                 role_category: previewData.common.roleCategories.join(", "),
                 work_type: previewData.freelancer.workType,
+                duration: previewData.freelancer.duration,
+                budget_range: previewData.freelancer.budget,
                 urgency: previewData.freelancer.urgency,
                 job_requirements: previewData.freelancer.requirements,
                 job_title: previewData.freelancer.jobTitle,

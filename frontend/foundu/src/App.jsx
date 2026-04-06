@@ -111,8 +111,22 @@ function App() {
 
   const { userId, userRole, isLoggedIn, isSyncing } = authState;
 
+  if (isSyncing) {
+    return (
+      <div className="min-h-screen bg-[#020024] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="text-blue-400 font-bold tracking-[0.2em] text-xs uppercase animate-pulse">
+            Synchronizing Auth State...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Router>
+
       <ScrollToTop />
       <NavbarWrapper />
 

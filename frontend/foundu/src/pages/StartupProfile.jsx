@@ -94,7 +94,20 @@ const StartupProfile = () => {
         `/api/startup-profiles/user/${userId}`
       );
       const profile = response.data;
-      // Map database fields to form fields
+      // Helper to parse JSON safely
+      const safeParse = (data) => {
+        if (!data) return [];
+        if (typeof data === "string") {
+          try {
+            return JSON.parse(data);
+          } catch (e) {
+            return [];
+          }
+        }
+        return Array.isArray(data) ? data : [];
+      };
+
+      // Map database fields to form state
       setFormData({
         startupName: profile.startup_name || "",
         startupLogo: profile.startup_logo_url || null,
@@ -102,13 +115,9 @@ const StartupProfile = () => {
         whyBuilding: profile.why_building || "",
         superpower: profile.superpower || "",
         superpowerOther: profile.superpower_other || "",
-        weaknesses: Array.isArray(profile.weaknesses) 
-          ? profile.weaknesses 
-          : (profile.weaknesses ? JSON.parse(profile.weaknesses) : []),
+        weaknesses: safeParse(profile.weaknesses),
         hoursPerWeek: profile.hours_per_week || "",
-        cofounderType: Array.isArray(profile.cofounder_type)
-          ? profile.cofounder_type
-          : (profile.cofounder_type ? JSON.parse(profile.cofounder_type) : []),
+        cofounderType: safeParse(profile.cofounder_type),
         problemSolving: profile.problem_solving || "",
         whoHasProblem: profile.who_has_problem || "",
         problemImpact: profile.problem_impact || "",
@@ -121,24 +130,17 @@ const StartupProfile = () => {
         currentNeed: profile.current_need || "",
         outcome30Days: profile.outcome_30_days || "",
         executionFailures: profile.execution_failures || "",
-        trustFactors: Array.isArray(profile.trust_factors)
-          ? profile.trust_factors
-          : (profile.trust_factors ? JSON.parse(profile.trust_factors) : []),
+        trustFactors: safeParse(profile.trust_factors),
         useVendors: profile.use_vendors || "",
-        vendorCategories: Array.isArray(profile.vendor_categories)
-          ? profile.vendor_categories
-          : (profile.vendor_categories ? JSON.parse(profile.vendor_categories) : []),
-        vendorPreference: Array.isArray(profile.vendor_preference)
-          ? profile.vendor_preference
-          : (profile.vendor_preference ? JSON.parse(profile.vendor_preference) : []),
+        vendorCategories: safeParse(profile.vendor_categories),
+        vendorPreference: safeParse(profile.vendor_preference),
         currentStage: profile.current_stage || "",
         growthBlocker: profile.growth_blocker || "",
         magicFix: profile.magic_fix || "",
-        dashboards: Array.isArray(profile.dashboards)
-          ? profile.dashboards
-          : (profile.dashboards ? JSON.parse(profile.dashboards) : []),
+        dashboards: safeParse(profile.dashboards),
         currentTools: profile.current_tools || "",
       });
+
       toast.success("Profile loaded successfully");
     } catch (err) {
       // Profile doesn't exist yet, which is fine
@@ -148,15 +150,18 @@ const StartupProfile = () => {
       }
     }
   };
+
   /**
    * Handle input changes
    */
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
+
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
