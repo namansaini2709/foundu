@@ -63,9 +63,8 @@ export default function JobApplicationsDashboard() {
     }
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
-      if (!response.ok) throw new Error("Failed to fetch jobs");
-      const allJobs = await response.json();
+      const response = await api.get("/api/jobs");
+      const allJobs = response.data;
       console.log("Total jobs fetched from API:", allJobs.length);
       console.log("Debug - userData:", userData);
       if (allJobs.length > 0) {
@@ -111,12 +110,11 @@ export default function JobApplicationsDashboard() {
       });
       setJobs(mappedJobs);
       setStats(prev => ({ ...prev, activeJobs: mappedJobs.length }));
-      // Fetch applicant counts for each job
       const jobsWithCounts = await Promise.all(mappedJobs.map(async (job) => {
         try {
-          const appRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${job.id}/applicants`);
-          if (appRes.ok) {
-            const apps = await appRes.json();
+          const appRes = await api.get(`/api/jobs/${job.id}/applicants`);
+          if (appRes.status === 200) {
+            const apps = appRes.data;
             return { ...job, applicants: apps.length };
           }
         } catch (e) { }
@@ -132,14 +130,12 @@ export default function JobApplicationsDashboard() {
       setLoading(false);
     }
   }, [getUserData, navigate]);
-  // Fetch applicants for selected job
   useEffect(() => {
     if (!selectedJob) return;
     const fetchApplicants = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
-        if (!response.ok) throw new Error("Failed to fetch applicants");
-        const apps = await response.json();
+        const response = await api.get(`/api/jobs/${selectedJob}/applicants`);
+        const apps = response.data;
         const mappedApps = apps.map(app => {
           const isFreelancer = app.user_type === "freelancer";
           const skills = isFreelancer
@@ -183,9 +179,9 @@ export default function JobApplicationsDashboard() {
     const fetchAIMatches = async () => {
       setAiLoading(true);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/ai-matches`);
-        if (res.ok) {
-          const data = await res.json();
+        const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
+        if (res.status === 200) {
+          const data = res.data;
           const mapped = data.map(a => ({
             id: a.user_id,
             name: a.full_name,
@@ -323,9 +319,9 @@ export default function JobApplicationsDashboard() {
       console.log('[FRONTEND] Update response:', response.data);
       toast.success(`Applicant ${newStatus === 'accepted' ? 'shortlisted' : 'rejected'} successfully!`, { theme: 'dark' });
       // Refresh the applicant list so the status updates in real-time
-      const refreshRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
-      if (refreshRes.ok) {
-        const apps = await refreshRes.json();
+      const refreshRes = await api.get(`/api/jobs/${selectedJob}/applicants`);
+      if (refreshRes.status === 200) {
+        const apps = refreshRes.data;
         const mappedApps = apps.map(app => {
           const isFreelancer = app.user_type === 'freelancer';
           const skills = isFreelancer
