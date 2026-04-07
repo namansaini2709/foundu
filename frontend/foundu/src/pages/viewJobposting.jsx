@@ -331,7 +331,7 @@ export default function JobApplicationsDashboard() {
             status: app.status || 'pending',
             rawStatus: app.status || 'pending',
             image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${STATIC_URL}${app.profile_picture_url}`)
               : "👤",
             badges: ['verified'],
             details: {
