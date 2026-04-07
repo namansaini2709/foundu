@@ -209,21 +209,31 @@ const Hero = ({ navigate }) => (
 
 // Trusted By Section (Blue to Black)
 const TrustedBy = ({ startups }) => {
-  const logos = startups.map(s => ({
-    name: s.startup_name || "Startup",
-    logo: s.startup_logo_url
-      ? `http://localhost:4000${s.startup_logo_url}`
-      : null,
-    initial: (s.startup_name || "S").charAt(0).toUpperCase()
-  }));
+  const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/+$/, "");
+  const [brokenLogos, setBrokenLogos] = useState({});
+
+  const handleImageError = (id) => {
+    setBrokenLogos(prev => ({ ...prev, [id]: true }));
+  };
+
+  const logos = startups.map((s, idx) => {
+    let logoUrl = s.startup_logo_url;
+    if (logoUrl && !logoUrl.startsWith('http')) {
+      logoUrl = `${BASE_URL}${logoUrl}`;
+    }
+
+    return {
+      id: s.id || idx,
+      name: s.startup_name || "Startup",
+      logo: logoUrl || null,
+      initial: (s.startup_name || "S").charAt(0).toUpperCase()
+    };
+  });
 
   if (!logos.length) return null;
 
   return (
-    <section
-      className="py-20 px-4 overflow-hidden relative"
-      style={gradientBlackToBlue}
-    >
+    <section className="py-20 px-4 overflow-hidden relative" style={gradientBlackToBlue}>
       <h2 className="text-center text-4xl md:text-5xl font-bold mb-12 relative z-10">
         <span className="text-white">Trusted by </span>
         <span className="text-blue-300">{logos.length}+ Startups</span>
@@ -234,17 +244,21 @@ const TrustedBy = ({ startups }) => {
         <div className="flex w-max mb-4 animate-scroll-right hover:[animation-play-state:paused]">
           <div className="flex shrink-0 gap-8 pr-8">
             {logos.map((company, idx) => (
-              <div
-                key={`row1-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-              >
+              <div key={`row1-${idx}`} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-38 h-38 min-w-[150px] flex items-center justify-center hover:border-blue-400 transition-all">
                 <div className="text-center flex flex-col items-center">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg mb-2" />
+                  {company.logo && !brokenLogos[`row1-${idx}`] ? (
+                    <img 
+                      src={company.logo} 
+                      alt={company.name} 
+                      onError={() => handleImageError(`row1-${idx}`)}
+                      className="w-16 h-16 object-contain rounded-lg mb-2" 
+                    />
                   ) : (
-                    <div className="text-4xl font-bold text-white mb-2">{company.initial}</div>
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center text-3xl font-black text-blue-300 mb-2 border border-blue-500/30">
+                      {company.initial}
+                    </div>
                   )}
-                  <div className="text-gray-300 text-sm truncate w-full">{company.name}</div>
+                  <div className="text-gray-300 text-sm font-bold truncate w-28">{company.name}</div>
                 </div>
               </div>
             ))}
@@ -252,17 +266,21 @@ const TrustedBy = ({ startups }) => {
           {/* Duplicate for seamless loop */}
           <div className="flex shrink-0 gap-8 pr-8">
             {logos.map((company, idx) => (
-              <div
-                key={`row1-dup-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-              >
+              <div key={`row1-dup-${idx}`} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-38 h-38 min-w-[150px] flex items-center justify-center hover:border-blue-400 transition-all">
                 <div className="text-center flex flex-col items-center">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg mb-2" />
+                  {company.logo && !brokenLogos[`row1-dup-${idx}`] ? (
+                    <img 
+                      src={company.logo} 
+                      alt={company.name} 
+                      onError={() => handleImageError(`row1-dup-${idx}`)}
+                      className="w-16 h-16 object-contain rounded-lg mb-2" 
+                    />
                   ) : (
-                    <div className="text-4xl font-bold text-white mb-2">{company.initial}</div>
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center text-3xl font-black text-blue-300 mb-2 border border-blue-500/30">
+                      {company.initial}
+                    </div>
                   )}
-                  <div className="text-gray-300 text-sm truncate w-full">{company.name}</div>
+                  <div className="text-gray-300 text-sm font-bold truncate w-28">{company.name}</div>
                 </div>
               </div>
             ))}
@@ -272,45 +290,47 @@ const TrustedBy = ({ startups }) => {
         {/* Row 2 - Right to Left */}
         <div className="flex w-max animate-scroll-left hover:[animation-play-state:paused]">
           <div className="flex shrink-0 gap-8 pr-8">
-            {logos
-              .slice()
-              .reverse()
-              .map((company, idx) => (
-                <div
-                  key={`row2-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-                >
-                  <div className="text-center flex flex-col items-center">
-                    {company.logo ? (
-                      <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg mb-2" />
-                    ) : (
-                      <div className="text-4xl font-bold text-white mb-2">{company.initial}</div>
-                    )}
-                    <div className="text-gray-300 text-sm truncate w-full">{company.name}</div>
-                  </div>
+            {logos.slice().reverse().map((company, idx) => (
+              <div key={`row2-${idx}`} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-38 h-38 min-w-[150px] flex items-center justify-center hover:border-blue-400 transition-all">
+                <div className="text-center flex flex-col items-center">
+                  {company.logo && !brokenLogos[`row2-${idx}`] ? (
+                    <img 
+                      src={company.logo} 
+                      alt={company.name} 
+                      onError={() => handleImageError(`row2-${idx}`)}
+                      className="w-16 h-16 object-contain rounded-lg mb-2" 
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center text-3xl font-black text-blue-300 mb-2 border border-blue-500/30">
+                      {company.initial}
+                    </div>
+                  )}
+                  <div className="text-gray-300 text-sm font-bold truncate w-28">{company.name}</div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
           {/* Duplicate for seamless loop */}
           <div className="flex shrink-0 gap-8 pr-8">
-            {logos
-              .slice()
-              .reverse()
-              .map((company, idx) => (
-                <div
-                  key={`row2-dup-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
-                >
-                  <div className="text-center flex flex-col items-center">
-                    {company.logo ? (
-                      <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg mb-2" />
-                    ) : (
-                      <div className="text-4xl font-bold text-white mb-2">{company.initial}</div>
-                    )}
-                    <div className="text-gray-300 text-sm truncate w-full">{company.name}</div>
-                  </div>
+            {logos.slice().reverse().map((company, idx) => (
+              <div key={`row2-dup-${idx}`} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-38 h-38 min-w-[150px] flex items-center justify-center hover:border-blue-400 transition-all">
+                <div className="text-center flex flex-col items-center">
+                  {company.logo && !brokenLogos[`row2-dup-${idx}`] ? (
+                    <img 
+                      src={company.logo} 
+                      alt={company.name} 
+                      onError={() => handleImageError(`row2-dup-${idx}`)}
+                      className="w-16 h-16 object-contain rounded-lg mb-2" 
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center text-3xl font-black text-blue-300 mb-2 border border-blue-500/30">
+                      {company.initial}
+                    </div>
+                  )}
+                  <div className="text-gray-300 text-sm font-bold truncate w-28">{company.name}</div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </div>
       </div>

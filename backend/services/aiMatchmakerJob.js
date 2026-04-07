@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const emailNotificationService = require("./emailNotificationService");
+const whatsappService = require("./whatsappService");
 const { generateWithFallback, extractAndParseJSON } = require("./geminiService");
 
 // Helper function to execute queries with Promises (since the db block uses callbacks)
@@ -13,145 +14,172 @@ const queryAsync = (sql, params = []) => {
 };
 
 /**
- * 🚀 THE FOUNDU AI MATCHMAKER ENGINE
- * Identifies the best job matches for each freelancer based on skills, domain, and experience.
+ * 🚀 THE FOUNDU AI MATCHMAKER ENGINE (V2 - TRIPLE MATCH)
+ * 1. Matches Freelancers to Freelance Jobs.
+ * 2. Matches Co-founders to Equity/Cofounder Roles.
+ * 3. Matches Founders to the BEST Candidates (Freelance + Cofounder) for their active job postings.
  */
 const runMatchmaker = async () => {
     try {
-        console.log("=== 🤖 STARTING AI MATCHMAKER ===");
+        console.log("=== 🤖 STARTING AI MULTI-MATCHMAKER ===");
 
         if (!process.env.GEMINI_API_KEY) {
-            console.error("❌ GEMINI_API_KEY is entirely missing. AI Matchmaking aborted.");
+            console.error("❌ GEMINI_API_KEY missing. AI Matchmaking aborted.");
             return { success: false, message: "Gemini API key missing" };
         }
 
-        // 1️⃣ Fetch Active Freelancers (We would filter by Opt-in later, but for testing we'll fetch all or limit)
-        // For testing, just pull the most recently updated 10 freelancers with complete profiles
-        const freelancersQuery = `
-            SELECT 
-                u.id AS user_id, 
-                u.full_name, 
-                u.email, 
-                f.freelancer_id,
-                f.freelancer_type, 
-                f.skills_description, 
-                f.experience, 
-                f.job_profile 
-            FROM users u
-            JOIN freelancer_profiles f ON u.id = f.user_id
-            WHERE u.is_profile_complete = 1
-            LIMIT 10;
-        `;
-        const freelancers = await queryAsync(freelancersQuery);
+        // ---------------------------------------------------------
+        // 1️⃣ DATA GATHERING (FETCH ALL 3 TALENT POOLS & ALL JOBS)
+        // ---------------------------------------------------------
 
-        if (freelancers.length === 0) {
-            console.log("No complete freelancer profiles found to match.");
-            return { success: true, matches: 0 };
-        }
+        // A. Fetch Freelancer Talent
+        const freelancers = await queryAsync(`
+            SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
+                   f.freelancer_type, f.skills_description, f.experience, f.job_profile 
+            FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id WHERE u.is_profile_complete = 1 AND u.user_type = 'freelancer'
+        `);
 
-        // 2️⃣ Fetch Recent Open Jobs (Freelancer Jobs)
-        const jobsQuery = `
-            SELECT 
-                job_id, 
-                founder_id, 
-                startup_name, 
-                job_title, 
-                domain, 
-                role_category, 
-                job_requirements, 
-                budget_range 
-            FROM foundu_jobs 
-            WHERE job_type = 'freelancer' 
-            ORDER BY created_at DESC 
-            LIMIT 20;
-        `;
-        const jobs = await queryAsync(jobsQuery);
+        // B. Fetch Co-founder Talent
+        const cofounders = await queryAsync(`
+            SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
+                   c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq
+            FROM users u LEFT JOIN cofounder_profiles c ON u.id = c.user_id WHERE u.is_profile_complete = 1 AND u.user_type = 'cofounder'
+        `);
 
-        if (jobs.length === 0) {
+        // C. Fetch Founders (to suggest talent to them)
+        const founders = await queryAsync(`
+            SELECT id AS NOTIFY_ID, founder_id, full_name, email, whatsapp_number, whatsapp_opt_in, user_type FROM users WHERE user_type = 'founder'
+        `);
+
+        // D. Fetch ALL Open Jobs & MAP founder_id TO NOTIFY_ID (user_id)
+        const rawJobs = await queryAsync(`
+            SELECT job_id, founder_id, startup_name, job_title, domain, role_category, job_requirements, budget_range, job_type
+            FROM foundu_jobs ORDER BY created_at DESC
+        `);
+
+        // 🔗 MAP IDs: Change founder_id in jobs to the ACTUAL NOTIFY_ID (user_id) of the founder
+        const allJobs = rawJobs.map(job => {
+             const founder = founders.find(f => Number(f.founder_id) === Number(job.founder_id));
+             return {
+                 ...job,
+                 NOTIFY_ID: founder ? founder.NOTIFY_ID : null // Explicitly link the job to the real User ID
+             };
+        });
+
+        if (allJobs.length === 0) {
             console.log("No active jobs found.");
-            return { success: true, matches: 0 };
+            return { success: true, message: "No jobs to match" };
         }
 
-        // 3️⃣ Construct the Prompt for Gemini
+        // ---------------------------------------------------------
+        // 2️⃣ THE BRAIN: Gemini Analysis
+        // ---------------------------------------------------------
 
         const prompt = `
-        You are FoundU's highly intelligent AI Talent Matchmaker.
-        Your job is to read the profiles of Freelancers and the current Open Jobs, and find the absolute BEST top 3 jobs for each Freelancer.
-        
-        FREELANCERS DATA:
-        ${JSON.stringify(freelancers, null, 2)}
-        
-        AVAILABLE JOBS DATA:
-        ${JSON.stringify(jobs, null, 2)}
-        
-        INSTRUCTIONS:
-        1. For each Freelancer, output their 'user_id' and their top 3 matching 'job_id's.
-        2. Give a 1-sentence personalized 'reason' why this job matches them (e.g., "Mukul, your React skills match perfectly with this startup's needs").
-        3. You must return the output STRICTLY in a valid JSON format with NO markdown formatting, NO backticks, and NO html.
-        
-        EXPECTED OUTPUT FORMAT (JSON Array):
+        You are FoundU's highly intelligent AI Talent Matchmaker. 
+
+        CRITICAL INSTRUCTION: You must use the 'NOTIFY_ID' provided in the lists for your final output.
+
+        CONTEXT:
+        - Freelancers/Cofounders: Find matching Jobs from 'ALL OPEN JOBS'.
+        - Founders: Scan 'ALL OPEN JOBS' for jobs where 'NOTIFY_ID' matches their own. Then find top Candidates from TALENT pools for those jobs.
+
+        DATA:
+        - TALENT (Freelancers): ${JSON.stringify(freelancers)}
+        - TALENT (Co-founders): ${JSON.stringify(cofounders)}
+        - ALL OPEN JOBS: ${JSON.stringify(allJobs)}
+        - FOUNDERS: ${JSON.stringify(founders)}
+
+        GOALS:
+        1. For each Freelancer/Co-founder (NOTIFY_ID), find their top 3 matching Jobs.
+        2. For each Founder (NOTIFY_ID), find top 3 Candidates from TALENT pools for the jobs they own.
+
+        OUTPUT FORMAT: 
+        A single JSON array of objects.
         [
           {
-            "user_id": 1,
-            "email": "devansh@example.com",
-            "full_name": "Devansh",
+            "NOTIFY_ID": 25,
+            "user_type": "freelancer",
             "matches": [
-               { "job_id": 101, "job_title": "React Dev", "startup_name": "Tech Corp", "reason": "Your React skills fit perfectly." },
-               ...
+               { "job_id": 1, "job_title": "React Dev", "startup_name": "T-Corp", "reason": "Reason" }
+            ]
+          },
+          {
+            "NOTIFY_ID": 24,
+            "user_type": "founder",
+            "matches": [
+               { "candidate_id": 25, "candidate_name": "Hardick", "role": "Dev", "reason": "Reason" }
             ]
           }
         ]
+
+        STRICT RULES: Valid JSON only. Do NOT use founder_id. Use NOTIFY_ID.
         `;
 
-        console.log("🧠 Sending data to Gemini for analysis using Fallback Engine...");
+        console.log("🧠 Sending Triple-Match context to Gemini...");
         const responseText = await generateWithFallback(prompt);
-        
         const matchResults = extractAndParseJSON(responseText);
-        console.log("✅ Gemini successfully returned match JSON!");
+        
+        // ---------------------------------------------------------
+        // 3️⃣ NOTIFICATION ENGINE (EMAIL + WHATSAPP)
+        // ---------------------------------------------------------
+        
+        let totalAlerts = 0;
+        const notifiedUsers = []; // New: Track which users were notified for Admin visibility
+        const allUsers = [...freelancers, ...cofounders, ...founders];
 
-        // 4️⃣ Execute the Email Alert Actions!
-        let emailsSent = 0;
         for (const userMatch of matchResults) {
-            if (userMatch.matches && userMatch.matches.length > 0) {
-                
-                let matchesHtml = userMatch.matches.map(m => `
-                    <div style="background-color: #1a1f2c; border: 1px solid #374151; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                        <h3 style="color: #60a5fa; margin: 0 0 5px 0;">${m.job_title} @ ${m.startup_name}</h3>
-                        <p style="color: #e5e7eb; margin: 0 0 10px 0; font-size: 14px;"><em>💡 AI Note: ${m.reason}</em></p>
-                        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${m.job_id}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 14px;">View & Apply</a>
-                    </div>
-                `).join('');
-
-                const emailBodyHtml = `
-                    <h2>Hi ${userMatch.full_name},</h2>
-                    <p>Good news! The <b>FoundU AI Matchmaker</b> has been searching while you were asleep, and we found <b>${userMatch.matches.length} new jobs</b> that fit your profile perfectly!</p>
-                    
-                    ${matchesHtml}
-                    
-                    <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                        You are receiving this email because you opted into FoundU AI Alerts. To disable them, update your notifications in the dashboard.
-                    </p>
-                `;
-
-                // Fire the Custom Email Alert
-                await emailNotificationService.sendEmailNotification(
-                    userMatch.user_id,
-                    "🎯 Your Daily AI Job Matches are here!",
-                    "We found matching jobs for you based on your skills.",
-                    "View Dashboard", 
-                    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/freelancer-dashboard`
-                );
-                
-                // Override the generic body with our custom HTML
-                // Wait! emailNotificationService.sendEmail is not directly accessible here to override the layout without altering the core service.
-                // For Phase 1, we will hijack the standard Resend format:
-                console.log(`✉️ Email sent to ${userMatch.email}`);
-                emailsSent++;
+            const targetId = userMatch.NOTIFY_ID || userMatch.user_id;
+            const user = allUsers.find(u => String(u.NOTIFY_ID) === String(targetId));
+            
+            if (!user || !userMatch.matches || userMatch.matches.length === 0) {
+                console.log(`⚠️ User ID ${targetId} not found or no matches. Skipping.`);
+                continue;
             }
+
+            const isFounder = user.user_type === 'founder';
+            const subject = isFounder ? "🎯 High-Potential Talent Matched for You!" : "🎯 New AI Matched Jobs are here!";
+            const dashLink = isFounder ? "/startup-dashboard" : (user.user_type === 'cofounder' ? "/cofounder-dashboard" : "/freelancer-dashboard");
+
+            // A. Send Email
+            await emailNotificationService.sendEmailNotification(
+                user.NOTIFY_ID,
+                subject,
+                `FoundU AI found ${userMatch.matches.length} perfect matches for you.`,
+                "View Dashboard",
+                `${process.env.FRONTEND_URL || 'http://localhost:5173'}${dashLink}`
+            );
+
+            // B. Send WhatsApp (If Opted In)
+            if (user.whatsapp_opt_in && user.whatsapp_number) {
+                 // Build Custom Meta-friendly Body
+                 let waMatches = userMatch.matches.map((m, i) => {
+                     const title = isFounder ? `Talent: ${m.candidate_name}` : `Job: ${m.job_title}`;
+                     const company = isFounder ? `(${m.role})` : `@ ${m.startup_name}`;
+                     return `*${i+1}. ${title} ${company}*\n💡 ${m.reason}`;
+                 }).join('\n\n');
+
+                 const waBody = `🎯 *FoundU AI Match Alert!*\nHi ${user.full_name}, we found ${userMatch.matches.length} new ${isFounder ? 'profiles' : 'jobs'} that perfectly fit:\n\n${waMatches}\n\nCheck them out in your dashboard!`;
+
+                 console.log(`📱 Triggering WhatsApp for ${user.full_name} (${user.user_type})...`);
+                 await whatsappService.sendWhatsAppMatchAlert(user.whatsapp_number, user.full_name, userMatch.matches, waBody); 
+            }
+
+            // Track for Admin UI
+            notifiedUsers.push({
+                user_id: user.NOTIFY_ID,
+                full_name: user.full_name,
+                email: user.email,
+                user_type: user.user_type,
+                match_count: userMatch.matches.length
+            });
+
+            console.log(`✅ Alert sent to ${user.full_name} (${user.user_type})`);
+            totalAlerts++;
         }
 
-        console.log(`=== 🏁 MATCHMAKER COMPLETE (${emailsSent} emails sent) ===`);
-        return { success: true, messages_sent: emailsSent, raw_matches: matchResults };
+        console.log(`=== 🏁 MATCHMAKER COMPLETE (${totalAlerts} users notified) ===`);
+        return { success: true, totalNotify: totalAlerts, raw_matches: matchResults, notifiedUsers };
 
     } catch (error) {
         console.error("❌ AI Matchmaker Error:", error);

@@ -65,34 +65,16 @@ export default function JobApplicationsDashboard() {
       setLoading(true);
       const response = await api.get("/api/jobs");
       const allJobs = response.data;
-      console.log("Total jobs fetched from API:", allJobs.length);
-      console.log("Debug - userData:", userData);
-      if (allJobs.length > 0) {
-        console.log("Debug - First job from API:", {
-          job_id: allJobs[0].job_id,
-          user_id: allJobs[0].user_id,
-          founder_id: allJobs[0].founder_id
-        });
-      }
+      
+      const targetUserId = Number(userData.user_id);
+      
       // Filter jobs by current user
       const filteredJobs = allJobs.filter(job => {
         const jobUserId = Number(job.user_id);
         const jobFounderId = Number(job.founder_id);
-        const targetUserId = Number(userData.user_id);
-        const targetFounderId = Number(userData.founder_id);
-        const isMatch = (
-          jobUserId === targetUserId ||
-          (targetFounderId && jobFounderId === targetFounderId) ||
-          (targetFounderId && jobUserId === targetFounderId) ||
-          (targetUserId && jobFounderId === targetUserId)
-        );
-        return isMatch;
+        return jobUserId === targetUserId || jobFounderId === targetUserId;
       });
-      console.log("Filtered jobs for this user:", filteredJobs.length);
-      // FALLBACK FOR DEVELOPMENT: If no jobs for this user, but jobs exist in DB, log a warning
-      if (filteredJobs.length === 0 && allJobs.length > 0) {
-        console.warn("⚠️ No jobs matched the logged-in user. Jobs in DB belong to other users.");
-      }
+
       const mappedJobs = filteredJobs.map(job => {
         let previewText = "";
         try {
@@ -110,6 +92,7 @@ export default function JobApplicationsDashboard() {
       });
       setJobs(mappedJobs);
       setStats(prev => ({ ...prev, activeJobs: mappedJobs.length }));
+      
       const jobsWithCounts = await Promise.all(mappedJobs.map(async (job) => {
         try {
           const appRes = await api.get(`/api/jobs/${job.id}/applicants`);
@@ -125,13 +108,16 @@ export default function JobApplicationsDashboard() {
       setStats(prev => ({ ...prev, totalApplicants: totalApps }));
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      toast.error("Error loading dashboard data");
+      toast.error("Error loading dashboard data. Please refresh.");
     } finally {
       setLoading(false);
     }
   }, [getUserData, navigate]);
+
   useEffect(() => {
     if (!selectedJob) return;
+    const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/+$/, "");
+
     const fetchApplicants = async () => {
       try {
         const response = await api.get(`/api/jobs/${selectedJob}/applicants`);
@@ -141,9 +127,12 @@ export default function JobApplicationsDashboard() {
           const skills = isFreelancer
             ? app.skills_description || "N/A"
             : [app.superpower1, app.superpower2, app.superpower3].filter(Boolean).join(", ") || "N/A";
-          const githubLink = isFreelancer ? app.github : app.github_behance;
-          const linkedinLink = app.linkedin;
-          const phoneNum = isFreelancer ? app.phone_number : app.reference_contact;
+          
+          let profileImg = app.profile_picture_url;
+          if (profileImg && !profileImg.startsWith('http')) {
+            profileImg = `${BASE_URL}${profileImg}`;
+          }
+
           return {
             id: app.user_id,
             name: app.full_name,
@@ -151,9 +140,7 @@ export default function JobApplicationsDashboard() {
             match: null,
             status: app.status || "pending",
             rawStatus: app.status || "pending",
-            image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
-              : "👤",
+            image: profileImg,
             badges: ["verified"],
             details: {
               experience: app.experience || (isFreelancer ? "N/A" : "Expert"),
@@ -161,11 +148,11 @@ export default function JobApplicationsDashboard() {
               availability: "Immediate",
               workPref: isFreelancer ? app.working_environment || "Remote" : "Co-founder",
               email: app.email,
-              phone: phoneNum || "N/A",
+              phone: (isFreelancer ? app.phone_number : app.reference_contact) || "N/A",
               location: "Remote",
               applied: new Date(app.created_at).toLocaleDateString(),
-              github: githubLink,
-              linkedin: linkedinLink
+              github: isFreelancer ? app.github : app.github_behance,
+              linkedin: app.linkedin
             }
           };
         });
@@ -175,39 +162,44 @@ export default function JobApplicationsDashboard() {
       }
     };
     fetchApplicants();
-    // Fetch AI-matched applicants
+
     const fetchAIMatches = async () => {
       setAiLoading(true);
       try {
         const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
         if (res.status === 200) {
           const data = res.data;
-          const mapped = data.map(a => ({
-            id: a.user_id,
-            name: a.full_name,
-            role: a.user_type === 'freelancer' ? (a.freelancer_type || 'Freelancer') : (a.primary_identity || 'Cofounder'),
-            match: a.match_score,
-            isAI: true,
-            ai_reason: a.ai_reason,
-            status: a.status || 'pending',
-            rawStatus: a.status || 'pending',
-            image: a.profile_picture_url
-              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${a.profile_picture_url}`)
-              : '👤',
-            badges: [],
-            details: {
-              experience: a.experience || 'N/A',
-              skills: a.skills_description || [a.superpower1, a.superpower2, a.superpower3].filter(Boolean).join(', ') || 'N/A',
-              availability: 'Immediate',
-              workPref: a.working_environment || 'Remote',
-              email: a.email,
-              phone: a.phone_number || a.reference_contact || 'N/A',
-              location: 'Remote',
-              applied: 'AI Match',
-              github: a.github || a.github_behance,
-              linkedin: a.linkedin || a.cp_linkedin
+          const mapped = data.map(a => {
+            let profileImg = a.profile_picture_url;
+            if (profileImg && !profileImg.startsWith('http')) {
+              profileImg = `${BASE_URL}${profileImg}`;
             }
-          }));
+
+            return {
+              id: a.user_id,
+              name: a.full_name,
+              role: a.user_type === 'freelancer' ? (a.freelancer_type || 'Freelancer') : (a.primary_identity || 'Cofounder'),
+              match: a.match_score,
+              isAI: true,
+              ai_reason: a.ai_reason,
+              status: a.status || 'pending',
+              rawStatus: a.status || 'pending',
+              image: profileImg,
+              badges: [],
+              details: {
+                experience: a.experience || 'N/A',
+                skills: a.skills_description || [a.superpower1, a.superpower2, a.superpower3].filter(Boolean).join(', ') || 'N/A',
+                availability: 'Immediate',
+                workPref: a.working_environment || 'Remote',
+                email: a.email,
+                phone: a.phone_number || a.reference_contact || 'N/A',
+                location: 'Remote',
+                applied: 'AI Match',
+                github: a.github || a.github_behance,
+                linkedin: a.linkedin || a.cp_linkedin
+              }
+            };
+          });
           setAiMatchedApplicants(mapped);
           setStats(prev => ({ ...prev, aiMatched: mapped.length }));
         }
@@ -218,7 +210,7 @@ export default function JobApplicationsDashboard() {
       }
     };
     fetchAIMatches();
-  }, [selectedJob, jobs]);
+  }, [selectedJob]);
   // Initial fetch
   useEffect(() => {
     fetchJobs();

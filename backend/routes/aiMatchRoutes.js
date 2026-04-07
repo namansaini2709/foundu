@@ -13,7 +13,8 @@ router.get("/trigger-matchmaker", async (req, res) => {
         if (result.success) {
             res.json({
                 message: "AI Matchmaker executed successfully!",
-                emailsSent: result.messages_sent,
+                totalNotify: result.totalNotify,
+                notifiedUsers: result.notifiedUsers, // Send the list of people to the Admin Panel
                 data: result.raw_matches
             });
         } else {

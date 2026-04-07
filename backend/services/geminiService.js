@@ -283,9 +283,7 @@ exports.analyzeStartupIdea = async (mode, text, context = {}) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const textRes = response.text();
+    const textRes = await generateWithFallback(prompt);
     return extractAndParseJSON(textRes);
   } catch (error) {
     console.error("Idea Lab AI Error:", error);
