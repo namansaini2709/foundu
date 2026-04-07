@@ -23,7 +23,6 @@ import {
   Send,
 } from "lucide-react";
 import Footer from "../components/Footer";
-import { STATIC_URL } from "../utils/config";
 
 export default function JobApplicationsDashboard() {
   const navigate = useNavigate();
@@ -118,7 +117,6 @@ export default function JobApplicationsDashboard() {
 
   useEffect(() => {
     if (!selectedJob) return;
-
     const fetchApplicants = async () => {
       try {
         const response = await api.get(`/api/jobs/${selectedJob}/applicants`);
@@ -128,12 +126,9 @@ export default function JobApplicationsDashboard() {
           const skills = isFreelancer
             ? app.skills_description || "N/A"
             : [app.superpower1, app.superpower2, app.superpower3].filter(Boolean).join(", ") || "N/A";
-          
-          let profileImg = app.profile_picture_url;
-          if (profileImg && !profileImg.startsWith('http')) {
-            profileImg = `${STATIC_URL}${profileImg}`;
-          }
-
+          const githubLink = isFreelancer ? app.github : app.github_behance;
+          const linkedinLink = app.linkedin;
+          const phoneNum = isFreelancer ? app.phone_number : app.reference_contact;
           return {
             id: app.user_id,
             name: app.full_name,
@@ -141,7 +136,9 @@ export default function JobApplicationsDashboard() {
             match: null,
             status: app.status || "pending",
             rawStatus: app.status || "pending",
-            image: profileImg,
+            image: app.profile_picture_url 
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
+              : "👤",
             badges: ["verified"],
             details: {
               experience: app.experience || (isFreelancer ? "N/A" : "Expert"),
@@ -149,11 +146,11 @@ export default function JobApplicationsDashboard() {
               availability: "Immediate",
               workPref: isFreelancer ? app.working_environment || "Remote" : "Co-founder",
               email: app.email,
-              phone: (isFreelancer ? app.phone_number : app.reference_contact) || "N/A",
+              phone: phoneNum || "N/A",
               location: "Remote",
               applied: new Date(app.created_at).toLocaleDateString(),
-              github: isFreelancer ? app.github : app.github_behance,
-              linkedin: app.linkedin
+              github: githubLink,
+              linkedin: linkedinLink
             }
           };
         });
@@ -163,44 +160,39 @@ export default function JobApplicationsDashboard() {
       }
     };
     fetchApplicants();
-
+    // Fetch AI-matched applicants
     const fetchAIMatches = async () => {
       setAiLoading(true);
       try {
         const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
         if (res.status === 200) {
           const data = res.data;
-          const mapped = data.map(a => {
-            let profileImg = a.profile_picture_url;
-            if (profileImg && !profileImg.startsWith('http')) {
-              profileImg = `${BASE_URL}${profileImg}`;
+          const mapped = data.map(a => ({
+            id: a.user_id,
+            name: a.full_name,
+            role: a.user_type === 'freelancer' ? (a.freelancer_type || 'Freelancer') : (a.primary_identity || 'Cofounder'),
+            match: a.match_score,
+            isAI: true,
+            ai_reason: a.ai_reason,
+            status: a.status || 'pending',
+            rawStatus: a.status || 'pending',
+            image: a.profile_picture_url
+              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `http://localhost:4000${a.profile_picture_url}`)
+              : '👤',
+            badges: [],
+            details: {
+              experience: a.experience || 'N/A',
+              skills: a.skills_description || [a.superpower1, a.superpower2, a.superpower3].filter(Boolean).join(', ') || 'N/A',
+              availability: 'Immediate',
+              workPref: a.working_environment || 'Remote',
+              email: a.email,
+              phone: a.phone_number || a.reference_contact || 'N/A',
+              location: 'Remote',
+              applied: 'AI Match',
+              github: a.github || a.github_behance,
+              linkedin: a.linkedin || a.cp_linkedin
             }
-
-            return {
-              id: a.user_id,
-              name: a.full_name,
-              role: a.user_type === 'freelancer' ? (a.freelancer_type || 'Freelancer') : (a.primary_identity || 'Cofounder'),
-              match: a.match_score,
-              isAI: true,
-              ai_reason: a.ai_reason,
-              status: a.status || 'pending',
-              rawStatus: a.status || 'pending',
-              image: profileImg,
-              badges: [],
-              details: {
-                experience: a.experience || 'N/A',
-                skills: a.skills_description || [a.superpower1, a.superpower2, a.superpower3].filter(Boolean).join(', ') || 'N/A',
-                availability: 'Immediate',
-                workPref: a.working_environment || 'Remote',
-                email: a.email,
-                phone: a.phone_number || a.reference_contact || 'N/A',
-                location: 'Remote',
-                applied: 'AI Match',
-                github: a.github || a.github_behance,
-                linkedin: a.linkedin || a.cp_linkedin
-              }
-            };
-          });
+          }));
           setAiMatchedApplicants(mapped);
           setStats(prev => ({ ...prev, aiMatched: mapped.length }));
         }
@@ -211,7 +203,7 @@ export default function JobApplicationsDashboard() {
       }
     };
     fetchAIMatches();
-  }, [selectedJob]);
+  }, [selectedJob, jobs]);
   // Initial fetch
   useEffect(() => {
     fetchJobs();

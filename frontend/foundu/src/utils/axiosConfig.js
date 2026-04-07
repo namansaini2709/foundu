@@ -12,10 +12,8 @@ import axios from "axios";
  *   import api from "../utils/axiosConfig";
  *   const res = await api.get("/api/notifications");
  */
-import { API_URL } from "./config";
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
   withCredentials: true, // Sends httpOnly cookies with every request
 });
 
