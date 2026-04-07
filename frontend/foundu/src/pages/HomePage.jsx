@@ -7,6 +7,8 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
+import { API_BASE, STATIC_URL } from "../utils/config";
+
 // Gradient styles - alternating
 const gradientBlackToBlue = {
   background:
@@ -16,8 +18,6 @@ const gradientBlueToBlack = {
   background:
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
-
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4000") + "/api";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -209,7 +209,6 @@ const Hero = ({ navigate }) => (
 
 // Trusted By Section (Blue to Black)
 const TrustedBy = ({ startups }) => {
-  const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/+$/, "");
   const [brokenLogos, setBrokenLogos] = useState({});
 
   const handleImageError = (id) => {
@@ -219,7 +218,7 @@ const TrustedBy = ({ startups }) => {
   const logos = startups.map((s, idx) => {
     let logoUrl = s.startup_logo_url;
     if (logoUrl && !logoUrl.startsWith('http')) {
-      logoUrl = `${BASE_URL}${logoUrl}`;
+      logoUrl = `${STATIC_URL}${logoUrl}`;
     }
 
     return {
