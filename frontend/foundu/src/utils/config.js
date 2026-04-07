@@ -9,7 +9,7 @@
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
 // Your Railway production backend URL
-const PROD_URL = "https://rare-dedication-production-f321.up.railway.app";
+const PROD_URL = "https://foundu-backend-production.up.railway.app";
 const LOCAL_URL = "http://localhost:4000";
 
 // EXTREMELY IMPORTANT: If we are on foundu.in, we MUST use the PROD_URL.
