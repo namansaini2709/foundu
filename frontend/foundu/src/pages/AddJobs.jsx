@@ -261,6 +261,8 @@ export default function AddJobs() {
       setLoading(false);
     }
   }
+
+
   const handleNext = () => {
     if (currentStep === 2) {
       const errors = validateForm();
@@ -273,6 +275,7 @@ export default function AddJobs() {
       setCurrentStep((s) => s + 1);
     }
   };
+
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
@@ -1002,6 +1005,33 @@ export default function AddJobs() {
                   </div>
                 </div>
               )}
+
+              {/* ── Bill Summary (Only for Freelancer) ── */}
+              {hiringType !== "cofounder" && (
+                <div className="mt-6 p-4 rounded-lg border-2 border-green-500/50 bg-green-500/5">
+                  <h3 className="font-bold mb-3 text-lg text-green-400">Bill Summary</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Base Budget:</span>
+                      <span>₹{parseFloat(formData.freelancer.budget.replace(/[^0-9.]/g, "")) || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>GST (18%):</span>
+                      <span>₹{(parseFloat(formData.freelancer.budget.replace(/[^0-9.]/g, "")) || 0) * 0.18}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>FoundU Commission (3%):</span>
+                      <span>₹{(parseFloat(formData.freelancer.budget.replace(/[^0-9.]/g, "")) || 0) * 0.03}</span>
+                    </div>
+                    <div className="border-t border-gray-700 mt-2 pt-2 flex justify-between font-bold text-xl">
+                      <span>Total Amount:</span>
+                      <span className="text-green-400">
+                        ₹{(parseFloat(formData.freelancer.budget.replace(/[^0-9.]/g, "")) || 0) * 1.21}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -1029,9 +1059,9 @@ export default function AddJobs() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-8 py-2 rounded-md bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-2 rounded-md bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold"
               >
-                {loading ? "Submitting..." : "Submit Job"}
+                {loading ? "Processing..." : "Submit Job"}
               </button>
             )}
           </div>

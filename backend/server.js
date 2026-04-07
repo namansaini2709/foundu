@@ -111,6 +111,7 @@ const testimonialRoutes = require("./routes/testimonialRoutes");
 const postRoutes = require("./routes/postRoutes");
 const testEmailRoutes = require("./routes/testEmailRoutes");
 const authRoutes = require("./routes/authRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -151,6 +152,9 @@ app.use("/api", testimonialRoutes);
 app.use("/api", postRoutes);
 app.use("/api", testEmailRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", paymentRoutes);
+const submissionRoutes = require("./routes/submissionRoutes");
+app.use("/api/submissions", submissionRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -197,10 +201,10 @@ const io = new Server(server, {
     origin: (origin, callback) => {
       // Allow handshakes with no origin (internal polling)
       if (!origin) return callback(null, true);
-      
-      const isAllowed = allowedOrigins.some(o => o === origin) || 
-                       origin.endsWith(".up.railway.app") ||
-                       origin.includes("localhost");
+
+      const isAllowed = allowedOrigins.some(o => o === origin) ||
+        origin.endsWith(".up.railway.app") ||
+        origin.includes("localhost");
 
       if (isAllowed) {
         callback(null, true);

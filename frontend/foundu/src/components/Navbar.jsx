@@ -28,12 +28,14 @@ const userTypeLinks = {
   freelancer: [
     { label: "View Jobs", to: "/freelancer-jobs" },
     { label: "Dashboard", to: "/freelancer-dashboard" },
+    { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/freelancer-badges" },
     { label: "Reviews & Ratings", to: "/reviews" },
   ],
   cofounder: [
     { label: "Dashboard", to: "/cofounder-dashboard" },
     { label: "View Jobs", to: "/cofounder-jobs" },
+    { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/cofounder-badges" },
     { label: "Reviews & Ratings", to: "/reviews" },
   ],
@@ -324,11 +326,10 @@ function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div
-        className={`transition-all duration-300 ${
-          scrolled
-            ? "bg-[#020024]/80 backdrop-blur-md border-b border-blue-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
-            : "bg-transparent border-transparent"
-        }`}
+        className={`transition-all duration-300 ${scrolled
+          ? "bg-[#020024]/80 backdrop-blur-md border-b border-blue-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
+          : "bg-transparent border-transparent"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -345,11 +346,10 @@ function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === link.to
-                    ? "text-blue-300"
-                    : "text-white hover:text-blue-300"
-                }`}
+                className={`text-sm font-medium transition-colors ${location.pathname === link.to
+                  ? "text-blue-300"
+                  : "text-white hover:text-blue-300"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -407,9 +407,8 @@ function Navbar() {
                     {getUserDisplayName()}
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${
-                      isProfileOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 transition-transform ${isProfileOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -597,11 +596,10 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-sm font-medium ${
-                    location.pathname === link.to
-                      ? "text-blue-300"
-                      : "text-white"
-                  }`}
+                  className={`text-sm font-medium ${location.pathname === link.to
+                    ? "text-blue-300"
+                    : "text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>

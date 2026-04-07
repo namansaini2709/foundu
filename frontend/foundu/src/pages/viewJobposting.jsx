@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
+import { getUserId, getUserType } from "../utils/authUtils";
 import {
   X,
   Briefcase,
@@ -154,7 +155,7 @@ export default function JobApplicationsDashboard() {
             match: null,
             status: app.status || "pending",
             rawStatus: app.status || "pending",
-            image: app.profile_picture_url 
+            image: app.profile_picture_url
               ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
               : "👤",
             badges: ["verified"],
@@ -312,7 +313,88 @@ export default function JobApplicationsDashboard() {
   );
   // ── Action Handlers ──
   const handleUpdateStatus = async (applicantId, newStatus) => {
-    if (!selectedJob) return;
+    if (!selectedJob || !applicantId) {
+      console.warn("[VIEW_JOB] Missing params for update:", { selectedJob, applicantId });
+      if (newStatus === 'accepted') toast.error("Could not identify applicant.");
+      return;
+    }
+
+    // Ensure applicantId is a number matching the mapped state numeric IDs
+    const numericAppId = Number(applicantId);
+
+    // If "accepted" (Shortlist), trigger Payment Flow first
+    if (newStatus === "accepted") {
+      const jobData = jobs.find(j => j.id === selectedJob);
+      const applicantData = manualApplicants.find(a => Number(a.id) === numericAppId) ||
+        aiMatchedApplicants.find(a => Number(a.id) === numericAppId);
+
+      // Calculate Bill
+      const baseBudget = applicantData?.details?.budget || 10000; // Fallback to 10k or get from job
+      const gst = baseBudget * 0.18;
+      const fee = baseBudget * 0.03;
+      const total = baseBudget + gst + fee;
+
+      if (!window.Razorpay) {
+        toast.error("Razorpay SDK not loaded. Please refresh.");
+        return;
+      }
+
+      try {
+        // 1. Create Order
+        const orderRes = await api.post("/api/payments/create-order", {
+          amount: total,
+          receipt: `shortlist_${selectedJob}_${applicantId}`
+        });
+
+        const { order_id, amount: orderAmount } = orderRes.data;
+
+        // 2. Open Razorpay
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: orderAmount,
+          currency: "INR",
+          name: "FoundU",
+          description: `Shortlist Payment: ${jobData?.title}`,
+          order_id: order_id,
+          handler: async function (response) {
+            try {
+              // 3. Verify Payment and Shortlist on Backend
+              const verifyRes = await api.post("/api/payments/verify", {
+                ...response,
+                job_id: selectedJob,
+                applicant_id: numericAppId,
+                total_amount: total
+              });
+
+              if (verifyRes.data.success) {
+                toast.success("Shortlisted Successfully!", { theme: "dark" });
+
+                // REDIRECT TO DASHBOARD SETUP
+                navigate(`/job-dashboard/founder/${selectedJob}/${numericAppId}`);
+              }
+            } catch (err) {
+              console.error("Verification Error:", err);
+              toast.error("Payment verification failed.");
+            }
+          },
+          prefill: {
+            name: localStorage.getItem("user_name") || "",
+            email: localStorage.getItem("user_email") || "",
+          },
+          theme: { color: "#3B82F6" },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+
+      } catch (err) {
+        console.error("Order Creation Error:", err);
+        toast.error("Failed to initiate payment.");
+      }
+      return;
+    }
+
+    // For Rejected or other statuses
     console.log(`[FRONTEND] Updating status: job=${selectedJob}, applicant=${applicantId}, status=${newStatus}`);
     try {
       const response = await api.put(
@@ -320,49 +402,9 @@ export default function JobApplicationsDashboard() {
         { status: newStatus }
       );
       console.log('[FRONTEND] Update response:', response.data);
-      toast.success(`Applicant ${newStatus === 'accepted' ? 'shortlisted' : 'rejected'} successfully!`, { theme: 'dark' });
-      // Refresh the applicant list so the status updates in real-time
-      const refreshRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/${selectedJob}/applicants`);
-      if (refreshRes.ok) {
-        const apps = await refreshRes.json();
-        const mappedApps = apps.map(app => {
-          const isFreelancer = app.user_type === 'freelancer';
-          const skills = isFreelancer
-            ? app.skills_description || 'N/A'
-            : [app.superpower1, app.superpower2, app.superpower3].filter(Boolean).join(', ') || 'N/A';
-          const githubLink = isFreelancer ? app.github : app.github_behance;
-          const linkedinLink = app.linkedin;
-          const phoneNum = isFreelancer ? app.phone_number : app.reference_contact;
-          return {
-            id: app.user_id,
-            name: app.full_name,
-            role: isFreelancer ? 'Freelancer' : 'Cofounder',
-            match: null,
-            status: app.status || 'pending',
-            rawStatus: app.status || 'pending',
-            image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${app.profile_picture_url}`)
-              : "👤",
-            badges: ['verified'],
-            details: {
-              experience: app.experience || (isFreelancer ? 'N/A' : 'Expert'),
-              skills,
-              availability: 'Immediate',
-              workPref: isFreelancer ? app.working_environment || 'Remote' : 'Co-founder',
-              email: app.email,
-              phone: phoneNum || 'N/A',
-              location: 'Remote',
-              applied: new Date(app.created_at).toLocaleDateString(),
-              github: githubLink,
-              linkedin: linkedinLink
-            }
-          };
-        });
-        setManualApplicants(mappedApps);
-        // Also update the selected applicant so status refreshes in modal
-        const updated = mappedApps.find(a => a.id === applicantId);
-        if (updated) setSelectedApplicant(updated);
-      }
+      toast.success(`Applicant rejected successfully!`, { theme: 'dark' });
+      // Refresh list
+      fetchJobs();
     } catch (err) {
       console.error('Error updating status:', err);
       toast.error('Failed to update applicant status', { theme: 'dark' });
@@ -616,7 +658,7 @@ export default function JobApplicationsDashboard() {
                 className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${currentStatus === 'accepted'
                   ? 'bg-green-500/10 text-green-400 border border-green-500/20 cursor-not-allowed'
                   : 'bg-gradient-to-r from-green-500 to-emerald-400 text-black hover:shadow-lg hover:shadow-green-500/25 hover:scale-[1.02]'
-                }`}
+                  }`}
               >
                 {currentStatus === 'accepted' ? '✓ Shortlisted' : 'Shortlist'}
               </button>
@@ -632,7 +674,7 @@ export default function JobApplicationsDashboard() {
                 className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${currentStatus === 'rejected'
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 to-rose-400 text-white hover:shadow-lg hover:shadow-red-500/25 hover:scale-[1.02]'
-                }`}
+                  }`}
               >
                 {currentStatus === 'rejected' ? '✗ Rejected' : 'Reject'}
               </button>

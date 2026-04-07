@@ -11,6 +11,8 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import HomePage from "./pages/HomePage";
 import StartupDashboard from "./pages/StartupDashboard";
+import JobDashboardFounder from "./pages/JobDashboardFounder";
+import JobDashboardFreelancer from "./pages/JobDashboardFreelancer";
 import StartupServices from "./pages/StartupServices";
 import CoFounderProfile from "./pages/CoFounderProfile";
 import FreelancerProfile from "./pages/FreelancerProfile";
@@ -98,7 +100,7 @@ function App() {
         console.warn("[Auth] Syncing timed out. Forcing app unlock.");
         localStorage.removeItem('auth_sync_pending');
         handleAuthChange();
-      }, 5000); 
+      }, 5000);
     }
 
     window.addEventListener('auth-change', handleAuthChange);
@@ -132,6 +134,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/startup-dashboard" element={<StartupDashboard />} />
+        <Route path="/job-dashboard/founder/:jobId/:freelancerId" element={<JobDashboardFounder />} />
+        <Route path="/job-dashboard/freelancer/:jobId" element={<JobDashboardFreelancer />} />
         <Route path="/startup-services" element={<StartupServices />} />
         <Route path="/freelancer-profile" element={<FreelancerProfile />} />
         <Route path="/cofounder-profile" element={<CoFounderProfile />} />
