@@ -14,11 +14,12 @@ import axios from "axios";
  */
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const PROD_BACKEND = "https://foundu-backend-production.up.railway.app";
-const LOCAL_BACKEND = "http://localhost:4000";
+const LOCAL_BACKEND = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const api = axios.create({
-  // Use VITE_API_URL if defined, otherwise auto-switch based on where we are running
-  baseURL: import.meta.env.VITE_API_URL || (isLocal ? LOCAL_BACKEND : PROD_BACKEND),
+  // STRICT OVERRIDE: If we are on foundu.in, FORCIBLY use the production backend
+  // This prevents accidentally baked-in "localhost" from the .env file from breaking the live site.
+  baseURL: isLocal ? LOCAL_BACKEND : PROD_BACKEND,
   withCredentials: true, 
 });
 
