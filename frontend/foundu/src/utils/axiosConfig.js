@@ -12,8 +12,12 @@ import axios from "axios";
  *   import api from "../utils/axiosConfig";
  *   const res = await api.get("/api/notifications");
  */
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const PROD_URL = "https://rare-dedication-production-f321.up.railway.app";
+const LOCAL_URL = "http://localhost:4000";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
+  baseURL: import.meta.env.VITE_API_URL || (isLocal ? LOCAL_URL : PROD_URL),
   withCredentials: true, // Sends httpOnly cookies with every request
 });
 

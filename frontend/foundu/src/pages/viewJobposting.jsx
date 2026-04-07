@@ -116,7 +116,10 @@ export default function JobApplicationsDashboard() {
 
   useEffect(() => {
     if (!selectedJob) return;
-    const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/+$/, "");
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const PROD_URL = "https://rare-dedication-production-f321.up.railway.app";
+    const LOCAL_URL = "http://localhost:4000";
+    const BASE_URL = (import.meta.env.VITE_API_URL || (isLocal ? LOCAL_URL : PROD_URL)).replace(/\/+$/, "");
 
     const fetchApplicants = async () => {
       try {
