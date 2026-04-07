@@ -12,15 +12,9 @@ import axios from "axios";
  *   import api from "../utils/axiosConfig";
  *   const res = await api.get("/api/notifications");
  */
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const PROD_BACKEND = "https://foundu-backend-production.up.railway.app";
-const LOCAL_BACKEND = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
 const api = axios.create({
-  // STRICT OVERRIDE: If we are on foundu.in, FORCIBLY use the production backend
-  // This prevents accidentally baked-in "localhost" from the .env file from breaking the live site.
-  baseURL: isLocal ? LOCAL_BACKEND : PROD_BACKEND,
-  withCredentials: true, 
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
+  withCredentials: true, // Sends httpOnly cookies with every request
 });
 
 // ── REQUEST INTERCEPTOR: Attach JWT from localStorage as fallback ──

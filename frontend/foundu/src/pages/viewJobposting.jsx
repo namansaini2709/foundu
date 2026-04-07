@@ -26,8 +26,6 @@ import Footer from "../components/Footer";
 
 export default function JobApplicationsDashboard() {
   const navigate = useNavigate();
-  const BASE_URL = api.defaults.baseURL.replace(/\/+$/, "");
-  
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showMoreAI, setShowMoreAI] = useState(false);
@@ -139,7 +137,7 @@ export default function JobApplicationsDashboard() {
             status: app.status || "pending",
             rawStatus: app.status || "pending",
             image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${BASE_URL}${app.profile_picture_url}`)
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
               : "👤",
             badges: ["verified"],
             details: {
@@ -179,7 +177,7 @@ export default function JobApplicationsDashboard() {
             status: a.status || 'pending',
             rawStatus: a.status || 'pending',
             image: a.profile_picture_url
-              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `${BASE_URL}${a.profile_picture_url}`)
+              ? (a.profile_picture_url.startsWith('http') ? a.profile_picture_url : `http://localhost:4000${a.profile_picture_url}`)
               : '👤',
             badges: [],
             details: {
@@ -325,7 +323,7 @@ export default function JobApplicationsDashboard() {
             status: app.status || 'pending',
             rawStatus: app.status || 'pending',
             image: app.profile_picture_url 
-              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `${BASE_URL}${app.profile_picture_url}`)
+              ? (app.profile_picture_url.startsWith('http') ? app.profile_picture_url : `http://localhost:4000${app.profile_picture_url}`)
               : "👤",
             badges: ['verified'],
             details: {
@@ -578,7 +576,7 @@ export default function JobApplicationsDashboard() {
                     <div key={post.id || i} className="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/5 hover:border-blue-500/30 transition-all group">
                       {post.image_url ? (
                         <img
-                          src={post.image_url.startsWith('http') ? post.image_url : `${BASE_URL}${post.image_url}`}
+                          src={post.image_url.startsWith('http') ? post.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${post.image_url}`}
                           alt={post.caption || 'Post'}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
