@@ -59,6 +59,7 @@ const Notifications = () => {
     };
     const typeConfigs = {
         success: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', glow: 'shadow-green-500/20' },
+        payment: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', glow: 'shadow-green-500/20' },
         warning: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', glow: 'shadow-yellow-500/20' },
         review: { icon: Bell, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', glow: 'shadow-purple-500/20' },
         application: { icon: Bell, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', glow: 'shadow-blue-500/20' },
@@ -93,8 +94,8 @@ const Notifications = () => {
                                 <div
                                     key={n.id}
                                     className={`group relative p-5 rounded-[2rem] border transition-all duration-500 backdrop-blur-xl ${n.is_read
-                                            ? 'bg-gray-900/40 border-white/5 opacity-60 grayscale-[0.3]'
-                                            : 'bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
+                                        ? 'bg-gray-900/40 border-white/5 opacity-60 grayscale-[0.3]'
+                                        : 'bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
                                         } hover:scale-[1.01] hover:border-blue-500/60 hover:bg-gray-800/40`}
                                 >
                                     <div className="flex gap-5">

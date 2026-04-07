@@ -220,6 +220,11 @@ exports.updateApplicantStatus = (req, res) => {
         badgeService.evaluateGreenTick(user_id);
       }
 
+      // ── WALLET CREDIT ON COMPLETION ──
+      if (status === "completed") {
+        handleJobCompletionCredit(job_id, user_id);
+      }
+
       console.log(`[UPDATE STATUS RESULT] affectedRows=${result.affectedRows}`);
       res.json({
         success: true,
@@ -368,3 +373,59 @@ exports.getAIMatchedApplicants = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/* =========================
+   HELPERS
+   ========================= */
+async function handleJobCompletionCredit(job_id, user_id) {
+  try {
+    // 1. Get job details (amount & payment status)
+    const [jobRows] = await db.promise().query(
+      "SELECT numeric_budget, payment_status, is_completed, job_title FROM foundu_jobs WHERE job_id = ?",
+      [job_id]
+    );
+
+    if (!jobRows.length || jobRows[0].payment_status !== 'paid' || jobRows[0].is_completed) {
+      console.warn(`[Wallet Credit] Job ${job_id} not eligible for credit.`);
+      return;
+    }
+
+    const amountToCredit = jobRows[0].numeric_budget;
+
+    // 2. Ensure freelancer has a wallet
+    const [walletRows] = await db.promise().query("SELECT id FROM wallets WHERE user_id = ?", [user_id]);
+    let wallet_id;
+    if (!walletRows.length) {
+      const [res] = await db.promise().query("INSERT INTO wallets (user_id, balance) VALUES (?, 0)", [user_id]);
+      wallet_id = res.insertId;
+    } else {
+      wallet_id = walletRows[0].id;
+    }
+
+    // 3. Update wallet balance
+    await db.promise().query("UPDATE wallets SET balance = balance + ? WHERE id = ?", [amountToCredit, wallet_id]);
+
+    // 4. Log transaction
+    await db.promise().query(
+      `INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, description) 
+       VALUES (?, ?, 'credit', ?)`,
+      [wallet_id, amountToCredit, `Payment for Job: ${jobRows[0].job_title}`]
+    );
+
+    // 5. Mark job as completed to prevent double credit
+    await db.promise().query("UPDATE foundu_jobs SET is_completed = TRUE WHERE job_id = ?", [job_id]);
+
+    // 6. Notify Freelancer
+    notificationService.sendNotification(
+      user_id,
+      "Payment Received! 💰",
+      `₹${amountToCredit} has been credited to your FoundU Virtual Wallet for completing "${jobRows[0].job_title}".`,
+      "success",
+      "/dashboard"
+    );
+
+    console.log(`[Wallet Credit] Credited ₹${amountToCredit} to user ${user_id} for job ${job_id}`);
+  } catch (error) {
+    console.error("[Wallet Credit Error]", error);
+  }
+}

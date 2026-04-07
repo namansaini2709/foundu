@@ -124,20 +124,20 @@ exports.createFreelancerJob = (req, res) => {
                   notificationService.sendNotification(
                     user_id,
                     "Job Posted Successfully",
-                  `Your job listing for "${job_title}" is now live!`,
-                  "success",
-                  `/job/${freelancer_job_id}`
-                );
+                    `Your job listing for "${job_title}" is now live!`,
+                    "success",
+                    `/job/${freelancer_job_id}`
+                  );
 
-                // 🔥 Email Notification
-                emailNotificationService.sendEmailNotification(
-                  user_id,
-                  "Your Job is Live! 🚀",
-                  `Congratulations! Your job listing for "${job_title}" has been successfully posted and is now visible to thousands of potential matches on FoundU.`,
-                  "View Job Listing",
-                  `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${freelancer_job_id}`
-                );
-              }); // This closes the (err) => { ... } callback for the INSERT query
+                  // 🔥 Email Notification
+                  emailNotificationService.sendEmailNotification(
+                    user_id,
+                    "Your Job is Live! 🚀",
+                    `Congratulations! Your job listing for "${job_title}" has been successfully posted and is now visible to thousands of potential matches on FoundU.`,
+                    "View Job Listing",
+                    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${freelancer_job_id}`
+                  );
+                }); // This closes the (err) => { ... } callback for the INSERT query
             }
           );
         }
@@ -322,6 +322,18 @@ exports.deleteJobById = (req, res) => {
         return res.status(404).json({ message: "Job not found" });
 
       res.json({ success: true, message: "Job deleted successfully" });
+    }
+  );
+};
+
+exports.getJobsByUserId = (req, res) => {
+  const { userId } = req.params;
+  db.query(
+    "SELECT * FROM foundu_jobs WHERE user_id = ? ORDER BY created_at DESC",
+    [userId],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
     }
   );
 };

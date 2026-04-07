@@ -60,7 +60,10 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.set("trust proxy", 1);
-const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME;
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.RAILWAY_ENVIRONMENT ||
+  process.env.RAILWAY_PROJECT_NAME;
 
 app.use(
   session({
@@ -112,6 +115,7 @@ const postRoutes = require("./routes/postRoutes");
 const testEmailRoutes = require("./routes/testEmailRoutes");
 const authRoutes = require("./routes/authRoutes");
 const aiMatchRoutes = require("./routes/aiMatchRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -153,6 +157,9 @@ app.use("/api", testimonialRoutes);
 app.use("/api", postRoutes);
 app.use("/api", testEmailRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", paymentRoutes);
+const submissionRoutes = require("./routes/submissionRoutes");
+app.use("/api/submissions", submissionRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -167,23 +174,33 @@ app.get("/health", (req, res) => {
 // ── DIAGNOSTIC ROUTE (HIDDEN) ──
 app.get("/api/debug-auth", async (req, res) => {
   try {
-    const [[adminCount]] = await db.promise().query("SELECT COUNT(*) as count FROM admin_users");
-    const [[userCount]] = await db.promise().query("SELECT COUNT(*) as count FROM users");
+    const [[adminCount]] = await db
+      .promise()
+      .query("SELECT COUNT(*) as count FROM admin_users");
+    const [[userCount]] = await db
+      .promise()
+      .query("SELECT COUNT(*) as count FROM users");
     const [adminCols] = await db.promise().query("DESCRIBE admin_users");
     const [userCols] = await db.promise().query("DESCRIBE users");
 
     res.json({
       success: true,
       tables: {
-        admin_users: { count: adminCount.count, columns: adminCols.map(c => c.Field) },
-        users: { count: userCount.count, columns: userCols.map(c => c.Field) }
+        admin_users: {
+          count: adminCount.count,
+          columns: adminCols.map((c) => c.Field),
+        },
+        users: {
+          count: userCount.count,
+          columns: userCols.map((c) => c.Field),
+        },
       },
       env: {
         NODE_ENV: process.env.NODE_ENV,
         FRONTEND_URL: process.env.FRONTEND_URL ? "SET" : "MISSING",
-        GOOGLE_ID: process.env.GOOGLE_CLIENT_ID ? "SET" : "MISSING"
+        GOOGLE_ID: process.env.GOOGLE_CLIENT_ID ? "SET" : "MISSING",
       },
-      msg: "If YOU SEE THIS, THE NEW CODE IS RUNNING!"
+      msg: "If YOU SEE THIS, THE NEW CODE IS RUNNING!",
     });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
@@ -199,10 +216,11 @@ const io = new Server(server, {
     origin: (origin, callback) => {
       // Allow handshakes with no origin (internal polling)
       if (!origin) return callback(null, true);
-      
-      const isAllowed = allowedOrigins.some(o => o === origin) || 
-                       origin.endsWith(".up.railway.app") ||
-                       origin.includes("localhost");
+
+      const isAllowed =
+        allowedOrigins.some((o) => o === origin) ||
+        origin.endsWith(".up.railway.app") ||
+        origin.includes("localhost");
 
       if (isAllowed) {
         callback(null, true);

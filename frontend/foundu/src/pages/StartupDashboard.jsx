@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { 
-  Plus, 
-  Target, 
-  TrendingUp, 
-  DollarSign, 
-  Users, 
+import {
+  Plus,
+  Target,
+  TrendingUp,
+  DollarSign,
+  Users,
   Handshake,
-  Zap, 
-  ArrowRight, 
-  BrainCircuit, 
-  ShieldCheck, 
-  Layout, 
-  PieChart, 
+  Zap,
+  ArrowRight,
+  BrainCircuit,
+  ShieldCheck,
+  Layout,
+  PieChart,
   Workflow,
   Sparkles,
   Rocket,
@@ -123,34 +123,56 @@ const FEATURES = [
 ];
 const StartupDashboard = () => {
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
+  const [userJobs, setUserJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+
+  const userId = localStorage.getItem("user_id");
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserJobs();
+    }
+  }, [userId]);
+
+  const fetchUserJobs = async () => {
+    setLoadingJobs(true);
+    try {
+      const res = await api.get(`/api/jobs/user/${userId}`);
+      setUserJobs(res.data);
+    } catch (err) {
+      console.error("Error fetching user jobs:", err);
+    }
+    setLoadingJobs(false);
+  };
+
   // Stats Data
   const stats = [
     {
       title: "Total Jobs Posted",
-      value: "12",
+      value: userJobs.length.toString().padStart(2, '0'),
       subtitle: "Active Opportunities",
       icon: <Target className="w-6 h-6" />,
       color: "blue",
       btnText: "Post Job"
     },
     {
-      title: "Total Matches",
-      value: "08",
-      subtitle: "Successful Connections",
+      title: "Active Freelancers",
+      value: "05", // Placeholder or fetch real matches
+      subtitle: "Ongoing Collaborations",
       icon: <Users className="w-6 h-6" />,
       color: "green"
     },
     {
       title: "Capital Invested",
-      value: "$2,450",
-      subtitle: "Current Month",
+      value: `₹${userJobs.reduce((acc, job) => acc + (job.total_amount || 0), 0).toLocaleString()}`,
+      subtitle: "All Time",
       icon: <DollarSign className="w-6 h-6" />,
       color: "yellow"
     },
     {
-      title: "Active Vendors",
+      title: "Active Proposals",
       value: "15",
-      subtitle: "Service Partners",
+      subtitle: "New Applications",
       icon: <Handshake className="w-6 h-6" />,
       color: "purple",
       btnText: "View All"
@@ -228,6 +250,58 @@ const StartupDashboard = () => {
             </div>
           ))}
         </section>
+
+        {/* ── NEW: MY JOB LISTINGS ── */}
+        <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-10 overflow-hidden">
+          <div className="flex justify-between items-center mb-10">
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
+              <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
+              My Job Listings
+            </h2>
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              {userJobs.length} Positions Active
+            </div>
+          </div>
+
+          {loadingJobs ? (
+            <div className="text-center py-20 text-gray-500">Retrieving job records...</div>
+          ) : userJobs.length === 0 ? (
+            <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2rem]">
+              <p className="text-gray-500 mb-4">No jobs posted yet.</p>
+              <button className="text-blue-400 font-bold hover:underline">Start your first listing →</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {userJobs.map((job) => (
+                <div key={job.job_id} className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative">
+                  <div className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${job.payment_status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                    }`}>
+                    {job.payment_status === 'paid' ? '● Payment Verified' : '○ Payment Pending'}
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{job.job_title}</h3>
+                  <div className="flex gap-4 mb-6">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Type: {job.job_type}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Budget: {job.budget_range}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-gray-500 uppercase font-black mb-1">Total Bill Paid</span>
+                      <span className="text-lg font-black text-white">₹{(job.total_amount || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${job.is_completed ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {job.is_completed ? 'Job Completed' : 'Active Listing'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
         {/* Main Content Layout */}
         <div className="flex flex-col xl:flex-row gap-8">
           {/* LEFT SIDEBAR - Features List */}
@@ -244,11 +318,10 @@ const StartupDashboard = () => {
                   <button
                     key={index}
                     onClick={() => setActiveFeatureIndex(index)}
-                    className={`w-full flex items-center gap-4 p-5 rounded-[1.5rem] transition-all duration-300 group mb-2 ${
-                      activeFeatureIndex === index 
-                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-[1.02]' 
+                    className={`w-full flex items-center gap-4 p-5 rounded-[1.5rem] transition-all duration-300 group mb-2 ${activeFeatureIndex === index
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-[1.02]'
                       : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <div className={`p-2.5 rounded-xl ${activeFeatureIndex === index ? 'bg-white/20' : 'bg-white/5'}`}>
                       {feature.icon}
@@ -273,9 +346,9 @@ const StartupDashboard = () => {
               <section className="min-h-[700px] flex flex-col bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] overflow-hidden relative group">
                 {/* Decorative bar */}
                 <div className="h-3 w-full flex">
-                   <div className="bg-blue-500 w-1/3"></div>
-                   <div className="bg-indigo-500/50 w-1/3"></div>
-                   <div className="bg-purple-500/20 w-1/3"></div>
+                  <div className="bg-blue-500 w-1/3"></div>
+                  <div className="bg-indigo-500/50 w-1/3"></div>
+                  <div className="bg-purple-500/20 w-1/3"></div>
                 </div>
                 <div className="p-12 flex-grow flex flex-col">
                   {/* Analysis Info */}
@@ -290,8 +363,8 @@ const StartupDashboard = () => {
                             {FEATURES[activeFeatureIndex].fullName}
                           </h2>
                           <div className="flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                             <span className="text-blue-400 text-[10px] font-black tracking-widest uppercase">Deep Neural Engine active</span>
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                            <span className="text-blue-400 text-[10px] font-black tracking-widest uppercase">Deep Neural Engine active</span>
                           </div>
                         </div>
                       </div>
@@ -306,42 +379,42 @@ const StartupDashboard = () => {
                       </div>
                       {FEATURES[activeFeatureIndex].recommended && (
                         <div className="bg-blue-600 rounded-3xl p-8 text-center shadow-2xl shadow-blue-600/20">
-                           <span className="text-blue-100 text-[10px] font-black tracking-widest uppercase block mb-3">Priority Action</span>
-                           <div className="text-white text-sm font-black italic">Strategic High Impact</div>
+                          <span className="text-blue-100 text-[10px] font-black tracking-widest uppercase block mb-3">Priority Action</span>
+                          <div className="text-white text-sm font-black italic">Strategic High Impact</div>
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
-                        <h4 className="text-white font-black text-lg mb-8 flex items-center gap-3">
-                          <Activity className="w-6 h-6 text-blue-400" />
-                          KEY INSIGHTS
-                        </h4>
-                        <div className="space-y-6">
-                           {(FEATURES[activeFeatureIndex].metrics || ["Strategic Growth: +24%", "Market Penetration: High", "Execution Risk: Minimal"]).map((m, i) => (
-                             <div key={i} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
-                                <span className="text-gray-400 font-light">{m.split(':')[0]}</span>
-                                <span className="text-white font-black">{m.split(':')[1] || "Analyzed"}</span>
-                             </div>
-                           ))}
-                        </div>
-                     </div>
-                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
-                        <h4 className="text-indigo-400 font-black text-lg mb-8 flex items-center gap-3">
-                          <Handshake className="w-6 h-6" />
-                          OPPORTUNITY WINDOW
-                        </h4>
-                        <p className="text-gray-300 text-lg leading-relaxed mb-auto border-l-2 border-indigo-500/20 pl-6 italic font-light">
-                          {FEATURES[activeFeatureIndex].whenToUse}
-                        </p>
-                     </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
+                      <h4 className="text-white font-black text-lg mb-8 flex items-center gap-3">
+                        <Activity className="w-6 h-6 text-blue-400" />
+                        KEY INSIGHTS
+                      </h4>
+                      <div className="space-y-6">
+                        {(FEATURES[activeFeatureIndex].metrics || ["Strategic Growth: +24%", "Market Penetration: High", "Execution Risk: Minimal"]).map((m, i) => (
+                          <div key={i} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0">
+                            <span className="text-gray-400 font-light">{m.split(':')[0]}</span>
+                            <span className="text-white font-black">{m.split(':')[1] || "Analyzed"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10">
+                      <h4 className="text-indigo-400 font-black text-lg mb-8 flex items-center gap-3">
+                        <Handshake className="w-6 h-6" />
+                        OPPORTUNITY WINDOW
+                      </h4>
+                      <p className="text-gray-300 text-lg leading-relaxed mb-auto border-l-2 border-indigo-500/20 pl-6 italic font-light">
+                        {FEATURES[activeFeatureIndex].whenToUse}
+                      </p>
+                    </div>
                   </div>
                   <button className="mt-auto relative w-full py-10 bg-blue-600 hover:bg-blue-500 transition-all rounded-[2.5rem] overflow-hidden group/btn shadow-2xl shadow-blue-700/40">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                     <div className="relative z-10 flex items-center justify-center gap-6">
-                       <span className="text-2xl font-black tracking-tight text-white uppercase">Initialize Deep Analysis Center</span>
-                       <ArrowRight className="w-8 h-8 group-hover/btn:translate-x-4 transition-transform" />
+                      <span className="text-2xl font-black tracking-tight text-white uppercase">Initialize Deep Analysis Center</span>
+                      <ArrowRight className="w-8 h-8 group-hover/btn:translate-x-4 transition-transform" />
                     </div>
                   </button>
                 </div>
@@ -371,11 +444,11 @@ const StartupDashboard = () => {
                   </button>
                 </div>
                 <div className="bg-gray-700/30 border border-blue-700/20 rounded-3xl p-8">
-                   <h4 className="text-white font-black mb-2 text-lg">Pitch Deck Pro</h4>
-                   <p className="text-gray-500 text-xs mb-6 italic">Generate investor-ready slides with AI.</p>
-                   <button className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs tracking-widest uppercase transition-all">
-                     LAUNCH BUILDER
-                   </button>
+                  <h4 className="text-white font-black mb-2 text-lg">Pitch Deck Pro</h4>
+                  <p className="text-gray-500 text-xs mb-6 italic">Generate investor-ready slides with AI.</p>
+                  <button className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs tracking-widest uppercase transition-all">
+                    LAUNCH BUILDER
+                  </button>
                 </div>
               </div>
             </div>
@@ -383,7 +456,8 @@ const StartupDashboard = () => {
         </div>
       </main>
       <Footer />
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
         }

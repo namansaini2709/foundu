@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
 
 // Create a new post
 exports.createPost = (req, res) => {
@@ -66,4 +67,69 @@ exports.deletePost = (req, res) => {
     }
     res.json({ success: true, message: "Post deleted successfully" });
   });
+};
+
+// Toggle like on a post
+exports.likePost = async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.body;
+
+  if (!user_id) return res.status(401).json({ success: false, message: "Login required to like posts" });
+
+  try {
+    // Check if already liked
+    const [existing] = await db.promise().query(
+      "SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?",
+      [postId, user_id]
+    );
+
+    if (existing.length > 0) {
+      // Unlike
+      await db.promise().query("DELETE FROM post_likes WHERE post_id = ? AND user_id = ?", [postId, user_id]);
+      await db.promise().query("UPDATE user_posts SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?", [postId]);
+      const [[post]] = await db.promise().query("SELECT likes_count FROM user_posts WHERE id = ?", [postId]);
+      return res.json({ success: true, liked: false, likes_count: post.likes_count });
+    } else {
+      // Like
+      await db.promise().query("INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)", [postId, user_id]);
+      await db.promise().query("UPDATE user_posts SET likes_count = likes_count + 1 WHERE id = ?", [postId]);
+      const [[post]] = await db.promise().query("SELECT likes_count, user_id FROM user_posts WHERE id = ?", [postId]);
+
+      // Send real-time notification to post owner (skip if liking own post)
+      if (post.user_id !== parseInt(user_id)) {
+        const [[liker]] = await db.promise().query("SELECT full_name FROM users WHERE id = ?", [user_id]);
+        const likerName = liker?.full_name || "Someone";
+        notificationService.sendNotification(
+          post.user_id,
+          "\u2764\uFE0F New Like!",
+          `${likerName} liked your post.`,
+          "general",
+          "/live-feed"
+        ).catch(e => console.error("Like notify error:", e));
+      }
+
+      return res.json({ success: true, liked: true, likes_count: post.likes_count });
+    }
+  } catch (err) {
+    console.error("[LIKE ERROR]", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// Check if a user liked a specific post
+exports.getLikeStatus = async (req, res) => {
+  const { postId } = req.params;
+  const { user_id } = req.query;
+
+  if (!user_id) return res.json({ liked: false });
+
+  try {
+    const [rows] = await db.promise().query(
+      "SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?",
+      [postId, user_id]
+    );
+    res.json({ liked: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 };

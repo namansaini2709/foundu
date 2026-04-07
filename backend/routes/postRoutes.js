@@ -15,4 +15,10 @@ router.get("/posts/user/:userId", postController.getUserPosts);
 // Route to delete a post
 router.delete("/posts/:postId", postController.deletePost);
 
+// Like / Unlike a post
+router.post("/posts/:postId/like", postController.likePost);
+
+// Check if user liked a post
+router.get("/posts/:postId/like-status", postController.getLikeStatus);
+
 module.exports = router;
