@@ -21,7 +21,7 @@ import {
   History,
 } from "lucide-react";
 import "./IdeaLabPopup.css";
-const API_BASE = `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api`;
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
 const IdeaLabPopup = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState(null); // 'discover' or 'validate'
@@ -98,7 +98,7 @@ const IdeaLabPopup = ({ userId }) => {
   const handleRunAnalysis = async (text, customTitle = null) => {
     setLoading(true);
     setPhase("loading");
-    
+
     try {
       const response = await api.post(`${API_BASE}/ai/analyze-idea`, {
         mode: mode,
@@ -108,7 +108,7 @@ const IdeaLabPopup = ({ userId }) => {
 
       if (response.data.success) {
         const aiData = response.data.data;
-        
+
         // Map Gemini output to the frontend report structure
         const formattedReport = {
           title: customTitle || (text.length > 30 ? text.substring(0, 30) + "..." : text),
@@ -140,7 +140,7 @@ const IdeaLabPopup = ({ userId }) => {
     } catch (error) {
       console.error("Idea Lab AI Error:", error);
       toast.error("AI Analysis failed. Showing sample data.");
-      
+
       // Minimal Fallback for UX
       setReportData({
         title: "Analysis Unavailable",
