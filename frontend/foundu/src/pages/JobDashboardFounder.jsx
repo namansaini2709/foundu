@@ -325,7 +325,7 @@ export default function JobDashboardFounder() {
                         {/* Freelancer Profile Card */}
                         <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-6 text-center">
                             <div className="w-20 h-20 mx-auto mb-4 rounded-2xl border-2 border-blue-500/30 overflow-hidden">
-                                <img src={freelancer?.profile_picture_url?.startsWith('http') ? freelancer.profile_picture_url : `http://localhost:4000${freelancer?.profile_picture_url}`} className="w-full h-full object-cover" />
+                                <img src={freelancer?.profile_picture_url?.startsWith('http') ? freelancer.profile_picture_url : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${freelancer?.profile_picture_url}`} className="w-full h-full object-cover" />
                             </div>
                             <h3 className="font-black text-lg">{freelancer?.full_name}</h3>
                             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-4">Contracted Freelancer</p>

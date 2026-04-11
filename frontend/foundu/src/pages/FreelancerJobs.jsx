@@ -22,14 +22,14 @@ function FreelancerJobs() {
       try {
         setLoading(true);
         // Fetch all jobs
-        const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
+        const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs`);
         const jobsData = await jobsResponse.json();
         // Debug: Log the first job to see the structure
         if (jobsData.length > 0) {
           console.log("First job from API:", jobsData[0]);
         }
         // Fetch all startup profiles
-        const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
+        const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles`);
         const profilesData = await profilesResponse.json();
         // Create a map of founder_id to startup logo
         const founderLogoMap = {};
@@ -93,11 +93,11 @@ function FreelancerJobs() {
               <span className="text-lg font-bold text-blue-200">
                 {isApiJob
                   ? job.name
-                      .split(" ")
-                      .map((word) => word[0])
-                      .join("")
-                      .substring(0, 2)
-                      .toUpperCase()
+                    .split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .substring(0, 2)
+                    .toUpperCase()
                   : job.logo}
               </span>
             </div>
@@ -138,9 +138,9 @@ function FreelancerJobs() {
         <div className="max-w-7xl mx-auto">
           <center>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            <span className="text-white">Available </span>
-            <span className="text-blue-300">Jobs</span>
-          </h2>
+              <span className="text-white">Available </span>
+              <span className="text-blue-300">Jobs</span>
+            </h2>
           </center>
           {/* AI Matched Jobs Heading */}
           {/* <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">

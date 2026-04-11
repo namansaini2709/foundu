@@ -63,7 +63,7 @@ export default function JobApplicationsDashboard() {
     }
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs`);
       if (!response.ok) throw new Error("Failed to fetch jobs");
       const allJobs = await response.json();
       console.log("Total jobs fetched from API:", allJobs.length);

@@ -98,7 +98,7 @@ function CoFounderJobDetail() {
         setJobData(job);
         // Fetch startup profile using founder_id
         if (job.founder_id) {
-          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
+          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles`);
           const profiles = await profilesResponse.json();
           const startupProfile = profiles.find((profile) => Number(profile.founder_id) === Number(job.founder_id));
           if (startupProfile) {
@@ -127,7 +127,7 @@ function CoFounderJobDetail() {
     }
     setApplying(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/apply`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

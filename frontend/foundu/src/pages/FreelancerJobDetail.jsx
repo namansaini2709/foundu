@@ -101,7 +101,7 @@ function FreelancerJobDetail() {
         job_id: parseInt(jobId),
         user_id: parseInt(userData.user_id),
       });
-      const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/jobs/apply`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,8 +119,8 @@ function FreelancerJobDetail() {
         toast.success("Application submitted successfully! 🎉");
         // Redirect to appropriate dashboard after 2 seconds
         setTimeout(() => {
-          const dashboardRoute = userData.user_type.toLowerCase() === "freelancer" 
-            ? "/freelancer-dashboard" 
+          const dashboardRoute = userData.user_type.toLowerCase() === "freelancer"
+            ? "/freelancer-dashboard"
             : "/cofounder-dashboard";
           console.log("Redirecting to:", dashboardRoute);
           navigate(dashboardRoute);
@@ -163,7 +163,7 @@ function FreelancerJobDetail() {
         setJobData(job);
         // Fetch startup profile using founder_id
         if (job.founder_id) {
-          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}`}/api/startup-profiles`);
+          const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles`);
           const profiles = await profilesResponse.json();
           console.log("=== STARTUP PROFILES ===");
           console.log("Total profiles:", profiles.length);
@@ -356,8 +356,8 @@ function FreelancerJobDetail() {
                     </div>
                   )}
                   {/* Work Type */}
-                   <div className="flex items-center gap-2 text-blue-300">
-                    <MapPin  className="w-5 h-5" />
+                  <div className="flex items-center gap-2 text-blue-300">
+                    <MapPin className="w-5 h-5" />
                     <span className="font-medium">{jobData.job_location_type}</span>
                   </div>
                   {/* Job Level - Placeholder */}
@@ -366,7 +366,7 @@ function FreelancerJobDetail() {
                     <span className="font-medium">{jobData.job_level}</span>
                   </div>
                   {/* Working Type - Placeholder */}
-                   {jobData.work_type && (
+                  {jobData.work_type && (
                     <div className="flex items-center gap-2 text-blue-300">
                       <Calendar className="w-5 h-5" />
                       <span className="font-medium capitalize">
@@ -379,12 +379,11 @@ function FreelancerJobDetail() {
             </div>
             {/* Apply Now Button */}
             <div className="absolute top-6 right-4">
-              <button 
+              <button
                 onClick={handleApplyNow}
                 disabled={buttonConfig.disabled}
-                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${
-                  buttonConfig.disabled ? 'opacity-80' : ''
-                }`}
+                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''
+                  }`}
               >
                 <Briefcase className="w-5 h-5" />
                 {buttonConfig.text}

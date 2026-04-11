@@ -8,7 +8,14 @@ import 'aos/dist/aos.css';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
-// Gradient styles - alternating
+import VideoBackground from "../components/VideoBackground";
+
+// Primary black background for all sections
+const solidBlack = {
+  background: "#000000",
+};
+
+// Gradient styles - kept for subtle hero/accent use
 const gradientBlackToBlue = {
   background:
     "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -67,7 +74,7 @@ function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: "#000000" }}>
       <Navbar />
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
@@ -141,22 +148,10 @@ function CountUp({ end, duration = 2000, suffix = "" }) {
 // Hero Section (Black to Blue)
 const Hero = ({ navigate }) => (
   <section
-    className="min-h-screen flex flex-col items-center justify-center px-4 py-20 relative"
-    style={gradientBlackToBlue}
+    className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden"
+    style={{ background: "#000000" }}
   >
-    {/* Grid Background Effect - High Visibility */}
-    <div
-      className="absolute inset-0 z-0 opacity-80 pointer-events-none"
-      style={{
-        backgroundImage: `
-          linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px',
-        maskImage: 'linear-gradient(to bottom, transparent, black 50%, transparent)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 50%, transparent)'
-      }}
-    ></div>
+    <VideoBackground />
     <div className="text-center max-w-5xl mx-auto relative z-10 px-4">
       <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 md:mb-6 leading-tight">
         <span className="text-white">CONNECT</span>{" "}
@@ -172,14 +167,14 @@ const Hero = ({ navigate }) => (
       </p>
       <button
         onClick={() => navigate("/login-signup")}
-        className="bg-white text-gray-900 px-6 py-3 md:px-8 md:py-4 rounded-lg text-base md:text-lg font-semibold hover:bg-blue-400 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg">
+        className="bg-white text-blue-600 px-6 py-3 md:px-8 md:py-4 rounded-lg text-base md:text-lg font-semibold  transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
         Get started for free
       </button>
     </div>
-    <div className="mt-16 flex flex-col items-center text-blue-300 animate-bounce relative z-10">
-      <span className="text-sm mb-2">SCROLL DOWN</span>
+    <div className="absolute bottom-10 inset-x-0 flex flex-col items-center text-blue-300 animate-bounce z-10">
+      <span className="text-sm mb-2 font-medium tracking-widest opacity-70 uppercase">Scroll Down</span>
       <svg
-        className="w-6 h-6"
+        className="w-6 h-6 opacity-70"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -195,12 +190,14 @@ const Hero = ({ navigate }) => (
   </section>
 );
 
+
 // Trusted By Section (Blue to Black)
 const TrustedBy = ({ startups }) => {
+  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:4000";
   const logos = startups.map(s => ({
     name: s.startup_name || "Startup",
     logo: s.startup_logo_url
-      ? `http://localhost:4000${s.startup_logo_url}`
+      ? (s.startup_logo_url.startsWith('http') ? s.startup_logo_url : `${apiBase}${s.startup_logo_url}`)
       : null,
     initial: (s.startup_name || "S").charAt(0).toUpperCase()
   }));
@@ -210,7 +207,7 @@ const TrustedBy = ({ startups }) => {
   return (
     <section
       className="py-20 px-4 overflow-hidden relative"
-      style={gradientBlackToBlue}
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
     >
       <h2 className="text-center text-4xl md:text-5xl font-bold mb-12 relative z-10">
         <span className="text-white">Trusted by </span>
@@ -242,7 +239,7 @@ const TrustedBy = ({ startups }) => {
             {logos.map((company, idx) => (
               <div
                 key={`row1-dup-${idx}`}
-                className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                className="flex-shrink-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
               >
                 <div className="text-center flex flex-col items-center">
                   {company.logo ? (
@@ -266,7 +263,7 @@ const TrustedBy = ({ startups }) => {
               .map((company, idx) => (
                 <div
                   key={`row2-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                  className="flex-shrink-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
                 >
                   <div className="text-center flex flex-col items-center">
                     {company.logo ? (
@@ -287,7 +284,7 @@ const TrustedBy = ({ startups }) => {
               .map((company, idx) => (
                 <div
                   key={`row2-dup-${idx}`}
-                  className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
+                  className="flex-shrink-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 w-32 h-32 flex items-center justify-center hover:border-blue-400 transition-all"
                 >
                   <div className="text-center flex flex-col items-center">
                     {company.logo ? (
@@ -315,11 +312,11 @@ const UsersWeCater = ({ navigate }) => {
       icon: <Rocket className="w-8 h-8" />,
       accentClass: "blue",
       bgColor: "from-blue-600/20 to-blue-900/10",
-      borderColor: "border-blue-500/30",
+      borderColor: "border-white/20",
       hoverBorder: "hover:border-blue-400",
       btnColor: "bg-blue-600 hover:bg-blue-500",
       shadowColor: "group-hover:shadow-blue-500/20",
-      iconContainer: "bg-blue-500/20 text-blue-300 border-blue-500/30 shadow-blue-500/10",
+      iconContainer: "bg-blue-500/20 text-blue-300 border-white/20 shadow-blue-500/10",
       titleGradient: "group-hover:from-white group-hover:to-blue-200",
       glowColor: "group-hover:bg-blue-500/20",
       buttonText: "Add a New Job",
@@ -331,11 +328,11 @@ const UsersWeCater = ({ navigate }) => {
       icon: <Search className="w-8 h-8" />,
       accentClass: "indigo",
       bgColor: "from-indigo-600/20 to-indigo-900/10",
-      borderColor: "border-indigo-500/30",
+      borderColor: "border-white/20",
       hoverBorder: "hover:border-indigo-400",
       btnColor: "bg-indigo-600 hover:bg-indigo-500",
       shadowColor: "group-hover:shadow-indigo-500/20",
-      iconContainer: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 shadow-indigo-500/10",
+      iconContainer: "bg-indigo-500/20 text-indigo-300 border-white/20 shadow-indigo-500/10",
       titleGradient: "group-hover:from-white group-hover:to-indigo-200",
       glowColor: "group-hover:bg-indigo-500/20",
       buttonText: "View Jobs",
@@ -347,11 +344,11 @@ const UsersWeCater = ({ navigate }) => {
       icon: <Handshake className="w-8 h-8" />,
       accentClass: "purple",
       bgColor: "from-purple-600/20 to-purple-900/10",
-      borderColor: "border-purple-500/30",
+      borderColor: "border-white/20",
       hoverBorder: "hover:border-purple-400",
       btnColor: "bg-purple-600 hover:bg-purple-500",
       shadowColor: "group-hover:shadow-purple-500/20",
-      iconContainer: "bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-purple-500/10",
+      iconContainer: "bg-purple-500/20 text-purple-300 border-white/20 shadow-purple-500/10",
       titleGradient: "group-hover:from-white group-hover:to-purple-200",
       glowColor: "group-hover:bg-purple-500/20",
       buttonText: "View Jobs",
@@ -360,7 +357,10 @@ const UsersWeCater = ({ navigate }) => {
   ];
 
   return (
-    <section className="py-20 md:py-32 px-4 relative" style={gradientBlueToBlack}>
+    <section
+      className="py-20 md:py-32 px-4 relative"
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+    >
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center mb-12 md:mb-20">
           <h2 className="text-center text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6">
@@ -408,7 +408,18 @@ const UsersWeCater = ({ navigate }) => {
 const CategorySteps = () => {
   const categories = [
     {
-      type: "Freelancer",
+      type: "Founder's",
+      description: "Scale your startup with elite talent on demand.",
+      alignment: "left",
+      steps: [
+        "Draft JDs in seconds with Quick Hire AI",
+        "Browse AI-ranked talent and co-founders",
+        "Analyze credibility via verified badges",
+        "Hire, manage & scale your dream team"
+      ]
+    },
+    {
+      type: "Freelancer's",
       description: "Your journey from expert to verified professional.",
       alignment: "left",
       steps: [
@@ -419,7 +430,7 @@ const CategorySteps = () => {
       ]
     },
     {
-      type: "Co-founder",
+      type: "Co-founder's",
       description: "Partner with visionaries to build the next unicorn.",
       alignment: "right",
       steps: [
@@ -429,21 +440,14 @@ const CategorySteps = () => {
         "Secure equity & build your legacy"
       ]
     },
-    {
-      type: "Founder",
-      description: "Scale your startup with elite talent on demand.",
-      alignment: "left",
-      steps: [
-        "Draft JDs in seconds with Quick Hire AI",
-        "Browse AI-ranked talent and co-founders",
-        "Analyze credibility via verified badges",
-        "Hire, manage & scale your dream team"
-      ]
-    }
+
   ];
 
   return (
-    <section className="py-20 md:py-32 bg-[#020024] relative overflow-hidden" style={gradientBlackToBlue}>
+    <section
+      className="py-20 md:py-32 relative overflow-hidden"
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+    >
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-28">
           <h2 className="text-4xl md:text-7xl font-black text-white mb-6 uppercase tracking-tight">THE ROADMAP</h2>
@@ -462,7 +466,7 @@ const CategorySteps = () => {
                 <div className="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-6">
                   Category Profile
                 </div>
-                <h3 className={`text-6xl md:text-9xl font-black text-white/5 mb-[-0.5em] uppercase leading-none select-none ${cat.alignment === 'left' ? 'text-left' : 'text-right'}`}>{cat.type}</h3>
+                <h3 className={`text-6xl md:text-9xl font-black text-white/10 mb-[-0.5em] uppercase leading-none select-none ${cat.alignment === 'left' ? 'text-left' : 'text-right'}`}>{cat.type}</h3>
                 <h4 className="text-3xl md:text-5xl font-black text-white mb-8 relative z-10">{cat.type} Journey</h4>
                 <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed">"{cat.description}"</p>
               </div>
@@ -483,7 +487,7 @@ const CategorySteps = () => {
                       <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-white/10 flex items-center justify-center text-white/20 font-black text-2xl shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-500 transform group-hover:scale-110">
                         {sIdx + 1}
                       </div>
-                      <div className="bg-white/5 backdrop-blur-md border border-white/5 p-6 md:p-8 rounded-[2.5rem] w-full group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 hover:translate-x-4 shadow-xl">
+                      <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 hover:translate-x-4 shadow-xl">
                         <p className="text-white font-bold text-base md:text-xl leading-relaxed">{step}</p>
                       </div>
                     </motion.div>
@@ -537,7 +541,10 @@ const FoundUAIs = () => {
   ];
 
   return (
-    <section className="py-20 md:py-32 px-4 relative bg-[#020024] overflow-hidden" style={gradientBlackToBlue}>
+    <section
+      className="py-20 md:py-32 px-4 relative overflow-hidden"
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+    >
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 blur-[150px] rounded-full pointer-events-none"></div>
 
@@ -563,7 +570,7 @@ const FoundUAIs = () => {
               className="group relative h-full"
             >
               <div className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}></div>
-              <div className="relative h-full bg-gray-950/40 backdrop-blur-3xl border border-white/5 p-12 rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
                 <div className={`w-24 h-24 rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}>
                   {ai.icon}
                 </div>
@@ -592,7 +599,10 @@ const FoundUAIs = () => {
 
 // What is Foundu Section
 const WhatIsFoundu = ({ navigate }) => (
-  <section className="py-32 px-4 relative min-h-screen flex items-center overflow-hidden" style={gradientBlueToBlack}>
+  <section
+    className="py-32 px-4 relative min-h-screen flex items-center overflow-hidden"
+    style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+  >
     <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
     <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
     <div className="max-w-7xl mx-auto w-full relative z-10">
@@ -647,7 +657,10 @@ const NumbersSection = ({ publicStats }) => {
   ];
 
   return (
-    <section className="py-20 md:py-32 px-4 relative" style={gradientBlueToBlack}>
+    <section
+      className="py-20 md:py-32 px-4 relative"
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+    >
       <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
         <span className="text-white">OUR </span>
         <span className="text-blue-300">ACHIEVEMENT</span>
@@ -656,7 +669,7 @@ const NumbersSection = ({ publicStats }) => {
         From our first creator upload to thousands of successful collaborations — here's what we've achieved so far.
       </p>
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-blue-400 rounded-2xl p-6 md:p-12 shadow-2xl shadow-blue-500/10">
+        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -684,7 +697,10 @@ const Testimonials = ({ testimonialsList }) => {
   const displayList = testimonialsList && testimonialsList.length > 0 ? testimonialsList : staticTestimonials;
 
   return (
-    <section className="py-20 md:py-32 px-4 overflow-hidden relative" style={gradientBlueToBlack}>
+    <section
+      className="py-20 md:py-32 px-4 overflow-hidden relative"
+      style={{ background: "#000000", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}
+    >
       <div className="max-w-7xl mx-auto">
         <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
           <span className="text-white">What our </span>
@@ -696,7 +712,7 @@ const Testimonials = ({ testimonialsList }) => {
         <div className="flex w-max animate-scroll-right hover:[animation-play-state:paused]">
           <div className="flex shrink-0 gap-6 pr-6">
             {displayList.map((testimonial, idx) => (
-              <div key={idx} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all group">
+              <div key={idx} className="flex-shrink-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 w-80 hover:border-blue-400 transition-all group">
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3 border border-blue-400/30 group-hover:scale-110 transition-transform">{testimonial.name.charAt(0)}</div>
                   <div>
@@ -714,7 +730,7 @@ const Testimonials = ({ testimonialsList }) => {
           </div>
           <div className="flex shrink-0 gap-6 pr-6">
             {displayList.map((testimonial, idx) => (
-              <div key={`dup-${idx}`} className="flex-shrink-0 bg-gray-800/30 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6 w-80 hover:border-blue-400 transition-all group">
+              <div key={`dup-${idx}`} className="flex-shrink-0 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 w-80 hover:border-blue-400 transition-all group">
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-3 border border-blue-400/30 group-hover:scale-110 transition-transform">{testimonial.name.charAt(0)}</div>
                   <div>
