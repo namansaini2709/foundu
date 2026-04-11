@@ -90,10 +90,10 @@ const InfluencerMarketplace = () => {
             <div className="pt-32 pb-16 px-6 relative overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-blue-600/10 to-transparent pointer-events-none"></div>
                 <div className="max-w-7xl mx-auto relative z-10 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold mb-6 animate-pulse">
+                    {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold mb-6 animate-pulse">
                         <Zap className="w-4 h-4" />
                         Platform Exclusive
-                    </div>
+                    </div> */}
                     <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
                         Influencer Marketplace
                     </h1>
