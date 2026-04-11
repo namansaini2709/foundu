@@ -40,6 +40,7 @@ import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AdminTestimonials from "./admin/pages/AdminTestimonials";
+import AdminNotifications from "./admin/pages/AdminNotifications";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -178,6 +179,7 @@ function App() {
         <Route path="/admin/badges" element={<AdminBadges />} />
         <Route path="/admin/broadcast" element={<AdminBroadcast />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+        <Route path="/admin/notifications" element={<AdminNotifications />} />
         {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
         <Route path="/about-details" element={<AboutDetails />} />

@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 // Get all chats for the current user
 exports.getMyChats = (req, res) => {
@@ -99,6 +101,45 @@ exports.sendMessage = (req, res) => {
           );
 
           res.json({ success: true, messageId: result.insertId });
+
+          // --- Notify the receiver ---
+          db.query(
+            "SELECT user_id FROM chat_participants WHERE chat_id = ? AND user_id != ?",
+            [chatId, senderId],
+            (err, receivers) => {
+              if (err || !receivers.length) return;
+              const receiverId = receivers[0].user_id;
+
+              // Get sender name
+              db.query(
+                "SELECT full_name FROM users WHERE id = ?",
+                [senderId],
+                (err, senderRows) => {
+                  if (err || !senderRows.length) return;
+                  const senderName = senderRows[0].full_name || "Someone";
+                  const preview = content.length > 50 ? content.substring(0, 50) + "..." : content;
+
+                  // In-App Notification
+                  notificationService.sendNotification(
+                    receiverId,
+                    "New Message 💬",
+                    `${senderName} sent you a message: "${preview}"`,
+                    "message",
+                    "/chatbox"
+                  );
+
+                  // Email Notification
+                  emailNotificationService.sendEmailNotification(
+                    receiverId,
+                    "You Have a New Message 💬",
+                    `${senderName} has sent you a message on FoundU:<br><br><em>"${preview}"</em><br><br>Log in to your chatbox to continue the conversation.`,
+                    "Open Chatbox",
+                    `${process.env.FRONTEND_URL || "http://localhost:5173"}/chatbox`
+                  );
+                }
+              );
+            }
+          );
         },
       );
     },

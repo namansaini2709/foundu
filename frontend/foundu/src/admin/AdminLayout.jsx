@@ -10,6 +10,7 @@ const navItems = [
   { label: "Broadcast", icon: "📣", path: "/admin/broadcast" },
   { label: "Blue Tick", icon: "✅", path: "/admin/badges", badge: true },
   { label: "Testimonials", icon: "⭐", path: "/admin/testimonials" },
+  { label: "Notifications", icon: "🔔", path: "/admin/notifications" },
   { label: "Users", icon: "👥", path: "/admin/users", soon: true },
   { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true },
 ];

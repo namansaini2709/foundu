@@ -258,4 +258,20 @@ app.use((err, req, res, next) => {
 
 server.listen(PORT, () => {
   console.log(`🚀 FoundU backend running on ${PORT}`);
+
+  // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
+  const { checkUnreadMessages } = require("./services/unreadMessageService");
+  const scheduleNoonCheck = () => {
+    const now = new Date();
+    const noon = new Date(now);
+    noon.setHours(12, 0, 0, 0);
+    if (now >= noon) noon.setDate(noon.getDate() + 1); // If past noon today, schedule for tomorrow
+    const msUntilNoon = noon - now;
+    console.log(`📬 Unread message checker scheduled for 12:00 PM (in ${Math.round(msUntilNoon / 60000)} min)`);
+    setTimeout(() => {
+      checkUnreadMessages();
+      setInterval(checkUnreadMessages, 24 * 60 * 60 * 1000); // Then every 24 hours
+    }, msUntilNoon);
+  };
+  scheduleNoonCheck();
 });
