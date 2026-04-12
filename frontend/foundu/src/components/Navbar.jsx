@@ -11,6 +11,7 @@ import logo from "../assets/whitelogo.png";
 // Default links for non-logged-in users
 const defaultNavLinks = [
   { label: "Hire Freelancer", to: "/freelancer-jobs" },
+  { label: "Onboard Influencer", to: "/onboard-influencer" },
   { label: "Find Best Match", to: "/signup" },
   { label: "For Startups", to: "/startup-services" },
   { label: "About Us", to: "/about-details" },
@@ -121,7 +122,7 @@ function Navbar() {
 
         // Get initial unread count
         const notifRes = await api.get(`/api/notifications`);
-        if (notifRes.data.success) {
+        if (notifRes.data.success && Array.isArray(notifRes.data.data)) {
           setUnreadCount(notifRes.data.data.filter((n) => !n.is_read).length);
         }
       } catch (error) {
@@ -131,6 +132,7 @@ function Navbar() {
           setUser(null);
         }
       }
+
       setLoading(false);
     };
 
@@ -258,9 +260,10 @@ function Navbar() {
   };
 
   const getUserDisplayName = () => {
-    if (!user) return "";
+    if (!user) return "User";
     return user.full_name || user.name || user.email || "User";
   };
+
 
   const isLoggedIn = () => !!getUserId();
 
@@ -270,12 +273,13 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
 
     toast.info(`Redirecting to ${userTypeDisplay} Profile...`, {
       theme: "dark",
       autoClose: 1000,
     });
+
     setTimeout(() => {
       navigate(route);
     }, 1000);
@@ -287,12 +291,13 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : userType?.charAt(0).toUpperCase() + userType?.slice(1);
+        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
 
     toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, {
       theme: "dark",
       autoClose: 1000,
     });
+
     setTimeout(() => {
       navigate(route);
     }, 1000);
@@ -545,13 +550,6 @@ function Navbar() {
                 >
                   Log in
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/signup")}
-                  className="hidden sm:inline-flex bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-lg"
-                >
-                  Get started
-                </button>
               </>
             )}
 
@@ -703,13 +701,6 @@ function Navbar() {
                     className="flex-1 bg-transparent border border-blue-400 text-blue-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600/20 transition-all duration-300"
                   >
                     Log in
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/signup")}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-lg"
-                  >
-                    Get started
                   </button>
                 </div>
               )}

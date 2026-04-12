@@ -10,6 +10,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import HomePage from "./pages/HomePage";
+import InfluencerOnboarding from "./pages/InfluencerOnboarding";
 import StartupDashboard from "./pages/StartupDashboard";
 import JobDashboardFounder from "./pages/JobDashboardFounder";
 import JobDashboardFreelancer from "./pages/JobDashboardFreelancer";
@@ -21,7 +22,6 @@ import FreelancerJobDetail from "./pages/FreelancerJobDetail";
 import CoFounderJobs from "./pages/CoFounderJobs";
 import CoFounderJobDetail from "./pages/CoFounderJobDetail";
 import CoFounderDashboard from "./pages/CoFounderDashboard";
-import UserTypeSelection from "./pages/UserTypeSelection";
 import LoginSignup from "./pages/LoginSignup";
 import FreelancerJobs from "./pages/FreelancerJobs";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
@@ -41,6 +41,8 @@ import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AdminTestimonials from "./admin/pages/AdminTestimonials";
+import AdminNotifications from "./admin/pages/AdminNotifications";
+import AdminInfluencers from "./admin/pages/AdminInfluencers";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -114,8 +116,22 @@ function App() {
 
   const { userId, userRole, isLoggedIn, isSyncing } = authState;
 
+  if (isSyncing) {
+    return (
+      <div className="min-h-screen bg-[#020024] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="text-blue-400 font-bold tracking-[0.2em] text-xs uppercase animate-pulse">
+            Synchronizing Auth State...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Router>
+
       <ScrollToTop />
       <NavbarWrapper />
 
@@ -133,6 +149,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/onboard-influencer" element={<InfluencerOnboarding />} />
         <Route path="/startup-dashboard" element={<StartupDashboard />} />
         <Route path="/job-dashboard/founder/:jobId/:freelancerId" element={<JobDashboardFounder />} />
         <Route path="/job-dashboard/freelancer/:jobId" element={<JobDashboardFreelancer />} />
@@ -143,7 +160,6 @@ function App() {
         <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
         <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
         <Route path="/cofounder-dashboard" element={<CoFounderDashboard />} />
-        <Route path="/signup" element={<UserTypeSelection />} />
         <Route path="/login-signup" element={<LoginSignup />} />
         <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
         <Route path="/job-description" element={<FreelancerJobDetail />} />
@@ -166,6 +182,8 @@ function App() {
         <Route path="/admin/badges" element={<AdminBadges />} />
         <Route path="/admin/broadcast" element={<AdminBroadcast />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+        <Route path="/admin/influencers" element={<AdminInfluencers />} />
+        <Route path="/admin/notifications" element={<AdminNotifications />} />
         {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
         <Route path="/about-details" element={<AboutDetails />} />

@@ -5,17 +5,36 @@ const path = require("path");
 
 async function runMigration() {
     try {
-        const migrationSql = fs.readFileSync(path.join(__dirname, "migrations", "razorpay_migration.sql"), "utf8");
+        const migrationsDir = path.join(__dirname, "migrations");
+        const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith(".sql"));
+        
+        console.log(`Found ${files.length} migration files.`);
 
-        // Split by semicolon and filter out empty strings
-        const statements = migrationSql.split(";").map(s => s.trim()).filter(s => s.length > 0);
+        for (const file of files) {
+            console.log(`\n--- Running Migration: ${file} ---`);
+            const migrationSql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+            
+            // Split by semicolon and filter out empty strings/comments
+            const statements = migrationSql
+                .split(";")
+                .map(s => s.trim())
+                .filter(s => s.length > 0 && !s.startsWith("--") && !s.startsWith("/*"));
 
-        for (const statement of statements) {
-            console.log(`Executing: ${statement.substring(0, 50)}...`);
-            await db.promise().query(statement);
+            for (const statement of statements) {
+                console.log(`Executing statement: ${statement.substring(0, 50)}...`);
+                try {
+                    await db.promise().query(statement);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_TABLE_EXISTS_ERROR') {
+                        console.warn(`[WARN] Skipping: Already exists.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
         }
 
-        console.log("Migration successful!");
+        console.log("\nAll migrations completed successfully!");
         process.exit(0);
     } catch (err) {
         console.error("Migration failed:", err);

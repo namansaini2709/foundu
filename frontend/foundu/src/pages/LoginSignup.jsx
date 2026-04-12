@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ChevronDown } from 'lucide-react'
 import Footer from '../components/Footer'
 import api from '../utils/axiosConfig'
 import { ToastContainer, toast } from 'react-toastify'
@@ -12,7 +12,7 @@ const gradientBlackToBlue = {
 function LoginSignup() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const userType = searchParams.get('type') || 'freelancer'
+  const [userType, setUserType] = useState(searchParams.get('type') || 'freelancer')
   const authStatus = searchParams.get('auth')
   const [isLogin, setIsLogin] = useState(true)
 
@@ -28,7 +28,7 @@ function LoginSignup() {
   // Handle incoming auth status from Social Redirects (Errors & No Account)
   useEffect(() => {
     if (authStatus === 'no_account') {
-      toast.error('No account found for this Google email. Please Sign Up first!', { 
+      toast.error('No account found for this Google email. Please Sign Up first!', {
         theme: 'dark'
       });
       setIsLogin(false);
@@ -60,6 +60,7 @@ function LoginSignup() {
     if (userTypeLower === 'freelancer') navigate('/freelancer-profile')
     else if (userTypeLower === 'cofounder') navigate('/cofounder-profile')
     else if (userTypeLower === 'founder') navigate('/startup-profile')
+    else if (userTypeLower === 'influencer') navigate('/influencer-marketplace')
     else navigate('/')
   }
   const redirectByTypeOnLogin = (type) => {
@@ -67,6 +68,7 @@ function LoginSignup() {
     if (userTypeLower === 'freelancer') navigate('/freelancer-jobs')
     else if (userTypeLower === 'cofounder') navigate('/cofounder-jobs')
     else if (userTypeLower === 'founder') navigate('/startup-services')
+    else if (userTypeLower === 'influencer') navigate('/influencer-marketplace')
     else navigate('/')
   }
   const handleSubmit = async (e) => {
@@ -93,7 +95,7 @@ function LoginSignup() {
               localStorage.setItem('is_admin', 'true');
               localStorage.setItem('admin_name', adminRes.data.admin?.name || 'Admin');
               if (adminRes.data.token) localStorage.setItem('token', adminRes.data.token);
-              
+
               toast.success('Welcome, Admin!', { theme: 'dark' });
               setTimeout(() => {
                 window.location.href = '/admin/dashboard';
@@ -111,13 +113,13 @@ function LoginSignup() {
           email,
           password
         })
-        
+
         const userData = res.data.user;
         if (!userData || !userData.id) throw new Error("Invalid response");
 
         // Use the unified sync guard to show the loader and prevent toasts
         localStorage.setItem('auth_sync_pending', 'true');
-        localStorage.removeItem('token'); 
+        localStorage.removeItem('token');
 
         // Store basic data synchronously for the bridge
         localStorage.setItem('user_id', String(userData.id));
@@ -125,7 +127,7 @@ function LoginSignup() {
         if (userData.token) localStorage.setItem('token', userData.token);
 
         toast.success(res.data.message || 'Login successful', { theme: 'dark' })
-        
+
         // Determine target based on profile completeness (same as Google)
         const isComplete = userData.is_profile_complete === 1;
         const type = userData.user_type.toLowerCase();
@@ -139,6 +141,7 @@ function LoginSignup() {
           if (type === 'freelancer') target = '/freelancer-dashboard';
           else if (type === 'cofounder') target = '/cofounder-dashboard';
           else if (type === 'founder') target = '/startup-dashboard';
+          else if (type === 'influencer') target = '/influencer-marketplace';
         }
 
         // Full reload to target to ensure clean state and trigger sync
@@ -148,7 +151,7 @@ function LoginSignup() {
         const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
           ? userType
           : 'freelancer'
-        
+
         await api.post(`/api/signup`, {
           full_name: fullName,
           email,
@@ -161,7 +164,7 @@ function LoginSignup() {
           email,
           password
         })
-        
+
         const userData = loginRes.data.user;
         if (!userData) throw new Error("Auto-login failed");
 
@@ -171,7 +174,7 @@ function LoginSignup() {
         if (loginRes.data.token) localStorage.setItem('token', loginRes.data.token);
 
         toast.success('Signup successful', { theme: 'dark' })
-        
+
         // New users always go to profile completion
         const type = userData.user_type.toLowerCase();
         let target = '/';
@@ -359,6 +362,25 @@ function LoginSignup() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                           />
+                        </div>
+                      </div>
+                    )}
+                    {!isLogin && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
+                          I am a...
+                        </label>
+                        <div className="relative group">
+                          <select
+                            value={userType}
+                            onChange={(e) => setUserType(e.target.value)}
+                            className="w-full px-4 py-3.5 rounded-xl bg-[#1A1F2C] border border-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium appearance-none cursor-pointer"
+                          >
+                            <option value="freelancer">Freelancer - Looking for exciting projects</option>
+                            <option value="founder">Startup / Founder - Looking for talent</option>
+                            <option value="cofounder">Co-founder - Looking for a business partner</option>
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none w-5 h-5 group-hover:text-blue-400 transition-colors" />
                         </div>
                       </div>
                     )}

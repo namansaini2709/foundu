@@ -26,6 +26,8 @@ const generateWithFallback = async (prompt) => {
   throw lastError;
 };
 
+exports.generateWithFallback = generateWithFallback;
+
 /**
  * Robust JSON extraction and parsing.
  * Gemini sometimes wraps JSON in markdown blocks or adds extra text.
@@ -51,6 +53,8 @@ const extractAndParseJSON = (text) => {
     throw error;
   }
 };
+
+exports.extractAndParseJSON = extractAndParseJSON;
 
 /**
  * Analyzes review sentiment and quality to help determine credibility.
@@ -279,9 +283,7 @@ exports.analyzeStartupIdea = async (mode, text, context = {}) => {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const textRes = response.text();
+    const textRes = await generateWithFallback(prompt);
     return extractAndParseJSON(textRes);
   } catch (error) {
     console.error("Idea Lab AI Error:", error);

@@ -330,7 +330,7 @@ const FreelancerProfile = () => {
             type="freelancer"
           />
         ) : (
-          <div className="max-w-7xl w-full px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl w-[75%] px-4 sm:px-6 lg:px-8">
             {/* Step Indicator */}
             <div className="mb-6">
               <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">

@@ -1,87 +1,68 @@
 import React from 'react';
-import { 
-    Users, 
-    Instagram, 
-    Eye, 
-    Mail, 
-    DollarSign, 
-    TrendingUp, 
-    Search, 
+import {
+    Users,
+    Instagram,
+    Eye,
+    Mail,
+    DollarSign,
+    TrendingUp,
+    Search,
     Filter,
     Star,
     Zap
 } from 'lucide-react';
 import Footer from '../components/Footer';
 
+import api from '../utils/axiosConfig';
+
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 const InfluencerMarketplace = () => {
-    const influencers = [
-        {
-            id: 1,
-            name: "Aarav Sharma",
-            handle: "@aarav_tech_vlogs",
-            followers: "150K",
-            reach: "1.2M",
-            contact: "collab.aarav@gmail.com",
-            budget: "₹25K - ₹40K",
-            category: "Technology",
-            color: "from-blue-500 to-cyan-400"
-        },
-        {
-            id: 2,
-            name: "Priya Patel",
-            handle: "@priya_lifestyle",
-            followers: "280K",
-            reach: "2.5M",
-            contact: "priya.lifestyle@inf.com",
-            budget: "₹50K - ₹80K",
-            category: "Lifestyle",
-            color: "from-purple-500 to-pink-500"
-        },
-        {
-            id: 3,
-            name: "Vikram Singh",
-            handle: "@viky_fitness_official",
-            followers: "95K",
-            reach: "850K",
-            contact: "vikram.fit@outlook.com",
-            budget: "₹15K - ₹25K",
-            category: "Fitness",
-            color: "from-orange-500 to-red-500"
-        },
-        {
-            id: 4,
-            name: "Ananya Iyer",
-            handle: "@ananya_cooks",
-            followers: "420K",
-            reach: "4.1M",
-            contact: "mgmt@ananyaiyer.in",
-            budget: "₹75K - ₹1.2L",
-            category: "Food",
-            color: "from-green-500 to-emerald-400"
-        },
-        {
-            id: 5,
-            name: "Rohan Das",
-            handle: "@rohan_travels",
-            followers: "110K",
-            reach: "900K",
-            contact: "rohan.exp@gmail.com",
-            budget: "₹20K - ₹35K",
-            category: "Travel",
-            color: "from-indigo-500 to-blue-600"
-        },
-        {
-            id: 6,
-            name: "Ishani Gupta",
-            handle: "@ishani_makeover",
-            followers: "310K",
-            reach: "2.8M",
-            contact: "ishani.beauty@gmail.com",
-            budget: "₹45K - ₹70K",
-            category: "Beauty",
-            color: "from-rose-500 to-pink-600"
+    const navigate = useNavigate();
+    const [influencers, setInfluencers] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    const handleContact = async (userId) => {
+        if (!userId) {
+            return toast.error("This influencer account is not fully setup for chat yet.", { theme: 'dark' });
         }
-    ];
+        try {
+            const res = await api.post('/api/chat/create', { otherUserId: userId });
+            if (res.data.chatId) {
+                navigate('/chatbox');
+            }
+        } catch (err) {
+            console.error("Error creating chat:", err);
+            toast.error("Failed to start chat. Please make sure you are logged in.", { theme: 'dark' });
+        }
+    };
+
+    React.useEffect(() => {
+        const fetchInfluencers = async () => {
+            try {
+                const res = await api.get('/api/influencers/marketplace');
+                if (res.data.success) {
+                    setInfluencers(res.data.data);
+                }
+            } catch (err) {
+                console.error("Error fetching influencers:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInfluencers();
+    }, []);
+
+    const getGradient = (category) => {
+        const lower = category?.toLowerCase() || '';
+        if (lower.includes('tech')) return "from-blue-500 to-cyan-400";
+        if (lower.includes('life') || lower.includes('beaut')) return "from-purple-500 to-pink-500";
+        if (lower.includes('fit') || lower.includes('health')) return "from-orange-500 to-red-500";
+        if (lower.includes('food') || lower.includes('cook')) return "from-green-500 to-emerald-400";
+        if (lower.includes('travel')) return "from-indigo-500 to-blue-600";
+        return "from-slate-500 to-gray-600";
+    };
 
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans">
@@ -109,9 +90,9 @@ const InfluencerMarketplace = () => {
                     <div className="flex items-center gap-4 flex-1 min-w-[300px]">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                            <input 
-                                type="text" 
-                                placeholder="Search by name, handle, or category..." 
+                            <input
+                                type="text"
+                                placeholder="Search by name, handle, or category..."
                                 className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
                             />
                         </div>
@@ -131,21 +112,50 @@ const InfluencerMarketplace = () => {
             {/* Grid Section */}
             <div className="px-6 pb-24">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {influencers.map((inf) => (
-                        <div 
-                            key={inf.id} 
+                    {loading ? (
+                        <div className="col-span-full py-20 text-center">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+                            <p className="text-gray-400 font-bold">Loading influencers...</p>
+                        </div>
+                    ) : influencers.length === 0 ? (
+                        <div className="col-span-full py-20 text-center bg-white/5 rounded-[2.5rem] border border-white/10">
+                            <Users className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                            <h3 className="text-2xl font-bold text-white mb-2">No influencers yet</h3>
+                            <p className="text-gray-400">Accepted influencers will appear here.</p>
+                        </div>
+                    ) : influencers.map((inf) => (
+                        <div
+                            key={inf.id}
                             className="group relative rounded-[2.5rem] bg-gray-900/40 border border-white/5 overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:border-blue-500/30 backdrop-blur-sm"
                         >
-                            {/* Card Header Gradient */}
-                            <div className={`h-32 bg-gradient-to-br ${inf.color} opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                            {/* Card Header Banner/Gradient */}
+                            <div className="h-32 relative overflow-hidden">
+                                {inf.banner_url ? (
+                                    <img
+                                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${inf.banner_url}`}
+                                        alt="Banner"
+                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
+                                    />
+                                ) : (
+                                    <div className={`w-full h-full bg-gradient-to-br ${getGradient(inf.category)} opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                                )}
+                            </div>
 
                             {/* Avatar & Info */}
                             <div className="px-8 pb-8 -mt-12 relative z-10">
                                 <div className="flex justify-between items-end mb-6">
                                     <div className="w-24 h-24 rounded-3xl bg-gray-800 border-4 border-[#020024] p-1 overflow-hidden shadow-2xl">
-                                        <div className={`w-full h-full rounded-2xl bg-gradient-to-br ${inf.color} flex items-center justify-center`}>
-                                            <Users className="w-10 h-10 text-white/50" />
-                                        </div>
+                                        {inf.photo_url ? (
+                                            <img
+                                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${inf.photo_url}`}
+                                                alt={inf.full_name}
+                                                className="w-full h-full object-cover rounded-2xl"
+                                            />
+                                        ) : (
+                                            <div className={`w-full h-full rounded-2xl bg-gradient-to-br ${getGradient(inf.category)} flex items-center justify-center`}>
+                                                <Users className="w-10 h-10 text-white/50" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20">
                                         {inf.category}
@@ -153,50 +163,58 @@ const InfluencerMarketplace = () => {
                                 </div>
 
                                 <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
-                                    {inf.name}
+                                    {inf.full_name}
                                 </h3>
                                 <div className="flex items-center gap-1.5 text-pink-400 font-bold text-sm mb-6">
                                     <Instagram className="w-4 h-4" />
-                                    {inf.handle}
+                                    {inf.instagram_url.split('/').filter(Boolean).pop()}
                                 </div>
 
-                                {/* Stats Grid */}
                                 <div className="grid grid-cols-2 gap-4 mb-8">
                                     <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                                         <div className="flex items-center gap-2 text-gray-400 text-xs mb-1 font-bold">
                                             <Users className="w-3 h-3" />
                                             Followers
                                         </div>
-                                        <div className="text-xl font-black text-white">{inf.followers}</div>
+                                        <div className="text-xl font-black text-white">{inf.followers_count}</div>
                                     </div>
                                     <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                                         <div className="flex items-center gap-2 text-gray-400 text-xs mb-1 font-bold">
                                             <Eye className="w-3 h-3" />
                                             Reach
                                         </div>
-                                        <div className="text-xl font-black text-white">{inf.reach}</div>
+                                        <div className="text-xl font-black text-white">{inf.last_month_reach}</div>
                                     </div>
                                 </div>
 
-                                {/* Footer Info */}
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-500 font-medium">Contact</span>
                                         <span className="text-white font-bold flex items-center gap-1">
                                             <Mail className="w-3 h-3 text-blue-400" />
-                                            {inf.contact}
+                                            {inf.email}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm py-2">
+                                        <span className="text-gray-500 font-medium">Barter Collab</span>
+                                        <span className={`font-bold px-3 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${inf.is_barter ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'}`}>
+                                            {inf.is_barter ? 'Open' : 'No'}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm pt-3 border-t border-white/5">
                                         <span className="text-gray-500 font-medium">Est. Budget</span>
                                         <span className="text-blue-400 font-black text-lg">
-                                            {inf.budget}
+                                            {inf.budget_range}
                                         </span>
                                     </div>
                                 </div>
 
-                                <button className="w-full mt-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white hover:text-[#020024] transition-all duration-300 transform active:scale-95">
-                                    Hire Influencer
+                                <button
+                                    onClick={() => handleContact(inf.user_id)}
+                                    className="w-full mt-8 py-4 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-400 font-bold hover:bg-blue-600 hover:text-white transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Zap className="w-4 h-4" />
+                                    Contact Influencer
                                 </button>
                             </div>
                         </div>
