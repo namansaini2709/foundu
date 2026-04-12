@@ -98,84 +98,66 @@ exports.updateStatus = async (req, res) => {
         }
 
         if (status === 'accepted') {
-            console.log(`[Admin] STARTING ACCEPTANCE for ID: ${id}`);
-            
-            // Step 1: Bcrypt
-            let hashedPassword;
-            try {
-                const randomCode = Math.floor(100000 + Math.random() * 900000);
-                var rawPassword = `Krish${randomCode}`;
-                hashedPassword = await bcrypt.hash(rawPassword, 10);
-            } catch (e) {
-                console.error("Step 1 Failed (Bcrypt):", e);
-                return res.status(500).json({ success: false, message: "Security Step Failed: " + e.message });
-            }
+            const randomCode = Math.floor(100000 + Math.random() * 900000);
+            const rawPassword = `Krish${randomCode}`;
+            const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-            // Step 2: Check existing user
-            let existing;
+            // 1. Database Operations (Atomic-ish)
             try {
-                const [rows] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
-                existing = rows;
-            } catch (e) {
-                console.error("Step 2 Failed (Check User):", e);
-                return res.status(500).json({ success: false, message: "Database Step 2 Failed: " + e.message });
-            }
+                const [existing] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
 
-            // Step 3: Create/Update User
-            try {
-                if (existing.length) {
-                    await db.promise().query(
-                        "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
-                        [hashedPassword, app.email]
-                    );
-                } else {
-                    await db.promise().query(
-                        `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
-                         VALUES (?, ?, ?, 'influencer', 1)`,
-                        [app.full_name, app.email, hashedPassword]
-                    );
-                }
-            } catch (e) {
-                console.error("Step 3 Failed (User Write):", e);
-                // Try fallback to 'freelancer' if 'influencer' type doesn't exist in DB enum
-                try {
-                    console.log("[Admin] Attempting fallback to 'freelancer' type...");
-                    if (existing.length) {
+                if (existing.length > 0) {
+                    // Update existing - Try 'influencer' first, fallback to 'freelancer'
+                    try {
+                        await db.promise().query(
+                            "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
+                            [hashedPassword, app.email]
+                        );
+                    } catch (err) {
                         await db.promise().query(
                             "UPDATE users SET user_type = 'freelancer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
                             [hashedPassword, app.email]
                         );
-                    } else {
+                    }
+                } else {
+                    // Create new - Try 'influencer' first, fallback to 'freelancer'
+                    try {
+                        await db.promise().query(
+                            `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
+                             VALUES (?, ?, ?, 'influencer', 1)`,
+                            [app.full_name, app.email, hashedPassword]
+                        );
+                    } catch (err) {
                         await db.promise().query(
                             `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
                              VALUES (?, ?, ?, 'freelancer', 1)`,
                             [app.full_name, app.email, hashedPassword]
                         );
                     }
-                } catch (fallbackErr) {
-                    return res.status(500).json({ success: false, message: "Database Step 3 Failed (Role Mismatch): " + e.message });
                 }
+            } catch (dbErr) {
+                console.error("Critical DB Error:", dbErr);
+                return res.status(500).json({ success: false, message: "Database failure: " + dbErr.message });
             }
 
-            // Step 4: Email (Non-blocking)
+            // 2. Non-blocking Email
             try {
                 const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
                 const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
-                const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. Email: ${app.email}\nPassword: ${rawPassword}`;
-                const html = `<h2>Welcome ${app.full_name}!</h2><p>Email: ${app.email}<br>Password: ${rawPassword}</p><a href='${loginUrl}'>Login Now</a>`;
+                const text = `Hi ${app.full_name},\n\nApproved! Login with:\nEmail: ${app.email}\nPassword: ${rawPassword}`;
+                const html = `<h2>Welcome to FoundU!</h2><p>Credentials:<br>Email: ${app.email}<br>Password: ${rawPassword}</p><a href='${loginUrl}'>Login Here</a>`;
                 await mailService.sendEmail(app.email, subject, text, html);
-            } catch (e) {
-                console.error("Step 4 Failed (Email):", e);
-                // We don't return 500 here since account is already created
+            } catch (mailErr) {
+                console.warn("[Admin] Account created but email failed:", mailErr.message);
             }
 
-            // Step 5: Update application status
+            // 3. Finalize
             await db.promise().query("UPDATE influencer_applications SET status = ? WHERE id = ?", ['accepted', id]);
 
             return res.json({ 
                 success: true, 
-                message: "Influencer accepted!", 
-                creds: { email: app.email, password: rawPassword } 
+                message: "Influencer accepted and account ready!",
+                creds: { email: app.email, password: rawPassword }
             });
         }
 
