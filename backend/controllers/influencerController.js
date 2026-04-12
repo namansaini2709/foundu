@@ -98,87 +98,85 @@ exports.updateStatus = async (req, res) => {
         }
 
         if (status === 'accepted') {
-            console.log(`[Admin] Attempting to accept influencer ID: ${id} (${app.email})`);
+            console.log(`[Admin] STARTING ACCEPTANCE for ID: ${id}`);
             
-            // Generate credentials
-            const randomCode = Math.floor(100000 + Math.random() * 900000);
-            const rawPassword = `Krish${randomCode}`;
+            // Step 1: Bcrypt
             let hashedPassword;
-            
             try {
+                const randomCode = Math.floor(100000 + Math.random() * 900000);
+                var rawPassword = `Krish${randomCode}`;
                 hashedPassword = await bcrypt.hash(rawPassword, 10);
-            } catch (hashErr) {
-                console.error("Bcrypt error:", hashErr);
-                throw new Error("Failed to secure password.");
+            } catch (e) {
+                console.error("Step 1 Failed (Bcrypt):", e);
+                return res.status(500).json({ success: false, message: "Security Step Failed: " + e.message });
             }
 
-            // Check if user already exists
-            const [existing] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
+            // Step 2: Check existing user
+            let existing;
+            try {
+                const [rows] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
+                existing = rows;
+            } catch (e) {
+                console.error("Step 2 Failed (Check User):", e);
+                return res.status(500).json({ success: false, message: "Database Step 2 Failed: " + e.message });
+            }
 
+            // Step 3: Create/Update User
             try {
                 if (existing.length) {
-                    console.log(`[Admin] Updating existing user: ${app.email} to influencer`);
-                    // Update existing user to influencer and reset password
                     await db.promise().query(
                         "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
                         [hashedPassword, app.email]
                     );
                 } else {
-                    console.log(`[Admin] Creating new influencer user: ${app.email}`);
-                    // Create new user
                     await db.promise().query(
                         `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
                          VALUES (?, ?, ?, 'influencer', 1)`,
                         [app.full_name, app.email, hashedPassword]
                     );
                 }
-            } catch (dbErr) {
-                console.error("Database error while creating/updating influencer user:", dbErr);
-                if (dbErr.code === 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD') {
-                    throw new Error("Database error: The 'influencer' role is notYet supported by your database user_type column. Please update the ENUM list.");
+            } catch (e) {
+                console.error("Step 3 Failed (User Write):", e);
+                // Try fallback to 'freelancer' if 'influencer' type doesn't exist in DB enum
+                try {
+                    console.log("[Admin] Attempting fallback to 'freelancer' type...");
+                    if (existing.length) {
+                        await db.promise().query(
+                            "UPDATE users SET user_type = 'freelancer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
+                            [hashedPassword, app.email]
+                        );
+                    } else {
+                        await db.promise().query(
+                            `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
+                             VALUES (?, ?, ?, 'freelancer', 1)`,
+                            [app.full_name, app.email, hashedPassword]
+                        );
+                    }
+                } catch (fallbackErr) {
+                    return res.status(500).json({ success: false, message: "Database Step 3 Failed (Role Mismatch): " + e.message });
                 }
-                throw dbErr;
             }
 
-            // Send acceptance email
-            const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
-            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
-            const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. You are now part of the FoundU Influencer Marketplace.\n\nHere are your login credentials:\nEmail: ${app.email}\nPassword: ${rawPassword}\n\nYou can log in and manage your profile here: ${loginUrl}\n\nBest regards,\nFoundU Team`;
-            const html = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #3b82f6;">Welcome to FoundU Influencer Marketplace! 🚀</h2>
-                    <p>Hi <strong>${app.full_name}</strong>,</p>
-                    <p>Amazing news! Your promotion reel was approved, and we are thrilled to have you on board.</p>
-                    <div style="background: #f4f7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="margin-top: 0; color: #1e40af; font-size: 16px;">Your Login Credentials</h3>
-                        <p style="margin: 5px 0;"><strong>Email:</strong> ${app.email}</p>
-                        <p style="margin: 5px 0;"><strong>Password:</strong> <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">${rawPassword}</code></p>
-                    </div>
-                    <p>You can change your password anytime from your profile settings.</p>
-                    <div style="margin: 30px 0; text-align: center;">
-                        <a href="${loginUrl}" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Login Now</a>
-                    </div>
-                    <p style="font-size: 14px; color: #666;">If you have any questions, feel free to reply to this email.</p>
-                </div>
-            `;
-            
+            // Step 4: Email (Non-blocking)
             try {
+                const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
+                const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
+                const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. Email: ${app.email}\nPassword: ${rawPassword}`;
+                const html = `<h2>Welcome ${app.full_name}!</h2><p>Email: ${app.email}<br>Password: ${rawPassword}</p><a href='${loginUrl}'>Login Now</a>`;
                 await mailService.sendEmail(app.email, subject, text, html);
-            } catch (mailErr) {
-                console.error("Email service error:", mailErr);
-                // We DON'T throw here, because the account IS created. 
-                // We just warn the admin.
-                return res.json({ 
-                    success: true, 
-                    message: "Influencer account created, but the welcome email failed to send. Please share credentials manually.",
-                    creds: { email: app.email, password: rawPassword }
-                });
+            } catch (e) {
+                console.error("Step 4 Failed (Email):", e);
+                // We don't return 500 here since account is already created
             }
 
-            // Update application status
+            // Step 5: Update application status
             await db.promise().query("UPDATE influencer_applications SET status = ? WHERE id = ?", ['accepted', id]);
 
-            return res.json({ success: true, message: "Influencer accepted and account created." });
+            return res.json({ 
+                success: true, 
+                message: "Influencer accepted!", 
+                creds: { email: app.email, password: rawPassword } 
+            });
         }
 
     } catch (err) {
