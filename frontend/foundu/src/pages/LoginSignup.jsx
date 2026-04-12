@@ -72,18 +72,14 @@ function LoginSignup() {
       
       if (uid && utype && !authStatus) {
         console.log("[Auth] Already logged in detect, redirecting...");
-        const isComplete = localStorage.getItem('is_profile_complete') === '1';
+        const type = utype.toLowerCase();
         let target = '/';
-        if (!isComplete) {
-          if (utype === 'freelancer') target = '/freelancer-profile';
-          else if (utype === 'cofounder') target = '/cofounder-profile';
-          else if (utype === 'founder') target = '/startup-profile';
-        } else {
-          if (utype === 'freelancer') target = '/freelancer-dashboard';
-          else if (utype === 'cofounder') target = '/cofounder-dashboard';
-          else if (utype === 'founder') target = '/startup-dashboard';
-          else if (utype === 'influencer') target = '/influencer-marketplace';
-        }
+        
+        if (type === 'freelancer') target = '/freelancer-dashboard';
+        else if (type === 'cofounder') target = '/cofounder-dashboard';
+        else if (type === 'founder') target = '/startup-dashboard';
+        else if (type === 'influencer') target = '/influencer-marketplace';
+        
         window.location.href = target;
       }
     };
