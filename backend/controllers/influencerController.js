@@ -98,67 +98,56 @@ exports.updateStatus = async (req, res) => {
         }
 
         if (status === 'accepted') {
+            // Generate credentials
             const randomCode = Math.floor(100000 + Math.random() * 900000);
             const rawPassword = `Krish${randomCode}`;
             const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-            // 1. Database Operations (Atomic-ish)
-            try {
-                const [existing] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
+            // Check if user already exists
+            const [existing] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
 
-                if (existing.length > 0) {
-                    // Update existing - Try 'influencer' first, fallback to 'freelancer'
-                    try {
-                        await db.promise().query(
-                            "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
-                            [hashedPassword, app.email]
-                        );
-                    } catch (err) {
-                        await db.promise().query(
-                            "UPDATE users SET user_type = 'freelancer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
-                            [hashedPassword, app.email]
-                        );
-                    }
-                } else {
-                    // Create new - Try 'influencer' first, fallback to 'freelancer'
-                    try {
-                        await db.promise().query(
-                            `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
-                             VALUES (?, ?, ?, 'influencer', 1)`,
-                            [app.full_name, app.email, hashedPassword]
-                        );
-                    } catch (err) {
-                        await db.promise().query(
-                            `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
-                             VALUES (?, ?, ?, 'freelancer', 1)`,
-                            [app.full_name, app.email, hashedPassword]
-                        );
-                    }
-                }
-            } catch (dbErr) {
-                console.error("Critical DB Error:", dbErr);
-                return res.status(500).json({ success: false, message: "Database failure: " + dbErr.message });
+            if (existing.length) {
+                // Update existing user to influencer and reset password
+                await db.promise().query(
+                    "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
+                    [hashedPassword, app.email]
+                );
+            } else {
+                // Create new user
+                await db.promise().query(
+                    `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
+                     VALUES (?, ?, ?, 'influencer', 1)`,
+                    [app.full_name, app.email, hashedPassword]
+                );
             }
 
-            // 2. Non-blocking Email
-            try {
-                const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
-                const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
-                const text = `Hi ${app.full_name},\n\nApproved! Login with:\nEmail: ${app.email}\nPassword: ${rawPassword}`;
-                const html = `<h2>Welcome to FoundU!</h2><p>Credentials:<br>Email: ${app.email}<br>Password: ${rawPassword}</p><a href='${loginUrl}'>Login Here</a>`;
-                await mailService.sendEmail(app.email, subject, text, html);
-            } catch (mailErr) {
-                console.warn("[Admin] Account created but email failed:", mailErr.message);
-            }
+            // Send acceptance email
+            const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
+            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
+            const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. You are now part of the FoundU Influencer Marketplace.\n\nHere are your login credentials:\nEmail: ${app.email}\nPassword: ${rawPassword}\n\nYou can log in and manage your profile here: ${loginUrl}\n\nBest regards,\nFoundU Team`;
+            const html = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #3b82f6;">Welcome to FoundU Influencer Marketplace! 🚀</h2>
+                    <p>Hi <strong>${app.full_name}</strong>,</p>
+                    <p>Amazing news! Your promotion reel was approved, and we are thrilled to have you on board.</p>
+                    <div style="background: #f4f7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #1e40af; font-size: 16px;">Your Login Credentials</h3>
+                        <p style="margin: 5px 0;"><strong>Email:</strong> ${app.email}</p>
+                        <p style="margin: 5px 0;"><strong>Password:</strong> <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">${rawPassword}</code></p>
+                    </div>
+                    <p>You can change your password anytime from your profile settings.</p>
+                    <div style="margin: 30px 0; text-align: center;">
+                        <a href="${loginUrl}" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Login Now</a>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">If you have any questions, feel free to reply to this email.</p>
+                </div>
+            `;
+            await mailService.sendEmail(app.email, subject, text, html);
 
-            // 3. Finalize
+            // Update application status
             await db.promise().query("UPDATE influencer_applications SET status = ? WHERE id = ?", ['accepted', id]);
 
-            return res.json({ 
-                success: true, 
-                message: "Influencer accepted and account ready!",
-                creds: { email: app.email, password: rawPassword }
-            });
+            return res.json({ success: true, message: "Influencer accepted and account created." });
         }
 
     } catch (err) {
