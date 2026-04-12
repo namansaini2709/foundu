@@ -151,7 +151,7 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
             user_id: userId,
             title: formattedReport.title,
             description: text,
-            report: formattedReport
+            report: formattedReport,
           });
           fetchHistory();
         } catch (saveErr) {
@@ -344,7 +344,10 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                             answers[QUESTIONS[qIdx].id] === o.v ? "sel" : ""
                           }`}
                           onClick={() =>
-                            setAnswers({ ...answers, [QUESTIONS[qIdx].id]: o.v })
+                            setAnswers({
+                              ...answers,
+                              [QUESTIONS[qIdx].id]: o.v,
+                            })
                           }
                         >
                           <span className="q-emoji">{o.e}</span> {o.v}
@@ -356,7 +359,10 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                       onClick={() =>
                         qIdx < QUESTIONS.length - 1
                           ? setQIdx(qIdx + 1)
-                          : handleRunAnalysis(`Analyze discovery profile: ${JSON.stringify(answers)}`, "New Venture Discovery")
+                          : handleRunAnalysis(
+                              `Analyze discovery profile: ${JSON.stringify(answers)}`,
+                              "New Venture Discovery",
+                            )
                       }
                     >
                       Next Step <ChevronRight size={18} />
@@ -409,19 +415,41 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
             {phase === "results" && reportData && (
               <div className="results-container">
                 <div className="verdict-hero">
-                  <div className="verdict-badge">PROCESSED BY VENTURE ENGINES</div>
-                  <h1 className="verdict-name">{reportData.title || "Venture Report"}</h1>
+                  <div className="verdict-badge">
+                    PROCESSED BY VENTURE ENGINES
+                  </div>
+                  <h1 className="verdict-name">
+                    {reportData.title || "Venture Report"}
+                  </h1>
                   <p className="verdict-sub">
-                    FoundU AI has analyzed your pitch with market research, competition mapping, and strategic planning.
+                    FoundU AI has analyzed your pitch with market research,
+                    competition mapping, and strategic planning.
                   </p>
                 </div>
                 <div className="results-sections">
                   {/* 1. REFINED IDEA */}
                   <section className="res-section">
-                    <h4 style={{ color: "var(--secondary)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                    <h4
+                      style={{
+                        color: "var(--secondary)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "12px",
+                      }}
+                    >
                       <Sparkles size={18} /> Refined Idea
                     </h4>
-                    <div style={{ background: "var(--ink2)", padding: "20px", borderRadius: "16px", border: "1px solid var(--bdr)", fontSize: "15px", lineHeight: "1.6" }}>
+                    <div
+                      style={{
+                        background: "var(--ink2)",
+                        padding: "20px",
+                        borderRadius: "16px",
+                        border: "1px solid var(--bdr)",
+                        fontSize: "15px",
+                        lineHeight: "1.6",
+                      }}
+                    >
                       {reportData.refinedIdea}
                     </div>
                   </section>
@@ -429,15 +457,34 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                   {/* 2. MARKET ANALYSIS */}
                   {reportData.marketAnalysis && (
                     <section className="res-section">
-                      <h4 className="res-h4 sky"><BarChart3 size={18} /> Market Analysis</h4>
+                      <h4 className="res-h4 sky">
+                        <BarChart3 size={18} /> Market Analysis
+                      </h4>
                       <div className="res-grid-3">
                         {[
-                          { label: "TAM", value: reportData.marketAnalysis.tam, color: "#3b82f6" },
-                          { label: "SAM", value: reportData.marketAnalysis.sam, color: "#8b5cf6" },
-                          { label: "SOM", value: reportData.marketAnalysis.som, color: "#22c55e" },
+                          {
+                            label: "TAM",
+                            value: reportData.marketAnalysis.tam,
+                            color: "#3b82f6",
+                          },
+                          {
+                            label: "SAM",
+                            value: reportData.marketAnalysis.sam,
+                            color: "#8b5cf6",
+                          },
+                          {
+                            label: "SOM",
+                            value: reportData.marketAnalysis.som,
+                            color: "#22c55e",
+                          },
                         ].map((m, i) => (
                           <div key={i} className="res-card-mini center">
-                            <p className="res-mini-label" style={{ color: m.color }}>{m.label}</p>
+                            <p
+                              className="res-mini-label"
+                              style={{ color: m.color }}
+                            >
+                              {m.label}
+                            </p>
                             <p className="res-mini-value">{m.value}</p>
                           </div>
                         ))}
@@ -445,11 +492,15 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                       <div className="res-grid-2 mt-12">
                         <div className="res-card-mini">
                           <p className="res-mini-label">Target Audience</p>
-                          <p className="res-text-small">{reportData.marketAnalysis.targetAudience}</p>
+                          <p className="res-text-small">
+                            {reportData.marketAnalysis.targetAudience}
+                          </p>
                         </div>
                         <div className="res-card-mini">
                           <p className="res-mini-label">Growth Rate</p>
-                          <p className="res-text-small">{reportData.marketAnalysis.growthRate}</p>
+                          <p className="res-text-small">
+                            {reportData.marketAnalysis.growthRate}
+                          </p>
                         </div>
                       </div>
                     </section>
@@ -458,17 +509,94 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                   {/* 3. COMPETITION */}
                   {reportData.competition.length > 0 && (
                     <section className="res-section">
-                      <h4 style={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <h4
+                        style={{
+                          color: "#f59e0b",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
                         <Target size={18} /> Competitive Landscape
                       </h4>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
                         {reportData.competition.map((c, i) => (
-                          <div key={i} style={{ background: "var(--ink2)", padding: "16px", borderRadius: "12px", border: "1px solid var(--bdr)" }}>
-                            <p style={{ fontWeight: "800", fontSize: "15px", marginBottom: "8px", color: "#f59e0b" }}>{c.name}</p>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", fontSize: "12px" }}>
-                              <div><p style={{ fontWeight: "700", color: "#22c55e", marginBottom: "2px" }}>Strength</p><p style={{ color: "var(--tx2)" }}>{c.strength}</p></div>
-                              <div><p style={{ fontWeight: "700", color: "#ef4444", marginBottom: "2px" }}>Weakness</p><p style={{ color: "var(--tx2)" }}>{c.weakness}</p></div>
-                              <div><p style={{ fontWeight: "700", color: "#3b82f6", marginBottom: "2px" }}>Your Edge</p><p style={{ color: "var(--tx2)" }}>{c.yourEdge}</p></div>
+                          <div
+                            key={i}
+                            style={{
+                              background: "var(--ink2)",
+                              padding: "16px",
+                              borderRadius: "12px",
+                              border: "1px solid var(--bdr)",
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontWeight: "800",
+                                fontSize: "15px",
+                                marginBottom: "8px",
+                                color: "#f59e0b",
+                              }}
+                            >
+                              {c.name}
+                            </p>
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr 1fr",
+                                gap: "8px",
+                                fontSize: "12px",
+                              }}
+                            >
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#22c55e",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Strength
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.strength}
+                                </p>
+                              </div>
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#ef4444",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Weakness
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.weakness}
+                                </p>
+                              </div>
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#3b82f6",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Your Edge
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.yourEdge}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -479,29 +607,113 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                   {/* 4. REVENUE MODEL */}
                   {reportData.revenueModel && (
                     <section className="res-section">
-                      <h4 style={{ color: "#22c55e", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <h4
+                        style={{
+                          color: "#22c55e",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
                         <IndianRupee size={18} /> Revenue Model
                       </h4>
-                      <div style={{ background: "var(--ink2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--bdr)" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                      <div
+                        style={{
+                          background: "var(--ink2)",
+                          padding: "16px",
+                          borderRadius: "16px",
+                          border: "1px solid var(--bdr)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "12px",
+                            marginBottom: "12px",
+                          }}
+                        >
                           <div>
-                            <p style={{ fontSize: "10px", fontWeight: "800", color: "var(--tx3)", textTransform: "uppercase", marginBottom: "4px" }}>Primary Model</p>
-                            <p style={{ fontSize: "14px", fontWeight: "700" }}>{reportData.revenueModel.primaryModel}</p>
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              Primary Model
+                            </p>
+                            <p style={{ fontSize: "14px", fontWeight: "700" }}>
+                              {reportData.revenueModel.primaryModel}
+                            </p>
                           </div>
                           <div>
-                            <p style={{ fontSize: "10px", fontWeight: "800", color: "var(--tx3)", textTransform: "uppercase", marginBottom: "4px" }}>12-Month Projection</p>
-                            <p style={{ fontSize: "14px", fontWeight: "700", color: "#22c55e" }}>{reportData.revenueModel.monthlyProjection}</p>
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              12-Month Projection
+                            </p>
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "700",
+                                color: "#22c55e",
+                              }}
+                            >
+                              {reportData.revenueModel.monthlyProjection}
+                            </p>
                           </div>
                         </div>
                         <div style={{ marginBottom: "12px" }}>
-                          <p style={{ fontSize: "10px", fontWeight: "800", color: "var(--tx3)", textTransform: "uppercase", marginBottom: "4px" }}>Pricing Strategy</p>
-                          <p style={{ fontSize: "13px", color: "var(--tx2)" }}>{reportData.revenueModel.pricingStrategy}</p>
+                          <p
+                            style={{
+                              fontSize: "10px",
+                              fontWeight: "800",
+                              color: "var(--tx3)",
+                              textTransform: "uppercase",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            Pricing Strategy
+                          </p>
+                          <p style={{ fontSize: "13px", color: "var(--tx2)" }}>
+                            {reportData.revenueModel.pricingStrategy}
+                          </p>
                         </div>
                         {reportData.revenueModel.additionalStreams && (
                           <div>
-                            <p style={{ fontSize: "10px", fontWeight: "800", color: "var(--tx3)", textTransform: "uppercase", marginBottom: "4px" }}>Additional Revenue Streams</p>
-                            <ul style={{ paddingLeft: "16px", fontSize: "13px", color: "var(--tx2)" }}>
-                              {reportData.revenueModel.additionalStreams.map((s, i) => <li key={i}>{s}</li>)}
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              Additional Revenue Streams
+                            </p>
+                            <ul
+                              style={{
+                                paddingLeft: "16px",
+                                fontSize: "13px",
+                                color: "var(--tx2)",
+                              }}
+                            >
+                              {reportData.revenueModel.additionalStreams.map(
+                                (s, i) => (
+                                  <li key={i}>{s}</li>
+                                ),
+                              )}
                             </ul>
                           </div>
                         )}
@@ -511,13 +723,40 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
 
                   {/* 5. ROADMAP */}
                   <section className="res-section">
-                    <h4 style={{ color: "var(--primary)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                    <h4
+                      style={{
+                        color: "var(--primary)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "12px",
+                      }}
+                    >
                       <Rocket size={18} /> Phase-wise Roadmap
                     </h4>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
                       {reportData.roadmap.map((item, idx) => (
-                        <div key={idx} style={{ background: "var(--ink2)", padding: "12px 16px", borderRadius: "12px", borderLeft: "4px solid var(--primary)", display: "flex", alignItems: "center", gap: "12px" }}>
-                          <span style={{ fontWeight: "800", opacity: 0.5 }}>0{idx + 1}</span>
+                        <div
+                          key={idx}
+                          style={{
+                            background: "var(--ink2)",
+                            padding: "12px 16px",
+                            borderRadius: "12px",
+                            borderLeft: "4px solid var(--primary)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                          }}
+                        >
+                          <span style={{ fontWeight: "800", opacity: 0.5 }}>
+                            0{idx + 1}
+                          </span>
                           <span style={{ fontSize: "14px" }}>{item}</span>
                         </div>
                       ))}
@@ -527,14 +766,49 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                   {/* 6. RISKS */}
                   {reportData.risks.length > 0 && (
                     <section className="res-section">
-                      <h4 style={{ color: "#ef4444", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <h4
+                        style={{
+                          color: "#ef4444",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
                         <Shield size={18} /> Risks & Mitigation
                       </h4>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
                         {reportData.risks.map((r, i) => (
-                          <div key={i} style={{ background: "var(--ink2)", padding: "14px 16px", borderRadius: "12px", border: "1px solid rgba(239,68,68,0.2)" }}>
-                            <p style={{ fontWeight: "700", fontSize: "13px", color: "#ef4444", marginBottom: "4px" }}>{r.risk}</p>
-                            <p style={{ fontSize: "12px", color: "var(--tx2)" }}>{r.mitigation}</p>
+                          <div
+                            key={i}
+                            style={{
+                              background: "var(--ink2)",
+                              padding: "14px 16px",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(239,68,68,0.2)",
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "13px",
+                                color: "#ef4444",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {r.risk}
+                            </p>
+                            <p
+                              style={{ fontSize: "12px", color: "var(--tx2)" }}
+                            >
+                              {r.mitigation}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -542,25 +816,87 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                   )}
 
                   {/* 7. TEAM & VENDORS */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "16px",
+                    }}
+                  >
                     <section className="res-section">
-                      <h4 style={{ color: "var(--sky)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <h4
+                        style={{
+                          color: "var(--sky)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
                         <Users size={18} /> Team Size & Roles
                       </h4>
-                      <div style={{ background: "var(--ink2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--bdr)" }}>
-                        <p style={{ fontSize: "18px", fontWeight: "800", marginBottom: "8px" }}>{reportData.team.size}</p>
-                        <ul style={{ paddingLeft: "16px", fontSize: "13px", color: "var(--tx2)" }}>
-                          {reportData.team.roles.map((r, i) => <li key={i}>{r}</li>)}
+                      <div
+                        style={{
+                          background: "var(--ink2)",
+                          padding: "16px",
+                          borderRadius: "16px",
+                          border: "1px solid var(--bdr)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "18px",
+                            fontWeight: "800",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          {reportData.team.size}
+                        </p>
+                        <ul
+                          style={{
+                            paddingLeft: "16px",
+                            fontSize: "13px",
+                            color: "var(--tx2)",
+                          }}
+                        >
+                          {reportData.team.roles.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
                         </ul>
                       </div>
                     </section>
                     <section className="res-section">
-                      <h4 style={{ color: "var(--jade)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <h4
+                        style={{
+                          color: "var(--jade)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
                         <Briefcase size={18} /> Required Tools & Vendors
                       </h4>
-                      <div style={{ background: "var(--ink2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--bdr)" }}>
-                        <ul style={{ paddingLeft: "16px", fontSize: "13px", color: "var(--tx2)" }}>
-                          {reportData.vendors.map((v, i) => <li key={i} style={{ marginBottom: "4px" }}>{v}</li>)}
+                      <div
+                        style={{
+                          background: "var(--ink2)",
+                          padding: "16px",
+                          borderRadius: "16px",
+                          border: "1px solid var(--bdr)",
+                        }}
+                      >
+                        <ul
+                          style={{
+                            paddingLeft: "16px",
+                            fontSize: "13px",
+                            color: "var(--tx2)",
+                          }}
+                        >
+                          {reportData.vendors.map((v, i) => (
+                            <li key={i} style={{ marginBottom: "4px" }}>
+                              {v}
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     </section>
@@ -568,67 +904,235 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
 
                   {/* 8. FOUNDU SUPPORT */}
                   <section className="res-section">
-                    <h4 style={{ color: "var(--secondary)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                    <h4
+                      style={{
+                        color: "var(--secondary)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "12px",
+                      }}
+                    >
                       <Shield size={18} /> How FoundU Helps You
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                      <div style={{ background: "rgba(52, 211, 153, 0.05)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.2)" }}>
-                        <p style={{ fontSize: "12px", fontWeight: "800", color: "var(--secondary)", marginBottom: "8px", textTransform: "uppercase" }}>What FoundU Provides</p>
-                        <ul style={{ fontSize: "13px", listStyle: "none", padding: 0 }}>
-                          {reportData.support.foundu.map((s, i) => <li key={i} style={{ marginBottom: "4px" }}>{s}</li>)}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "16px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "rgba(52, 211, 153, 0.05)",
+                          padding: "16px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(52, 211, 153, 0.2)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: "800",
+                            color: "var(--secondary)",
+                            marginBottom: "8px",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          What FoundU Provides
+                        </p>
+                        <ul
+                          style={{
+                            fontSize: "13px",
+                            listStyle: "none",
+                            padding: 0,
+                          }}
+                        >
+                          {reportData.support.foundu.map((s, i) => (
+                            <li key={i} style={{ marginBottom: "4px" }}>
+                              {s}
+                            </li>
+                          ))}
                         </ul>
                       </div>
-                      <div style={{ background: "rgba(255, 255, 255, 0.03)", padding: "16px", borderRadius: "12px", border: "1px solid var(--bdr)" }}>
-                        <p style={{ fontSize: "12px", fontWeight: "800", color: "var(--tx2)", marginBottom: "8px", textTransform: "uppercase" }}>What You Provide</p>
-                        <ul style={{ fontSize: "13px", listStyle: "none", padding: 0 }}>
-                          {reportData.support.user.map((s, i) => <li key={i} style={{ marginBottom: "4px" }}>{s}</li>)}
+                      <div
+                        style={{
+                          background: "rgba(255, 255, 255, 0.03)",
+                          padding: "16px",
+                          borderRadius: "12px",
+                          border: "1px solid var(--bdr)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: "800",
+                            color: "var(--tx2)",
+                            marginBottom: "8px",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          What You Provide
+                        </p>
+                        <ul
+                          style={{
+                            fontSize: "13px",
+                            listStyle: "none",
+                            padding: 0,
+                          }}
+                        >
+                          {reportData.support.user.map((s, i) => (
+                            <li key={i} style={{ marginBottom: "4px" }}>
+                              {s}
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     </div>
                   </section>
 
-                  {/* 9. REAL TALENT FROM FOUNDU */}
-                  {reportData.realTalent && reportData.realTalent.length > 0 && (
-                    <section className="res-section" style={{ marginBottom: "20px" }}>
-                      <h4 style={{ color: "var(--primary)", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                        <Users size={18} /> Real Talent on FoundU
-                      </h4>
-                      <p style={{ fontSize: "12px", color: "var(--tx3)", marginBottom: "12px" }}>
-                        These are actual verified professionals from the FoundU platform who could help build this venture.
-                      </p>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                        {reportData.realTalent.map((t, i) => (
-                          <div key={i} style={{ background: "var(--ink2)", padding: "16px", borderRadius: "16px", border: "1px solid var(--bdr)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <p style={{ fontWeight: "700", fontSize: "14px" }}>{t.name}</p>
-                              <p style={{ fontSize: "12px", color: "var(--tx2)" }}>{t.role}</p>
-                              <p style={{ fontSize: "11px", color: "var(--tx3)", marginTop: "2px" }}>{t.experience}</p>
+                  {/* 9. REAL TALENT FROM FOUNDUU */}
+                  {reportData.realTalent &&
+                    reportData.realTalent.length > 0 && (
+                      <section
+                        className="res-section"
+                        style={{ marginBottom: "20px" }}
+                      >
+                        <h4
+                          style={{
+                            color: "var(--primary)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <Users size={18} /> Real Talent on FoundU
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "var(--tx3)",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          These are actual verified professionals from the
+                          FoundU platform who could help build this venture.
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                          }}
+                        >
+                          {reportData.realTalent.map((t, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                background: "var(--ink2)",
+                                padding: "16px",
+                                borderRadius: "16px",
+                                border: "1px solid var(--bdr)",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {t.name}
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "var(--tx2)",
+                                  }}
+                                >
+                                  {t.role}
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "11px",
+                                    color: "var(--tx3)",
+                                    marginTop: "2px",
+                                  }}
+                                >
+                                  {t.experience}
+                                </p>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <p
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "var(--secondary)",
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  CREDIBILITY
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "16px",
+                                    fontWeight: "900",
+                                  }}
+                                >
+                                  {t.credibility}
+                                </p>
+                              </div>
                             </div>
-                            <div style={{ textAlign: "right" }}>
-                              <p style={{ fontSize: "10px", color: "var(--secondary)", fontWeight: "800" }}>CREDIBILITY</p>
-                              <p style={{ fontSize: "16px", fontWeight: "900" }}>{t.credibility}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
+                          ))}
+                        </div>
+                      </section>
+                    )}
 
                   {/* 10. AI-SUGGESTED ROLES */}
-                  {reportData.talentRoles && reportData.talentRoles.length > 0 && (
-                    <section className="res-section" style={{ marginBottom: "20px" }}>
-                      <h4 style={{ color: "#a855f7", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                        <Briefcase size={18} /> Key Roles to Hire
-                      </h4>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        {reportData.talentRoles.map((role, i) => (
-                          <div key={i} style={{ background: "var(--ink2)", padding: "12px 16px", borderRadius: "12px", borderLeft: "4px solid #a855f7", fontSize: "13px" }}>
-                            {role}
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
+                  {reportData.talentRoles &&
+                    reportData.talentRoles.length > 0 && (
+                      <section
+                        className="res-section"
+                        style={{ marginBottom: "20px" }}
+                      >
+                        <h4
+                          style={{
+                            color: "#a855f7",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <Briefcase size={18} /> Key Roles to Hire
+                        </h4>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          {reportData.talentRoles.map((role, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                background: "var(--ink2)",
+                                padding: "12px 16px",
+                                borderRadius: "12px",
+                                borderLeft: "4px solid #a855f7",
+                                fontSize: "13px",
+                              }}
+                            >
+                              {role}
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
                 </div>
                 <button
                   className="q-next"
@@ -637,7 +1141,10 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                     justifyContent: "center",
                     margin: "24px 0 40px",
                   }}
-                  onClick={() => { setIsOpen(false); setActivePopup(null); }}
+                  onClick={() => {
+                    setIsOpen(false);
+                    setActivePopup(null);
+                  }}
                 >
                   Close Report
                 </button>
