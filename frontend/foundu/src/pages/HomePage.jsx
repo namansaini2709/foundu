@@ -53,7 +53,9 @@ function HomePage() {
   const [testimonialsList, setTestimonialsList] = useState([]);
 
   // Fetch public stats and startup profiles
-  useEffect(() => {
+    console.log("DEBUG: HomePage API_BASE:", API_BASE);
+    console.log("DEBUG: HomePage API_BASE_URL:", API_BASE_URL);
+
     AOS.init({
       duration: 1000,
       once: true,
@@ -219,7 +221,7 @@ const TrustedBy = ({ startups }) => {
     logo: s.startup_logo_url
       ? s.startup_logo_url.startsWith("http")
         ? s.startup_logo_url
-        : `${apiBase}${s.startup_logo_url}`
+        : `${apiBase}${s.startup_logo_url.startsWith("/") ? "" : "/"}${s.startup_logo_url}`
       : null,
     initial: (s.startup_name || "S").charAt(0).toUpperCase(),
   }));
@@ -254,12 +256,19 @@ const TrustedBy = ({ startups }) => {
                       src={company.logo}
                       alt={company.name}
                       className="w-16 h-16 object-contain rounded-lg mb-2"
+                      onError={(e) => {
+                        console.error("Logo failed to load:", company.logo);
+                        e.target.style.display = "none";
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                      }}
                     />
-                  ) : (
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.initial}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="text-4xl font-bold text-white mb-2"
+                    style={{ display: company.logo ? "none" : "block" }}
+                  >
+                    {company.initial}
+                  </div>
                   <div className="text-gray-300 text-sm truncate w-full">
                     {company.name}
                   </div>
@@ -280,12 +289,19 @@ const TrustedBy = ({ startups }) => {
                       src={company.logo}
                       alt={company.name}
                       className="w-16 h-16 object-contain rounded-lg mb-2"
+                      onError={(e) => {
+                        console.error("Logo failed to load:", company.logo);
+                        e.target.style.display = "none";
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                      }}
                     />
-                  ) : (
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.initial}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="text-4xl font-bold text-white mb-2"
+                    style={{ display: company.logo ? "none" : "block" }}
+                  >
+                    {company.initial}
+                  </div>
                   <div className="text-gray-300 text-sm truncate w-full">
                     {company.name}
                   </div>
@@ -312,12 +328,19 @@ const TrustedBy = ({ startups }) => {
                         src={company.logo}
                         alt={company.name}
                         className="w-16 h-16 object-contain rounded-lg mb-2"
+                        onError={(e) => {
+                          console.error("Logo failed to load:", company.logo);
+                          e.target.style.display = "none";
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                        }}
                       />
-                    ) : (
-                      <div className="text-4xl font-bold text-white mb-2">
-                        {company.initial}
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      className="text-4xl font-bold text-white mb-2"
+                      style={{ display: company.logo ? "none" : "block" }}
+                    >
+                      {company.initial}
+                    </div>
                     <div className="text-gray-300 text-sm truncate w-full">
                       {company.name}
                     </div>

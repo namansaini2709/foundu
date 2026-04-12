@@ -32,6 +32,9 @@ export default function JobApplicationsDashboard() {
   const [jobs, setJobs] = useState([]);
   const [manualApplicants, setManualApplicants] = useState([]);
   const [aiMatchedApplicants, setAiMatchedApplicants] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [lottieUrl, setLottieUrl] = useState("https://lottie.host/7900b147-380d-4347-9759-4f7db972e834/M17yvHkCno.lottie");
+  const [animationError, setAnimationError] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -750,9 +753,9 @@ export default function JobApplicationsDashboard() {
                       {post.image_url ? (
                         <img
                           src={
-                            post.image_url.startsWith("http")
+                            post.image_url && post.image_url.startsWith("http")
                               ? post.image_url
-                              : `${API_BASE}${post.image_url}`
+                              : `${API_BASE}${post.image_url ? (post.image_url.startsWith("/") ? "" : "/") + post.image_url : ""}`
                           }
                           alt={post.caption || "Post"}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -1054,8 +1057,19 @@ export default function JobApplicationsDashboard() {
             </>
           )}
           {!selectedJob && (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-              <Briefcase className="text-gray-600 mx-auto mb-4" size={48} />
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center h-[400px] flex flex-col items-center justify-center">
+              <div className="w-64 h-64 mb-4">
+                {!animationError ? (
+                  <DotLottieReact
+                    src={lottieUrl}
+                    loop
+                    autoplay
+                    onError={() => setAnimationError(true)}
+                  />
+                ) : (
+                  <Briefcase className="text-gray-600 mx-auto" size={48} />
+                )}
+              </div>
               {jobs.length > 0 ? (
                 <p className="text-gray-400 text-lg">
                   Select a job posting to view applicants
