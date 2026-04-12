@@ -19,10 +19,30 @@ function LoginSignup() {
   // 🚨 SUCCESS REDIRECT: Immediate redirect if success is in URL
   if (authStatus === 'success') {
     const t = searchParams.get('redirect') || '/';
+    console.log("[Auth] Google Success! Redirecting to:", t);
     localStorage.setItem('auth_sync_pending', 'true');
-    localStorage.removeItem('token');
-    window.location.replace(t);
-    return null; // Stop rendering the login page entirely
+    window.location.href = t; // Use .href for more reliable bounce
+    return null;
+  }
+
+  // 🚨 ALREADY LOGGED IN: If user is already authenticated, don't show the login page
+  const loggedInUserId = localStorage.getItem('user_id');
+  const loggedInUserType = localStorage.getItem('user_type');
+  if (loggedInUserId && loggedInUserType && !authStatus) {
+    const isComplete = localStorage.getItem('is_profile_complete') === '1';
+    let target = '/';
+    if (!isComplete) {
+      if (loggedInUserType === 'freelancer') target = '/freelancer-profile';
+      else if (loggedInUserType === 'cofounder') target = '/cofounder-profile';
+      else if (loggedInUserType === 'founder') target = '/startup-profile';
+    } else {
+      if (loggedInUserType === 'freelancer') target = '/freelancer-dashboard';
+      else if (loggedInUserType === 'cofounder') target = '/cofounder-dashboard';
+      else if (loggedInUserType === 'founder') target = '/startup-dashboard';
+      else if (loggedInUserType === 'influencer') target = '/influencer-marketplace';
+    }
+    window.location.replace(target);
+    return null;
   }
 
   // Handle incoming auth status from Social Redirects (Errors & No Account)
@@ -37,8 +57,41 @@ function LoginSignup() {
       newParams.delete('auth');
       setSearchParams(newParams);
     } else if (authStatus === 'error') {
-      toast.error('Authentication failed. Please try again.', { theme: 'dark' });
+      // Only show error if we aren't actually logged in
+      if (!localStorage.getItem('user_id')) {
+        toast.error('Authentication failed. Please try again.', { theme: 'dark' });
+      }
     }
+  }, [authStatus]);
+
+  // 🚨 AUTO-EXIT GUARD: If we detect login data arrival while on this page, GET OUT!
+  useEffect(() => {
+    const checkAndExit = () => {
+      const uid = localStorage.getItem('user_id');
+      const utype = localStorage.getItem('user_type');
+      
+      if (uid && utype && !authStatus) {
+        console.log("[Auth] Already logged in detect, redirecting...");
+        const isComplete = localStorage.getItem('is_profile_complete') === '1';
+        let target = '/';
+        if (!isComplete) {
+          if (utype === 'freelancer') target = '/freelancer-profile';
+          else if (utype === 'cofounder') target = '/cofounder-profile';
+          else if (utype === 'founder') target = '/startup-profile';
+        } else {
+          if (utype === 'freelancer') target = '/freelancer-dashboard';
+          else if (utype === 'cofounder') target = '/cofounder-dashboard';
+          else if (utype === 'founder') target = '/startup-dashboard';
+          else if (utype === 'influencer') target = '/influencer-marketplace';
+        }
+        window.location.href = target;
+      }
+    };
+
+    checkAndExit();
+    // Also check on interval for a few seconds just in case of race conditions
+    const interval = setInterval(checkAndExit, 500);
+    return () => clearInterval(interval);
   }, [authStatus]);
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)

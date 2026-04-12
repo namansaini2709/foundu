@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import api, { API_BASE } from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
 import {
