@@ -20,6 +20,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
+import { API_BASE } from "../utils/axiosConfig";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -36,8 +37,7 @@ const gradientBlueToBlack = {
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
 
-const API_BASE =
-  (import.meta.env.VITE_API_URL || "http://localhost:4000") + "/api";
+const API_BASE_URL = API_BASE + "/api";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -60,21 +60,21 @@ function HomePage() {
       easing: "ease-out-back",
     });
 
-    fetch(`${API_BASE}/public-stats`)
+    fetch(`${API_BASE_URL}/public-stats`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setPublicStats(data.stats);
       })
       .catch((err) => console.error("Stats fetch error:", err));
 
-    fetch(`${API_BASE}/startup-profiles`)
+    fetch(`${API_BASE_URL}/startup-profiles`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setStartups(data);
       })
       .catch((err) => console.error("Startups fetch error:", err));
 
-    fetch(`${API_BASE}/testimonials`)
+    fetch(`${API_BASE_URL}/testimonials`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.testimonials.length > 0) {
@@ -213,7 +213,7 @@ const Hero = ({ navigate }) => (
 
 // Trusted By Section (Blue to Black)
 const TrustedBy = ({ startups }) => {
-  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:4000";
+  const apiBase = API_BASE;
   const logos = startups.map((s) => ({
     name: s.startup_name || "Startup",
     logo: s.startup_logo_url
