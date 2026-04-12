@@ -34,7 +34,7 @@ import FreelancerBadges from "./pages/FreelancerBadges";
 import CoFounderBadges from "./pages/CoFounderBadges";
 import FounderBadges from "./pages/FounderBadges";
 import Chatbox from "./pages/Chatbox";
-import ViewJobPosting from "./pages/ViewJobPosting";
+import ViewJobPosting from "./pages/viewJobposting";
 import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminBadges from "./admin/pages/AdminBadges";
