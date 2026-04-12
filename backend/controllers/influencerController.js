@@ -98,27 +98,46 @@ exports.updateStatus = async (req, res) => {
         }
 
         if (status === 'accepted') {
+            console.log(`[Admin] Attempting to accept influencer ID: ${id} (${app.email})`);
+            
             // Generate credentials
             const randomCode = Math.floor(100000 + Math.random() * 900000);
             const rawPassword = `Krish${randomCode}`;
-            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+            let hashedPassword;
+            
+            try {
+                hashedPassword = await bcrypt.hash(rawPassword, 10);
+            } catch (hashErr) {
+                console.error("Bcrypt error:", hashErr);
+                throw new Error("Failed to secure password.");
+            }
 
             // Check if user already exists
             const [existing] = await db.promise().query("SELECT id FROM users WHERE email = ?", [app.email]);
 
-            if (existing.length) {
-                // Update existing user to influencer and reset password
-                await db.promise().query(
-                    "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
-                    [hashedPassword, app.email]
-                );
-            } else {
-                // Create new user
-                await db.promise().query(
-                    `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
-                     VALUES (?, ?, ?, 'influencer', 1)`,
-                    [app.full_name, app.email, hashedPassword]
-                );
+            try {
+                if (existing.length) {
+                    console.log(`[Admin] Updating existing user: ${app.email} to influencer`);
+                    // Update existing user to influencer and reset password
+                    await db.promise().query(
+                        "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
+                        [hashedPassword, app.email]
+                    );
+                } else {
+                    console.log(`[Admin] Creating new influencer user: ${app.email}`);
+                    // Create new user
+                    await db.promise().query(
+                        `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
+                         VALUES (?, ?, ?, 'influencer', 1)`,
+                        [app.full_name, app.email, hashedPassword]
+                    );
+                }
+            } catch (dbErr) {
+                console.error("Database error while creating/updating influencer user:", dbErr);
+                if (dbErr.code === 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD') {
+                    throw new Error("Database error: The 'influencer' role is notYet supported by your database user_type column. Please update the ENUM list.");
+                }
+                throw dbErr;
             }
 
             // Send acceptance email
@@ -142,7 +161,19 @@ exports.updateStatus = async (req, res) => {
                     <p style="font-size: 14px; color: #666;">If you have any questions, feel free to reply to this email.</p>
                 </div>
             `;
-            await mailService.sendEmail(app.email, subject, text, html);
+            
+            try {
+                await mailService.sendEmail(app.email, subject, text, html);
+            } catch (mailErr) {
+                console.error("Email service error:", mailErr);
+                // We DON'T throw here, because the account IS created. 
+                // We just warn the admin.
+                return res.json({ 
+                    success: true, 
+                    message: "Influencer account created, but the welcome email failed to send. Please share credentials manually.",
+                    creds: { email: app.email, password: rawPassword }
+                });
+            }
 
             // Update application status
             await db.promise().query("UPDATE influencer_applications SET status = ? WHERE id = ?", ['accepted', id]);
@@ -151,7 +182,7 @@ exports.updateStatus = async (req, res) => {
         }
 
     } catch (err) {
-        console.error("Error in updateStatus:", err);
+        console.error("Error in updateStatus (Influencer):", err);
         res.status(500).json({ success: false, message: err.message });
     }
 };

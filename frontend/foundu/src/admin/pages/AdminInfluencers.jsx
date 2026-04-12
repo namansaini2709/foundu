@@ -70,12 +70,12 @@ const AdminInfluencers = () => {
                                     {/* Visuals Preview */}
                                     <div className="lg:col-span-3 h-64 lg:h-full relative overflow-hidden bg-gray-900">
                                         <img
-                                            src={app.photo_url ? `${import.meta.env.VITE_API_URL}${app.photo_url}` : "/placeholder.png"}
+                                            src={app.photo_url ? `${import.meta.env.VITE_API_URL}${app.photo_url}` : "https://img.icons8.com/plasticine/400/user.png"}
                                             alt={app.full_name}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                             onError={(e) => {
                                                 e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/400x400?text=Profile+Photo";
+                                                e.target.src = "https://img.icons8.com/plasticine/400/user.png";
                                             }}
                                         />
                                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
