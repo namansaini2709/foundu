@@ -53,6 +53,7 @@ function HomePage() {
   const [testimonialsList, setTestimonialsList] = useState([]);
 
   // Fetch public stats and startup profiles
+  useEffect(() => {
     console.log("DEBUG: HomePage API_BASE:", API_BASE);
     console.log("DEBUG: HomePage API_BASE_URL:", API_BASE_URL);
 
