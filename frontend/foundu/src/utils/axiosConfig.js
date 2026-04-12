@@ -17,6 +17,8 @@ const api = axios.create({
   withCredentials: true, // Sends httpOnly cookies with every request
 });
 
+export const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 // ── REQUEST INTERCEPTOR: Attach JWT from localStorage as fallback ──
 api.interceptors.request.use(
   (config) => {

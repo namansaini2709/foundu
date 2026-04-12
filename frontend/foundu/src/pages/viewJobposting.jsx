@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/axiosConfig";
+import api, { API_BASE } from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
 import {
   X,
@@ -63,11 +63,8 @@ export default function JobApplicationsDashboard() {
     }
     try {
       setLoading(true);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/jobs`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch jobs");
-      const allJobs = await response.json();
+      const response = await api.get("/api/jobs");
+      const allJobs = response.data;
       console.log("Total jobs fetched from API:", allJobs.length);
       console.log("Debug - userData:", userData);
       if (allJobs.length > 0) {
@@ -122,13 +119,9 @@ export default function JobApplicationsDashboard() {
       const jobsWithCounts = await Promise.all(
         mappedJobs.map(async (job) => {
           try {
-            const appRes = await fetch(
-              `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/jobs/${job.id}/applicants`,
-            );
-            if (appRes.ok) {
-              const apps = await appRes.json();
-              return { ...job, applicants: apps.length };
-            }
+            const appRes = await api.get(`/api/jobs/${job.id}/applicants`);
+            const apps = appRes.data;
+            return { ...job, applicants: apps.length };
           } catch (e) {}
           return job;
         }),
@@ -151,11 +144,8 @@ export default function JobApplicationsDashboard() {
     if (!selectedJob) return;
     const fetchApplicants = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/jobs/${selectedJob}/applicants`,
-        );
-        if (!response.ok) throw new Error("Failed to fetch applicants");
-        const apps = await response.json();
+        const response = await api.get(`/api/jobs/${selectedJob}/applicants`);
+        const apps = response.data;
         const mappedApps = apps.map((app) => {
           const isFreelancer = app.user_type === "freelancer";
           const skills = isFreelancer
@@ -178,7 +168,7 @@ export default function JobApplicationsDashboard() {
             image: app.profile_picture_url
               ? app.profile_picture_url.startsWith("http")
                 ? app.profile_picture_url
-                : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${app.profile_picture_url}`
+                : `${API_BASE}${app.profile_picture_url}`
               : "👤",
             badges: ["verified"],
             details: {
@@ -207,11 +197,8 @@ export default function JobApplicationsDashboard() {
     const fetchAIMatches = async () => {
       setAiLoading(true);
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/jobs/${selectedJob}/ai-matches`,
-        );
-        if (res.ok) {
-          const data = await res.json();
+        const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
+        const data = res.data;
           const mapped = data.map((a) => ({
             id: a.user_id,
             name: a.full_name,
@@ -227,7 +214,7 @@ export default function JobApplicationsDashboard() {
             image: a.profile_picture_url
               ? a.profile_picture_url.startsWith("http")
                 ? a.profile_picture_url
-                : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${a.profile_picture_url}`
+                : `${API_BASE}${a.profile_picture_url}`
               : "👤",
             badges: [],
             details: {
@@ -250,7 +237,6 @@ export default function JobApplicationsDashboard() {
           }));
           setAiMatchedApplicants(mapped);
           setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
-        }
       } catch (err) {
         console.error("Error fetching AI matches:", err);
       } finally {
@@ -766,7 +752,7 @@ export default function JobApplicationsDashboard() {
                           src={
                             post.image_url.startsWith("http")
                               ? post.image_url
-                              : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${post.image_url}`
+                              : `${API_BASE}${post.image_url}`
                           }
                           alt={post.caption || "Post"}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"

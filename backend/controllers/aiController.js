@@ -135,6 +135,7 @@ exports.sendInvite = async (req, res) => {
  */
 exports.analyzeIdea = async (req, res) => {
   const { mode, text, context } = req.body;
+  const db = require("../config/db");
 
   if (!mode || !text) {
     return res.status(400).json({ message: "Mode and text are required." });
@@ -146,9 +147,39 @@ exports.analyzeIdea = async (req, res) => {
       return res.status(500).json({ message: "Failed to analyze idea with AI." });
     }
 
+    // Fetch real talent from DB that matches the AI-suggested roles
+    let realTalent = [];
+    try {
+      const [rows] = await db.promise().query(`
+        SELECT u.id, u.full_name, u.user_type, u.credibility_score,
+               COALESCE(fp.skills_description, cp.primary_identity) as skills,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        WHERE u.user_type IN ('freelancer', 'cofounder')
+        AND u.credibility_score > 0
+        ORDER BY u.credibility_score DESC
+        LIMIT 6
+      `);
+      realTalent = rows.map(r => ({
+        id: r.id,
+        name: r.full_name,
+        role: r.skills || r.user_type,
+        credibility: r.credibility_score || 0,
+        experience: r.experience || "Not specified",
+        userType: r.user_type
+      }));
+    } catch (dbErr) {
+      console.error("DB Talent Fetch Error:", dbErr);
+    }
+
     res.json({
       success: true,
-      data: analysis
+      data: {
+        ...analysis,
+        realTalent
+      }
     });
   } catch (error) {
     console.error("AI Controller (Idea) Error:", error);

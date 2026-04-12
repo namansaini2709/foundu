@@ -10,94 +10,94 @@ import "./SmartChatbot.css";
 const FLOWS = {
   founder: {
     greeting:
-      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best talent for your startup using credibility scores, badge verification, and AI-powered matching. What are you looking for?",
+      "Hey, I'm your **FoundU AI Assistant**! I can find the best talent for your startup using credibility scores, badge verification, and AI-powered matching. What are you looking for?",
     questions: [
       {
         key: "type",
         text: "What type of talent do you need?",
-        options: ["🧑‍💻 Freelancer", "🤝 Co-Founder", "Show me both"],
+        options: ["Freelancer", "Co-Founder", "Show me both"],
       },
       {
         key: "domain",
         text: "What domain is your job in?",
-        options: ["💻 Tech", "🎨 Design", "📣 Marketing", "💰 Finance", "⚖️ Legal", "🌐 Other"],
+        options: ["Tech", "Design", "Marketing", "Finance", "Legal", "Other"],
       },
       {
         key: "experience",
         text: "What experience level do you prefer?",
-        options: ["🌱 Fresher", "⚡ Mid-Level", "🔥 Senior", "🎯 Any Level"],
+        options: ["Fresher", "Mid-Level", "Senior", "Any Level"],
       },
       {
         key: "priority",
         text: "What matters most to you?",
-        options: ["⭐ Highest Rating", "🏅 Best Credibility", "🎯 Exact Skill Match", "🔍 Discover Hidden Talent"],
+        options: ["Highest Rating", "Best Credibility", "Exact Skill Match", "Discover Hidden Talent"],
       },
       {
         key: "includeNonApplicants",
         text: "Should I include people who haven't applied yet?",
-        options: ["✅ Yes! Show hidden talent", "📋 Applicants only"],
+        options: ["Yes, show hidden talent", "Applicants only"],
       },
     ],
   },
   freelancer: {
     greeting:
-      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best opportunities matching your skills, or show you which founders are actively looking for someone like you. What would you like?",
+      "Hey, I'm your **FoundU AI Assistant**! I can find the best opportunities matching your skills, or show you which founders are actively looking for someone like you. What would you like?",
     questions: [
       {
         key: "goal",
         text: "What are you looking for?",
-        options: ["🔍 Find Matching Jobs", "💡 Who might want me?", "📊 My Application Status"],
+        options: ["Find Matching Jobs", "Who might want me?", "My Application Status"],
       },
       {
         key: "domain",
         text: "What's your preferred domain?",
-        options: ["💻 Tech", "🎨 Design", "📣 Marketing", "💰 Finance", "🌐 Other"],
+        options: ["Tech", "Design", "Marketing", "Finance", "Other"],
       },
       {
         key: "workType",
         text: "What work type do you prefer?",
-        options: ["🏠 Remote", "🏢 Onsite", "🔄 Hybrid", "🎯 Any"],
+        options: ["Remote", "Onsite", "Hybrid", "Any"],
       },
       {
         key: "budget",
         text: "What budget range works for you?",
-        options: ["💸 Under ₹10K", "💰 ₹10K–₹50K", "🤑 ₹50K+", "🤝 Open to discuss"],
+        options: ["Under 10K", "10K-50K", "50K+", "Open to discuss"],
       },
       {
         key: "priority",
         text: "What matters most in a job?",
-        options: ["💰 Highest Paying", "🌟 Best Reputation Founder", "⏱️ Short Duration", "📈 Long Term Growth"],
+        options: ["Highest Paying", "Best Reputation Founder", "Short Duration", "Long Term Growth"],
       },
     ],
   },
   cofounder: {
     greeting:
-      "Hey 👋 I'm your **FoundU AI Assistant**! I can find the best co-founder roles matching your profile, or discover which founders might be looking for someone exactly like you. Let's go!",
+      "Hey, I'm your **FoundU AI Assistant**! I can find the best co-founder roles matching your profile, or discover which founders might be looking for someone exactly like you. Let's go!",
     questions: [
       {
         key: "goal",
         text: "What are you looking for?",
-        options: ["🏢 Find Co-Founder Roles", "💡 Who might want me?", "🌱 Explore Startups"],
+        options: ["Find Co-Founder Roles", "Who might want me?", "Explore Startups"],
       },
       {
         key: "stage",
         text: "What startup stage interests you?",
-        options: ["💡 Idea Stage", "🛠️ MVP Stage", "📈 Early Revenue", "🚀 Growth Stage"],
+        options: ["Idea Stage", "MVP Stage", "Early Revenue", "Growth Stage"],
       },
       {
         key: "domain",
         text: "What domain are you focused on?",
-        options: ["💻 Tech", "🎯 Product", "📣 Marketing", "💰 Finance", "🌐 Other"],
+        options: ["Tech", "Product", "Marketing", "Finance", "Other"],
       },
       {
         key: "equity",
         text: "What equity range works for you?",
-        options: ["Below 5%", "5–15%", "15%+", "🤝 Open to discuss"],
+        options: ["Below 5%", "5-15%", "15%+", "Open to discuss"],
       },
       {
         key: "founderQuality",
         text: "What matters most in a founder?",
-        options: ["🏆 Strong Track Record", "✅ Verified Identity", "🧠 Domain Expert", "🤝 Cultural Fit"],
+        options: ["Strong Track Record", "Verified Identity", "Domain Expert", "Cultural Fit"],
       },
     ],
   },
@@ -262,9 +262,9 @@ const getScoreClass = (score) => {
   return "sc-score-low";
 };
 const getScoreLabel = (score) => {
-  if (score >= 90) return `🔥 ${score}% Top Pick`;
-  if (score >= 80) return `✅ ${score}% Strong`;
-  return `👍 ${score}% Good Fit`;
+  if (score >= 90) return `${score}% Top Pick`;
+  if (score >= 80) return `${score}% Strong`;
+  return `${score}% Good Fit`;
 };
 const avatarGradients = [
   "linear-gradient(135deg,#1d4ed8,#0284c7)",
@@ -280,7 +280,6 @@ const avatarGradients = [
 function TypingIndicator() {
   return (
     <div className="sc-typing">
-      <div className="sc-msg-bot-avatar" style={{ width: 28, height: 28, fontSize: 13 }}>✨</div>
       <div className="sc-typing-dots">
         <span /><span /><span />
       </div>
@@ -406,7 +405,7 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
 /* ================================================================
    MAIN COMPONENT
    ================================================================ */
-export default function SmartChatbot({ userRole: propRole, userId }) {
+export default function SmartChatbot({ userRole: propRole, userId, activePopup, setActivePopup }) {
   const location = useLocation();
   /* ── Detect role from localStorage if not passed as prop ── */
   const userRole = propRole || getUserType() || "founder";
@@ -425,7 +424,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   const messagesEndRef               = useRef(null);
 
   /* ── Pages where chatbot should be HIDDEN ───────────────── */
-  const hiddenPaths = ["/", "/landing", "/login-signup", "/signup"];
+  const hiddenPaths = ["/login-signup", "/signup"];
   const shouldHide = hiddenPaths.some(
     (p) => location.pathname === p || location.pathname.startsWith("/login-signup")
   );
@@ -473,7 +472,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     await addBotMsg(flow.greeting, 200);
     // If founder on a job page, add context message
     if (userRole === "founder" && jobId) {
-      await addBotMsg(`I can see you're viewing **Job #${jobId}**. I'll tailor my suggestions specifically for this posting! 🎯`, 300);
+      await addBotMsg(`I can see you're viewing **Job #${jobId}**. I'll tailor my suggestions specifically for this posting!`, 300);
     }
     setStep(1);
   };
@@ -493,7 +492,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
       setStep(nextStep);
     } else {
       // All questions done → show results
-      await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching... 🔍");
+      await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching...");
       setStep("loading");
       
       try {
@@ -540,22 +539,22 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   /* Context-aware transition lines for natural conversation */
   const getTransitionLine = (option) => {
     const lines = {
-      "🧑‍💻 Freelancer":        "Looking for freelancers",
-      "🤝 Co-Founder":          "Looking for a co-founder",
-      "Show me both":            "Showing all talent types",
-      "💻 Tech":                 "Tech domain scoped",
-      "🎨 Design":               "Design domain scoped",
-      "📣 Marketing":            "Marketing domain scoped",
-      "🌱 Fresher":              "Fresher-level preference noted",
-      "⚡ Mid-Level":            "Mid-level preference noted",
-      "🔥 Senior":               "Senior-level preference noted",
-      "🎯 Any Level":            "Open to any experience level",
-      "⭐ Highest Rating":        "Prioritizing top-rated talent",
-      "🏅 Best Credibility":     "Prioritizing most credible profiles",
-      "🎯 Exact Skill Match":    "Prioritizing skill-exact matches",
-      "🔍 Discover Hidden Talent": "Including hidden talent in search",
-      "✅ Yes! Show hidden talent": "Including proactive talent discovery",
-      "📋 Applicants only":      "Limiting to applicants only",
+      "Freelancer":                "Looking for freelancers",
+      "Co-Founder":                "Looking for a co-founder",
+      "Show me both":              "Showing all talent types",
+      "Tech":                      "Tech domain scoped",
+      "Design":                    "Design domain scoped",
+      "Marketing":                 "Marketing domain scoped",
+      "Fresher":                   "Fresher-level preference noted",
+      "Mid-Level":                 "Mid-level preference noted",
+      "Senior":                    "Senior-level preference noted",
+      "Any Level":                 "Open to any experience level",
+      "Highest Rating":            "Prioritizing top-rated talent",
+      "Best Credibility":          "Prioritizing most credible profiles",
+      "Exact Skill Match":         "Prioritizing skill-exact matches",
+      "Discover Hidden Talent":    "Including hidden talent in search",
+      "Yes, show hidden talent":   "Including proactive talent discovery",
+      "Applicants only":           "Limiting to applicants only",
     };
     return lines[option] || "Preference noted";
   };
@@ -570,7 +569,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
   /* ── Current options to display ─────────────────────────── */
   const currentOptions = () => {
     if (step === "results") {
-      return ["🔄 Start Over", "🔍 Refine Filters"];
+      return ["Start Over", "Refine Filters"];
     }
     if (typeof step === "number" && step >= 1 && step <= flow.questions.length) {
       return flow.questions[step - 1].options;
@@ -578,7 +577,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     return [];
   };
   const handleOptionClickWrapper = (opt) => {
-    if (opt === "🔄 Start Over" || opt === "🔍 Refine Filters") {
+    if (opt === "Start Over" || opt === "Refine Filters") {
       handleReset();
     } else {
       handleOption(opt);
@@ -589,7 +588,6 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
     if (msg.type === "bot") {
       return (
         <div key={idx} className="sc-msg-bot">
-          <div className="sc-msg-bot-avatar">✨</div>
           <div
             className="sc-msg-bot-bubble"
             dangerouslySetInnerHTML={{
@@ -647,13 +645,20 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
      ================================================================ */
   if (shouldHide) return null;
 
+  // Hide FAB when another popup is open
+  if (activePopup && activePopup !== "smartchatbot" && !isOpen) return null;
+
   return (
 
     <>
       {/* Floating trigger button */}
       <button
         className={`sc-fab${isOpen ? " open" : ""}`}
-        onClick={() => setIsOpen((p) => !p)}
+        onClick={() => {
+          const next = !isOpen;
+          setIsOpen(next);
+          setActivePopup(next ? "smartchatbot" : null);
+        }}
         aria-label="Open AI Assistant"
       >
         <span className="sc-fab-icon">{isOpen ? "✕" : "✨"}</span>
@@ -670,7 +675,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
                 <span className="sc-avatar-online" />
               </div>
               <div className="sc-header-info">
-                <h3>FoundU AI Assistant</h3>
+                <h3>FoundU Ginnie</h3>
                 <p>
                   <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#22c55e", marginRight: 4 }} />
                   Online · AI-Powered
@@ -683,13 +688,13 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
               </div>
             </div>
             <div className="sc-header-actions">
-              <button
+              {/* <button
                 className="sc-icon-btn"
                 onClick={handleReset}
                 title="Restart chat"
               >
                 🔄
-              </button>
+              </button> */}
               <button
                 className="sc-icon-btn"
                 onClick={() => setIsOpen(false)}
@@ -739,7 +744,7 @@ export default function SmartChatbot({ userRole: propRole, userId }) {
                 <button
                   key={opt}
                   className={
-                    opt === "🔄 Start Over" || opt === "🔍 Refine Filters"
+                    opt === "Start Over" || opt === "Refine Filters"
                       ? "sc-reset-btn"
                       : "sc-option-btn"
                   }

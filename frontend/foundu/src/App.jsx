@@ -113,6 +113,7 @@ function App() {
   }, [authState.isSyncing]);
 
   const { userId, userRole, isLoggedIn, isSyncing } = authState;
+  const [activePopup, setActivePopup] = useState(null);
 
   if (isSyncing) {
     return (
@@ -195,9 +196,9 @@ function App() {
       {isLoggedIn && (
         <>
           <GlobalChatOverlay userId={userId} />
-          <SmartChatbot userRole={userRole} userId={userId} />
-          <IdeaLabPopup userId={userId} />
-          {userRole === "founder" && <QuickJobPopup userId={userId} />}
+          <SmartChatbot userRole={userRole} userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />
+          {(userRole === "founder" || userRole === "cofounder") && <IdeaLabPopup userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />}
+          {userRole === "founder" && <QuickJobPopup userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />}
         </>
       )}
     </Router>
