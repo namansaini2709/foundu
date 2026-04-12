@@ -21,8 +21,8 @@ import {
   History,
 } from "lucide-react";
 import "./IdeaLabPopup.css";
-const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`;
-const IdeaLabPopup = ({ userId }) => {
+const API_BASE = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api`;
+const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState(null); // 'discover' or 'validate'
   const [phase, setPhase] = useState("start"); // 'start', 'input', 'loading', 'results'
@@ -95,6 +95,15 @@ const IdeaLabPopup = ({ userId }) => {
       console.error("History fetch error:", err);
     }
   };
+  const loadFromHistory = (h) => {
+    if (h.report) {
+      setReportData(h.report);
+      setPhase("results");
+    } else {
+      // Re-run for legacy records without a report
+      handleRunAnalysis(h.description, h.title);
+    }
+  };
   const handleRunAnalysis = async (text, customTitle = null) => {
     setLoading(true);
     setPhase("loading");
@@ -103,37 +112,51 @@ const IdeaLabPopup = ({ userId }) => {
       const response = await api.post(`${API_BASE}/ai/analyze-idea`, {
         mode: mode,
         text: text,
-        context: mode === 'discover' ? answers : { title: customTitle }
+        context: mode === "discover" ? answers : { title: customTitle },
       });
 
       if (response.data.success) {
         const aiData = response.data.data;
 
-        // Map Gemini output to the frontend report structure
         const formattedReport = {
-          title: customTitle || (text.length > 30 ? text.substring(0, 30) + "..." : text),
+          title:
+            customTitle ||
+            (text.length > 30 ? text.substring(0, 30) + "..." : text),
           refinedIdea: aiData.refinedIdea,
+          marketAnalysis: aiData.marketAnalysis || null,
+          competition: aiData.competition || [],
+          revenueModel: aiData.revenueModel || null,
           roadmap: aiData.roadmap || [],
           team: {
             size: aiData.team?.size || "Not specified",
-            roles: aiData.team?.roles || []
+            roles: aiData.team?.roles || [],
           },
           vendors: aiData.vendors || [],
+          risks: aiData.risks || [],
           support: {
             foundu: aiData.support?.foundu || [],
-            user: aiData.support?.user || []
+            user: aiData.support?.user || [],
           },
-          // Map talentSuggestions to the UI list
-          talent: (aiData.talentSuggestions || []).map((s, idx) => ({
-            name: s.split(":")[0] || "Expert",
-            role: s.split(":")[1] || s,
-            score: 90 - (idx * 5)
-          }))
+          talentRoles: aiData.talentRoles || [],
+          realTalent: aiData.realTalent || [],
         };
 
         setReportData(formattedReport);
         setPhase("results");
-        toast.success("Venture Analysis Complete! ✨");
+        toast.success("Venture Analysis Complete!");
+
+        // Save to DB with full report
+        try {
+          await api.post(`${API_BASE}/ideas/create`, {
+            user_id: userId,
+            title: formattedReport.title,
+            description: text,
+            report: formattedReport,
+          });
+          fetchHistory();
+        } catch (saveErr) {
+          console.error("Save to DB failed:", saveErr);
+        }
       } else {
         throw new Error("AI analysis failed");
       }
@@ -141,15 +164,20 @@ const IdeaLabPopup = ({ userId }) => {
       console.error("Idea Lab AI Error:", error);
       toast.error("AI Analysis failed. Showing sample data.");
 
-      // Minimal Fallback for UX
       setReportData({
         title: "Analysis Unavailable",
-        refinedIdea: "We couldn't reach the AI engine right now. Please try again later.",
+        refinedIdea:
+          "We couldn't reach the AI engine right now. Please try again later.",
+        marketAnalysis: null,
+        competition: [],
+        revenueModel: null,
         roadmap: ["Step 1: Reconnect", "Step 2: Retry"],
         team: { size: "?", roles: [] },
         vendors: [],
+        risks: [],
         support: { foundu: [], user: [] },
-        talent: []
+        talentRoles: [],
+        realTalent: [],
       });
       setPhase("results");
     } finally {
@@ -164,12 +192,21 @@ const IdeaLabPopup = ({ userId }) => {
       setMode(null);
     }
   };
-  if (!isOpen)
+  if (!isOpen) {
+    // Hide FAB when another popup is open
+    if (activePopup && activePopup !== "idealab") return null;
     return (
-      <div className="fab-idea" onClick={() => setIsOpen(true)}>
+      <div
+        className="fab-idea"
+        onClick={() => {
+          setIsOpen(true);
+          setActivePopup("idealab");
+        }}
+      >
         <Lightbulb size={28} />
       </div>
     );
+  }
   return (
     <div className="venture-modal-overlay">
       <div className="venture-modal-container">
@@ -177,8 +214,8 @@ const IdeaLabPopup = ({ userId }) => {
         <aside className="venture-sidebar">
           <div className="sidebar-header">
             <div className="sidebar-brand">
-              <div className="sidebar-mark">V</div>
-              <div className="sidebar-name">VENTURE</div>
+              <div className="sidebar-mark">I</div>
+              <span className="sidebar-name">Idea Lab</span>
             </div>
           </div>
           <div className="sidebar-history">
@@ -188,10 +225,11 @@ const IdeaLabPopup = ({ userId }) => {
                 <div
                   key={h.id}
                   className="history-item"
-                  onClick={() => handleRunAnalysis(h.description)}
+                  onClick={() => loadFromHistory(h)}
                 >
                   <History size={14} />
                   <span>{h.title}</span>
+                  <ChevronRight size={12} className="h-arrow" />
                 </div>
               ))
             ) : (
@@ -204,24 +242,18 @@ const IdeaLabPopup = ({ userId }) => {
           <header className="venture-header">
             <div className="v-header-left">
               {phase !== "start" && (
-                <button
-                  className="back-btn"
-                  onClick={handleBack}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--tx2)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
+                <button className="back-btn" onClick={handleBack}>
                   <ArrowLeft size={18} /> Back
                 </button>
               )}
             </div>
-            <button className="venture-close" onClick={() => setIsOpen(false)}>
+            <button
+              className="venture-close"
+              onClick={() => {
+                setIsOpen(false);
+                setActivePopup(null);
+              }}
+            >
               <X size={18} />
             </button>
           </header>
@@ -301,14 +333,16 @@ const IdeaLabPopup = ({ userId }) => {
                 {mode === "discover" ? (
                   <div className="qcard">
                     <div className="q-badge">
-                      STEP {qIdx + 1} OF {QUESTIONS.length}
+                      Step {qIdx + 1} of {QUESTIONS.length}
                     </div>
                     <h2 className="q-text">{QUESTIONS[qIdx].q}</h2>
                     <div className="q-grid">
                       {QUESTIONS[qIdx].opts.map((o) => (
                         <button
                           key={o.v}
-                          className={`q-opt ${answers[QUESTIONS[qIdx].id] === o.v ? "sel" : ""}`}
+                          className={`q-opt ${
+                            answers[QUESTIONS[qIdx].id] === o.v ? "sel" : ""
+                          }`}
                           onClick={() =>
                             setAnswers({
                               ...answers,
@@ -316,7 +350,7 @@ const IdeaLabPopup = ({ userId }) => {
                             })
                           }
                         >
-                          <span>{o.e}</span> {o.v}
+                          <span className="q-emoji">{o.e}</span> {o.v}
                         </button>
                       ))}
                     </div>
@@ -325,7 +359,10 @@ const IdeaLabPopup = ({ userId }) => {
                       onClick={() =>
                         qIdx < QUESTIONS.length - 1
                           ? setQIdx(qIdx + 1)
-                          : handleRunAnalysis("Discovery based on profile")
+                          : handleRunAnalysis(
+                              `Analyze discovery profile: ${JSON.stringify(answers)}`,
+                              "New Venture Discovery",
+                            )
                       }
                     >
                       Next Step <ChevronRight size={18} />
@@ -335,60 +372,20 @@ const IdeaLabPopup = ({ userId }) => {
                   <div className="qcard">
                     <div className="q-badge">VALIDATION ENGINE</div>
                     <h2 className="q-text">Describe your startup vision</h2>
-                    <div className="input-group" style={{ marginTop: "20px" }}>
-                      <label
-                        style={{
-                          fontSize: "11px",
-                          color: "var(--tx3)",
-                          textTransform: "uppercase",
-                          marginBottom: "6px",
-                          display: "block",
-                        }}
-                      >
-                        Idea Name
-                      </label>
+                    <div className="v-form">
+                      <label className="v-label">Idea Name</label>
                       <input
                         type="text"
-                        className="idea-in"
-                        style={{
-                          width: "100%",
-                          background: "var(--ink3)",
-                          border: "1px solid var(--bdr2)",
-                          borderRadius: "10px",
-                          padding: "12px",
-                          color: "var(--tx)",
-                          outline: "none",
-                          marginBottom: "16px",
-                        }}
+                        className="v-input"
                         placeholder="e.g. AgriChain India"
                         value={answers.tempTitle || ""}
                         onChange={(e) =>
                           setAnswers({ ...answers, tempTitle: e.target.value })
                         }
                       />
-                      <label
-                        style={{
-                          fontSize: "11px",
-                          color: "var(--tx3)",
-                          textTransform: "uppercase",
-                          marginBottom: "6px",
-                          display: "block",
-                        }}
-                      >
-                        Idea Description
-                      </label>
+                      <label className="v-label">Idea Description</label>
                       <textarea
-                        className="idea-ta"
-                        style={{
-                          width: "100%",
-                          minHeight: "120px",
-                          background: "var(--ink3)",
-                          border: "1px solid var(--bdr2)",
-                          borderRadius: "10px",
-                          padding: "12px",
-                          color: "var(--tx)",
-                          outline: "none",
-                        }}
+                        className="v-textarea"
                         placeholder="Example: Ek platform jo India ke artisans ko direct global buyers se connect kare..."
                         value={ideaText}
                         onChange={(e) => setIdeaText(e.target.value)}
@@ -409,9 +406,7 @@ const IdeaLabPopup = ({ userId }) => {
             {phase === "loading" && (
               <div className="v-loader">
                 <div className="loader-orb" />
-                <h2 className="land-h1" style={{ fontSize: "24px" }}>
-                  AI Engines Analysis...
-                </h2>
+                <h2 className="land-h1-mini">AI Engines Analysis...</h2>
                 <p className="land-sub">
                   Running Market, Competition & Strategy Engines
                 </p>
@@ -423,28 +418,15 @@ const IdeaLabPopup = ({ userId }) => {
                   <div className="verdict-badge">
                     PROCESSED BY VENTURE ENGINES
                   </div>
-                  <h1
-                    className="verdict-name"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    Optimization Report ✨
+                  <h1 className="verdict-name">
+                    {reportData.title || "Venture Report"}
                   </h1>
-                  <p
-                    className="land-sub"
-                    style={{ margin: "8px 0", fontSize: "14px" }}
-                  >
-                    FoundU AI has analyzed your pitch and generated a strategic
-                    roadmap.
+                  <p className="verdict-sub">
+                    FoundU AI has analyzed your pitch with market research,
+                    competition mapping, and strategic planning.
                   </p>
                 </div>
-                <div
-                  className="results-sections"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "24px",
-                  }}
-                >
+                <div className="results-sections">
                   {/* 1. REFINED IDEA */}
                   <section className="res-section">
                     <h4
@@ -471,7 +453,275 @@ const IdeaLabPopup = ({ userId }) => {
                       {reportData.refinedIdea}
                     </div>
                   </section>
-                  {/* 2. ROADMAP */}
+
+                  {/* 2. MARKET ANALYSIS */}
+                  {reportData.marketAnalysis && (
+                    <section className="res-section">
+                      <h4 className="res-h4 sky">
+                        <BarChart3 size={18} /> Market Analysis
+                      </h4>
+                      <div className="res-grid-3">
+                        {[
+                          {
+                            label: "TAM",
+                            value: reportData.marketAnalysis.tam,
+                            color: "#3b82f6",
+                          },
+                          {
+                            label: "SAM",
+                            value: reportData.marketAnalysis.sam,
+                            color: "#8b5cf6",
+                          },
+                          {
+                            label: "SOM",
+                            value: reportData.marketAnalysis.som,
+                            color: "#22c55e",
+                          },
+                        ].map((m, i) => (
+                          <div key={i} className="res-card-mini center">
+                            <p
+                              className="res-mini-label"
+                              style={{ color: m.color }}
+                            >
+                              {m.label}
+                            </p>
+                            <p className="res-mini-value">{m.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="res-grid-2 mt-12">
+                        <div className="res-card-mini">
+                          <p className="res-mini-label">Target Audience</p>
+                          <p className="res-text-small">
+                            {reportData.marketAnalysis.targetAudience}
+                          </p>
+                        </div>
+                        <div className="res-card-mini">
+                          <p className="res-mini-label">Growth Rate</p>
+                          <p className="res-text-small">
+                            {reportData.marketAnalysis.growthRate}
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 3. COMPETITION */}
+                  {reportData.competition.length > 0 && (
+                    <section className="res-section">
+                      <h4
+                        style={{
+                          color: "#f59e0b",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        <Target size={18} /> Competitive Landscape
+                      </h4>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        {reportData.competition.map((c, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: "var(--ink2)",
+                              padding: "16px",
+                              borderRadius: "12px",
+                              border: "1px solid var(--bdr)",
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontWeight: "800",
+                                fontSize: "15px",
+                                marginBottom: "8px",
+                                color: "#f59e0b",
+                              }}
+                            >
+                              {c.name}
+                            </p>
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr 1fr",
+                                gap: "8px",
+                                fontSize: "12px",
+                              }}
+                            >
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#22c55e",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Strength
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.strength}
+                                </p>
+                              </div>
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#ef4444",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Weakness
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.weakness}
+                                </p>
+                              </div>
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    color: "#3b82f6",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  Your Edge
+                                </p>
+                                <p style={{ color: "var(--tx2)" }}>
+                                  {c.yourEdge}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 4. REVENUE MODEL */}
+                  {reportData.revenueModel && (
+                    <section className="res-section">
+                      <h4
+                        style={{
+                          color: "#22c55e",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        <IndianRupee size={18} /> Revenue Model
+                      </h4>
+                      <div
+                        style={{
+                          background: "var(--ink2)",
+                          padding: "16px",
+                          borderRadius: "16px",
+                          border: "1px solid var(--bdr)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "12px",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <div>
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              Primary Model
+                            </p>
+                            <p style={{ fontSize: "14px", fontWeight: "700" }}>
+                              {reportData.revenueModel.primaryModel}
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              12-Month Projection
+                            </p>
+                            <p
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "700",
+                                color: "#22c55e",
+                              }}
+                            >
+                              {reportData.revenueModel.monthlyProjection}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: "12px" }}>
+                          <p
+                            style={{
+                              fontSize: "10px",
+                              fontWeight: "800",
+                              color: "var(--tx3)",
+                              textTransform: "uppercase",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            Pricing Strategy
+                          </p>
+                          <p style={{ fontSize: "13px", color: "var(--tx2)" }}>
+                            {reportData.revenueModel.pricingStrategy}
+                          </p>
+                        </div>
+                        {reportData.revenueModel.additionalStreams && (
+                          <div>
+                            <p
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: "800",
+                                color: "var(--tx3)",
+                                textTransform: "uppercase",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              Additional Revenue Streams
+                            </p>
+                            <ul
+                              style={{
+                                paddingLeft: "16px",
+                                fontSize: "13px",
+                                color: "var(--tx2)",
+                              }}
+                            >
+                              {reportData.revenueModel.additionalStreams.map(
+                                (s, i) => (
+                                  <li key={i}>{s}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 5. ROADMAP */}
                   <section className="res-section">
                     <h4
                       style={{
@@ -482,7 +732,7 @@ const IdeaLabPopup = ({ userId }) => {
                         marginBottom: "12px",
                       }}
                     >
-                      <Target size={18} /> Phase-wised Roadmap
+                      <Rocket size={18} /> Phase-wise Roadmap
                     </h4>
                     <div
                       style={{
@@ -512,7 +762,60 @@ const IdeaLabPopup = ({ userId }) => {
                       ))}
                     </div>
                   </section>
-                  {/* 3. TEAM & VENDORS */}
+
+                  {/* 6. RISKS */}
+                  {reportData.risks.length > 0 && (
+                    <section className="res-section">
+                      <h4
+                        style={{
+                          color: "#ef4444",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        <Shield size={18} /> Risks & Mitigation
+                      </h4>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        {reportData.risks.map((r, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: "var(--ink2)",
+                              padding: "14px 16px",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(239,68,68,0.2)",
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "13px",
+                                color: "#ef4444",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {r.risk}
+                            </p>
+                            <p
+                              style={{ fontSize: "12px", color: "var(--tx2)" }}
+                            >
+                              {r.mitigation}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 7. TEAM & VENDORS */}
                   <div
                     style={{
                       display: "grid",
@@ -572,7 +875,7 @@ const IdeaLabPopup = ({ userId }) => {
                           marginBottom: "12px",
                         }}
                       >
-                        <Briefcase size={18} /> Required Vendors
+                        <Briefcase size={18} /> Required Tools & Vendors
                       </h4>
                       <div
                         style={{
@@ -598,7 +901,8 @@ const IdeaLabPopup = ({ userId }) => {
                       </div>
                     </section>
                   </div>
-                  {/* 4. FOUNDU SUPPORT */}
+
+                  {/* 8. FOUNDU SUPPORT */}
                   <section className="res-section">
                     <h4
                       style={{
@@ -646,7 +950,7 @@ const IdeaLabPopup = ({ userId }) => {
                         >
                           {reportData.support.foundu.map((s, i) => (
                             <li key={i} style={{ marginBottom: "4px" }}>
-                              ✅ {s}
+                              {s}
                             </li>
                           ))}
                         </ul>
@@ -679,77 +983,156 @@ const IdeaLabPopup = ({ userId }) => {
                         >
                           {reportData.support.user.map((s, i) => (
                             <li key={i} style={{ marginBottom: "4px" }}>
-                              👤 {s}
+                              {s}
                             </li>
                           ))}
                         </ul>
                       </div>
                     </div>
                   </section>
-                  {/* 5. SUGGESTED TALENT */}
-                  <section
-                    className="res-section"
-                    style={{ marginBottom: "20px" }}
-                  >
-                    <h4
-                      style={{
-                        color: "var(--primary)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <Users size={18} /> Suggested Talent Profiles
-                    </h4>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "12px",
-                      }}
-                    >
-                      {reportData.talent.map((t, i) => (
-                        <div
-                          key={i}
+
+                  {/* 9. REAL TALENT FROM FOUNDUU */}
+                  {reportData.realTalent &&
+                    reportData.realTalent.length > 0 && (
+                      <section
+                        className="res-section"
+                        style={{ marginBottom: "20px" }}
+                      >
+                        <h4
                           style={{
-                            background: "var(--ink2)",
-                            padding: "16px",
-                            borderRadius: "16px",
-                            border: "1px solid var(--bdr)",
+                            color: "var(--primary)",
                             display: "flex",
-                            justifyContent: "space-between",
                             alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "12px",
                           }}
                         >
-                          <div>
-                            <p style={{ fontWeight: "700", fontSize: "14px" }}>
-                              {t.name}
-                            </p>
-                            <p
-                              style={{ fontSize: "12px", color: "var(--tx2)" }}
-                            >
-                              {t.role}
-                            </p>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <p
+                          <Users size={18} /> Real Talent on FoundU
+                        </h4>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "var(--tx3)",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          These are actual verified professionals from the
+                          FoundU platform who could help build this venture.
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                          }}
+                        >
+                          {reportData.realTalent.map((t, i) => (
+                            <div
+                              key={i}
                               style={{
-                                fontSize: "10px",
-                                color: "var(--secondary)",
-                                fontWeight: "800",
+                                background: "var(--ink2)",
+                                padding: "16px",
+                                borderRadius: "16px",
+                                border: "1px solid var(--bdr)",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                               }}
                             >
-                              CREDIBILITY
-                            </p>
-                            <p style={{ fontSize: "16px", fontWeight: "900" }}>
-                              {t.score}%
-                            </p>
-                          </div>
+                              <div>
+                                <p
+                                  style={{
+                                    fontWeight: "700",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {t.name}
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "var(--tx2)",
+                                  }}
+                                >
+                                  {t.role}
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "11px",
+                                    color: "var(--tx3)",
+                                    marginTop: "2px",
+                                  }}
+                                >
+                                  {t.experience}
+                                </p>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <p
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "var(--secondary)",
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  CREDIBILITY
+                                </p>
+                                <p
+                                  style={{
+                                    fontSize: "16px",
+                                    fontWeight: "900",
+                                  }}
+                                >
+                                  {t.credibility}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </section>
+                      </section>
+                    )}
+
+                  {/* 10. AI-SUGGESTED ROLES */}
+                  {reportData.talentRoles &&
+                    reportData.talentRoles.length > 0 && (
+                      <section
+                        className="res-section"
+                        style={{ marginBottom: "20px" }}
+                      >
+                        <h4
+                          style={{
+                            color: "#a855f7",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <Briefcase size={18} /> Key Roles to Hire
+                        </h4>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          {reportData.talentRoles.map((role, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                background: "var(--ink2)",
+                                padding: "12px 16px",
+                                borderRadius: "12px",
+                                borderLeft: "4px solid #a855f7",
+                                fontSize: "13px",
+                              }}
+                            >
+                              {role}
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
                 </div>
                 <button
                   className="q-next"
@@ -758,9 +1141,12 @@ const IdeaLabPopup = ({ userId }) => {
                     justifyContent: "center",
                     margin: "24px 0 40px",
                   }}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false);
+                    setActivePopup(null);
+                  }}
                 >
-                  Save to Roadmap & Close
+                  Close Report
                 </button>
               </div>
             )}

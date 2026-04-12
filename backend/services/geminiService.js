@@ -255,31 +255,80 @@ exports.getChatSuggestions = async (role, filters, candidates) => {
  */
 exports.analyzeStartupIdea = async (mode, text, context = {}) => {
   const prompt = `
-    You are the "Venture Engine" AI for FoundU, a premier startup accelerator platform in India.
-    Your goal is to provide deep strategic analysis for a startup idea.
+    You are the "Venture Engine" AI for FoundU, India's premier startup accelerator platform.
+    Provide an extremely detailed, investor-grade strategic analysis.
     
-    Mode: ${mode === 'discover' ? 'Idea Discovery (User has a background but needs an idea)' : 'Venture Validation (User has an idea and needs a roadmap)'}
+    Mode: ${mode === 'discover' ? 'Idea Discovery (User has a background but needs a startup idea — GENERATE one for them)' : 'Venture Validation (User has an existing idea — ANALYZE and VALIDATE it)'}
     Input / Background: ${text}
     Context: ${JSON.stringify(context)}
     
-    Return ONLY a JSON object matching this schema:
+    Return ONLY a JSON object matching this EXACT schema:
     {
-      "refinedIdea": "Detailed 2-3 sentence strategic refinement of the vision",
-      "roadmap": ["Phase 1: Foundation description", "Phase 2: Build description", "Phase 3: Scale description"],
+      "refinedIdea": "Detailed 3-4 sentence strategic refinement of the vision. Be specific about the product, target market, and unique value proposition.",
+      
+      "marketAnalysis": {
+        "tam": "Total Addressable Market size with number (e.g. $50B globally)",
+        "sam": "Serviceable Addressable Market with number",
+        "som": "Serviceable Obtainable Market — realistic first 2 years",
+        "targetAudience": "Specific description of ideal customer segment",
+        "growthRate": "Industry CAGR or growth percentage"
+      },
+      
+      "competition": [
+        {
+          "name": "Real competitor name",
+          "strength": "What they do well",
+          "weakness": "Where they fall short",
+          "yourEdge": "How this idea can beat them"
+        }
+      ],
+      
+      "revenueModel": {
+        "primaryModel": "Main revenue stream (e.g. SaaS Subscription, Commission, Freemium)",
+        "pricingStrategy": "How to price the product",
+        "monthlyProjection": "Estimated monthly revenue after 12 months with basic assumptions",
+        "additionalStreams": ["List 2-3 secondary revenue streams"]
+      },
+      
+      "roadmap": [
+        "Phase 1 (Month 1-3): Detailed foundation step",
+        "Phase 2 (Month 4-6): Detailed build step",
+        "Phase 3 (Month 7-9): Detailed growth step",
+        "Phase 4 (Month 10-12): Detailed scale step"
+      ],
+      
       "team": {
-        "size": "Estimated number of core members",
-        "roles": ["Role 1: Description", "Role 2: Description", "Role 3: Description"]
+        "size": "Estimated number of core members needed initially",
+        "roles": ["Role 1: Why this role is critical", "Role 2: Description", "Role 3: Description"]
       },
-      "vendors": ["List of 4-5 software/hardware/service types needed"],
+      
+      "vendors": ["List of 4-5 specific software/tools/services needed (e.g. AWS, Razorpay, Figma)"],
+      
+      "risks": [
+        {
+          "risk": "Specific risk description",
+          "mitigation": "How to mitigate it"
+        }
+      ],
+      
       "support": {
-        "foundu": ["List how FoundU platform helps with this specific idea"],
-        "user": ["List what the founder themselves must provide"]
+        "foundu": ["List 3-4 specific ways FoundU platform helps with this idea (hiring, badges, AI matching, etc.)"],
+        "user": ["List 3-4 things the founder must personally provide"]
       },
-      "talentSuggestions": [
-        "Generic description of the first type of expert to hire",
-        "Generic description of the second type of expert to hire"
+      
+      "talentRoles": [
+        "Full Stack Developer: For building the MVP web/mobile application",
+        "UI/UX Designer: For designing an intuitive user experience",
+        "Marketing Specialist: For growth hacking and user acquisition"
       ]
     }
+
+    IMPORTANT RULES:
+    - competition array must have EXACTLY 3 real-world competitors relevant to India
+    - risks array must have EXACTLY 3 items
+    - roadmap must have EXACTLY 4 phases
+    - All numbers and projections should be realistic for Indian market
+    - Be extremely specific, not generic
   `;
 
   try {
@@ -290,3 +339,4 @@ exports.analyzeStartupIdea = async (mode, text, context = {}) => {
     return null;
   }
 };
+

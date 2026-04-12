@@ -2,52 +2,64 @@ const db = require("../config/db");
 
 // 1. Create a new Startup Idea
 exports.createIdea = (req, res) => {
-    const { user_id, title, description } = req.body;
+    const { user_id, title, description, report } = req.body;
     if (!user_id || !title || !description) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
-    const query = "INSERT INTO startup_ideas (user_id, title, description) VALUES (?, ?, ?)";
-    db.query(query, [user_id, title, description], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        
-        const ideaId = result.insertId;
+    // We store the report as a JSON string
+    const reportStr = report ? JSON.stringify(report) : null;
 
-        // --- MOCK AI LOGIC ---
-        // Based on keywords in description, generate specific milestones
-        let milestones = [
-            "Market Research: Identify top 5 competitors",
-            "Define Value Proposition: What makes you unique?"
-        ];
-
-        const lowerDesc = description.toLowerCase();
-        if (lowerDesc.includes("app") || lowerDesc.includes("mobile") || lowerDesc.includes("ios") || lowerDesc.includes("android")) {
-            milestones.push("Tech: Design wireframes for mobile UI");
-            milestones.push("Team: Hire a React Native / Flutter developer from FoundU");
-        } else if (lowerDesc.includes("website") || lowerDesc.includes("platform") || lowerDesc.includes("web")) {
-            milestones.push("Tech: Setup domain and landing page");
-            milestones.push("Team: Hire a Full-stack developer from FoundU");
+    const query = "INSERT INTO startup_ideas (user_id, title, description, report) VALUES (?, ?, ?, ?)";
+    db.query(query, [user_id, title, description, reportStr], (err, result) => {
+        if (err) {
+            // If the 'report' column doesn't exist yet, we'll try to add it dynamically (or just fallback)
+            if (err.code === 'ER_BAD_FIELD_ERROR') {
+                console.warn("Adding 'report' column to startup_ideas table...");
+                db.query("ALTER TABLE startup_ideas ADD COLUMN report LONGTEXT", (alterErr) => {
+                    if (alterErr) return res.status(500).json({ error: alterErr.message });
+                    // Retry once
+                    db.query(query, [user_id, title, description, reportStr], (retryErr, retryResult) => {
+                        if (retryErr) return res.status(500).json({ error: retryErr.message });
+                        finishCreate(retryResult.insertId, description, res);
+                    });
+                });
+                return;
+            }
+            return res.status(500).json({ error: err.message });
         }
-
-        if (lowerDesc.includes("market") || lowerDesc.includes("sell") || lowerDesc.includes("customer")) {
-            milestones.push("Marketing: Create a social media strategy");
-            milestones.push("Growth: Run a pilot program with 10 users");
-        }
-
-        // Batch insert milestones
-        const milestoneQuery = "INSERT INTO idea_milestones (idea_id, milestone_text) VALUES ?";
-        const values = milestones.map(text => [ideaId, text]);
-
-        db.query(milestoneQuery, [values], (mErr) => {
-            if (mErr) console.error("Milestone insert error:", mErr);
-            res.status(201).json({ 
-                success: true, 
-                message: "Idea created and AI optimized!",
-                idea_id: ideaId 
-            });
-        });
+        finishCreate(result.insertId, description, res);
     });
 };
+
+function finishCreate(ideaId, description, res) {
+    // Based on keywords in description, generate specific milestones
+    let milestones = [
+        "Market Research: Identify top 5 competitors",
+        "Define Value Proposition: What makes you unique?"
+    ];
+
+    const lowerDesc = description.toLowerCase();
+    if (lowerDesc.includes("app") || lowerDesc.includes("mobile")) {
+        milestones.push("Tech: Design wireframes for mobile UI");
+        milestones.push("Team: Hire a React Native developer");
+    } else if (lowerDesc.includes("web") || lowerDesc.includes("platform")) {
+        milestones.push("Tech: Setup domain and landing page");
+        milestones.push("Team: Hire a Full-stack developer");
+    }
+
+    const milestoneQuery = "INSERT INTO idea_milestones (idea_id, milestone_text) VALUES ?";
+    const values = milestones.map(text => [ideaId, text]);
+
+    db.query(milestoneQuery, [values], (mErr) => {
+        if (mErr) console.error("Milestone insert error:", mErr);
+        res.status(201).json({ 
+            success: true, 
+            message: "Idea saved with full analysis!",
+            idea_id: ideaId 
+        });
+    });
+}
 
 // 2. Get all Ideas for a user
 exports.getUserIdeas = (req, res) => {
@@ -66,10 +78,18 @@ exports.getUserIdeas = (req, res) => {
         db.query(mQuery, [ideaIds], (mErr, milestones) => {
             if (mErr) return res.status(500).json({ error: mErr.message });
 
-            const formattedIdeas = ideas.map(idea => ({
-                ...idea,
-                milestones: milestones.filter(m => m.idea_id === idea.id)
-            }));
+            const formattedIdeas = ideas.map(idea => {
+                let reportObj = null;
+                try {
+                    reportObj = idea.report ? JSON.parse(idea.report) : null;
+                } catch (e) { console.error("Report parse error:", e); }
+
+                return {
+                    ...idea,
+                    report: reportObj,
+                    milestones: milestones.filter(m => m.idea_id === idea.id)
+                };
+            });
 
             res.json({ success: true, ideas: formattedIdeas });
         });

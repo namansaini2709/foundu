@@ -20,6 +20,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
+import { API_BASE } from "../utils/axiosConfig";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -36,8 +37,7 @@ const gradientBlueToBlack = {
     "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
 };
 
-const API_BASE =
-  (import.meta.env.VITE_API_URL || "http://localhost:4000") + "/api";
+const API_BASE_URL = API_BASE + "/api";
 
 function HomePage() {
   const navigate = useNavigate();
@@ -53,28 +53,30 @@ function HomePage() {
   const [testimonialsList, setTestimonialsList] = useState([]);
 
   // Fetch public stats and startup profiles
-  useEffect(() => {
+    console.log("DEBUG: HomePage API_BASE:", API_BASE);
+    console.log("DEBUG: HomePage API_BASE_URL:", API_BASE_URL);
+
     AOS.init({
       duration: 1000,
       once: true,
       easing: "ease-out-back",
     });
 
-    fetch(`${API_BASE}/public-stats`)
+    fetch(`${API_BASE_URL}/public-stats`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setPublicStats(data.stats);
       })
       .catch((err) => console.error("Stats fetch error:", err));
 
-    fetch(`${API_BASE}/startup-profiles`)
+    fetch(`${API_BASE_URL}/startup-profiles`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setStartups(data);
       })
       .catch((err) => console.error("Startups fetch error:", err));
 
-    fetch(`${API_BASE}/testimonials`)
+    fetch(`${API_BASE_URL}/testimonials`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.testimonials.length > 0) {
@@ -214,13 +216,13 @@ const Hero = ({ navigate }) => (
 
 // Trusted By Section (Blue to Black)
 const TrustedBy = ({ startups }) => {
-  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:4000";
+  const apiBase = API_BASE;
   const logos = startups.map((s) => ({
     name: s.startup_name || "Startup",
     logo: s.startup_logo_url
       ? s.startup_logo_url.startsWith("http")
         ? s.startup_logo_url
-        : `${apiBase}${s.startup_logo_url}`
+        : `${apiBase}${s.startup_logo_url.startsWith("/") ? "" : "/"}${s.startup_logo_url}`
       : null,
     initial: (s.startup_name || "S").charAt(0).toUpperCase(),
   }));
@@ -255,12 +257,19 @@ const TrustedBy = ({ startups }) => {
                       src={company.logo}
                       alt={company.name}
                       className="w-16 h-16 object-contain rounded-lg mb-2"
+                      onError={(e) => {
+                        console.error("Logo failed to load:", company.logo);
+                        e.target.style.display = "none";
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                      }}
                     />
-                  ) : (
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.initial}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="text-4xl font-bold text-white mb-2"
+                    style={{ display: company.logo ? "none" : "block" }}
+                  >
+                    {company.initial}
+                  </div>
                   <div className="text-gray-300 text-sm truncate w-full">
                     {company.name}
                   </div>
@@ -281,12 +290,19 @@ const TrustedBy = ({ startups }) => {
                       src={company.logo}
                       alt={company.name}
                       className="w-16 h-16 object-contain rounded-lg mb-2"
+                      onError={(e) => {
+                        console.error("Logo failed to load:", company.logo);
+                        e.target.style.display = "none";
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                      }}
                     />
-                  ) : (
-                    <div className="text-4xl font-bold text-white mb-2">
-                      {company.initial}
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="text-4xl font-bold text-white mb-2"
+                    style={{ display: company.logo ? "none" : "block" }}
+                  >
+                    {company.initial}
+                  </div>
                   <div className="text-gray-300 text-sm truncate w-full">
                     {company.name}
                   </div>
@@ -313,12 +329,19 @@ const TrustedBy = ({ startups }) => {
                         src={company.logo}
                         alt={company.name}
                         className="w-16 h-16 object-contain rounded-lg mb-2"
+                        onError={(e) => {
+                          console.error("Logo failed to load:", company.logo);
+                          e.target.style.display = "none";
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                        }}
                       />
-                    ) : (
-                      <div className="text-4xl font-bold text-white mb-2">
-                        {company.initial}
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      className="text-4xl font-bold text-white mb-2"
+                      style={{ display: company.logo ? "none" : "block" }}
+                    >
+                      {company.initial}
+                    </div>
                     <div className="text-gray-300 text-sm truncate w-full">
                       {company.name}
                     </div>

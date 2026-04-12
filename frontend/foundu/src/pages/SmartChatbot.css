@@ -259,9 +259,10 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(59,130,246,0.3) transparent;
 }
-.sc-messages::-webkit-scrollbar { width: 4px; }
+.sc-messages::-webkit-scrollbar { width: 5px; }
 .sc-messages::-webkit-scrollbar-track { background: transparent; }
-.sc-messages::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 4px; }
+.sc-messages::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); border-radius: 10px; }
+.sc-messages::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.4); }
 
 /* Bot message */
 .sc-msg-bot {

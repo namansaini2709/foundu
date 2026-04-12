@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import "./QuickJobPopup.css";
 
-const QuickJobPopup = ({ userId }) => {
+const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [phase, setPhase] = useState("selection"); // selection, questions, loading, preview
     const [hiringType, setHiringType] = useState(null); // freelancer, cofounder
@@ -211,6 +211,7 @@ const QuickJobPopup = ({ userId }) => {
             await api.post(`/api${endpoint}`, payload);
             toast.success("🚀 Job Successfully Published!");
             setIsOpen(false);
+            setActivePopup(null);
             setPhase("selection");
         } catch (err) {
             console.error(err);
@@ -226,12 +227,16 @@ const QuickJobPopup = ({ userId }) => {
         setInputs({ budget: "", workType: "", jobType: "Work from home", description: "", roleType: "Technical (CTO / Engineer)", compensation: "" });
     };
 
-    if (!isOpen) return (
-        <div className="fab-quickjob" onClick={() => setIsOpen(true)}>
-            <Briefcase size={28} />
-            <div className="fab-badge">AI</div>
-        </div>
-    );
+    if (!isOpen) {
+        // Hide FAB when another popup is open
+        if (activePopup && activePopup !== "quickjob") return null;
+        return (
+            <div className="fab-quickjob" onClick={() => { setIsOpen(true); setActivePopup("quickjob"); }}>
+                <Briefcase size={28} />
+                <div className="fab-badge">AI</div>
+            </div>
+        );
+    }
 
     return (
         <div className="quickjob-modal-overlay">
@@ -241,7 +246,7 @@ const QuickJobPopup = ({ userId }) => {
                         <Zap size={18} className="text-yellow-400 fill-yellow-400" />
                         <span>QUICK HIRE <strong>AI</strong></span>
                     </div>
-                    <button className="qj-close" onClick={() => setIsOpen(false)}>
+                    <button className="qj-close" onClick={() => { setIsOpen(false); setActivePopup(null); }}>
                         <X size={18} />
                     </button>
                 </header>
