@@ -17,24 +17,42 @@ import api from '../utils/axiosConfig';
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { getUserId } from '../utils/authUtils';
+import { API_BASE } from '../utils/axiosConfig';
 
 const InfluencerMarketplace = () => {
     const navigate = useNavigate();
     const [influencers, setInfluencers] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
-    const handleContact = async (userId) => {
-        if (!userId) {
+    const handleContact = async (influencerUserId) => {
+        const currentUserId = getUserId();
+        
+        if (!currentUserId) {
+            return toast.error("Please login first to contact influencers.", { theme: 'dark' });
+        }
+
+        if (!influencerUserId) {
             return toast.error("This influencer account is not fully setup for chat yet.", { theme: 'dark' });
         }
+
+        if (parseInt(currentUserId) === parseInt(influencerUserId)) {
+            return toast.error("You cannot chat with yourself!", { theme: 'dark' });
+        }
+
         try {
-            const res = await api.post('/api/chat/create', { otherUserId: userId });
-            if (res.data.chatId) {
-                navigate(`/chatbox?userId=${userId}`);
+            const res = await api.post('/api/chat/create', { 
+                otherUserId: influencerUserId,
+                userId: parseInt(currentUserId)
+            });
+            
+            if (res.data.chat_id || res.data.chatId) {
+                const chatId = res.data.chat_id || res.data.chatId;
+                navigate(`/chatbox?userId=${influencerUserId}`);
             }
         } catch (err) {
             console.error("Error creating chat:", err);
-            toast.error("Failed to start chat. Please make sure you are logged in.", { theme: 'dark' });
+            toast.error("Failed to start chat. Please try again later.", { theme: 'dark' });
         }
     };
 
@@ -132,7 +150,7 @@ const InfluencerMarketplace = () => {
                             <div className="h-32 relative overflow-hidden">
                                 {inf.banner_url ? (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${inf.banner_url}`}
+                                        src={inf.banner_url.startsWith('http') ? inf.banner_url : `${API_BASE}${inf.banner_url.startsWith('/') ? '' : '/'}${inf.banner_url}`}
                                         alt="Banner"
                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
                                     />
@@ -147,7 +165,7 @@ const InfluencerMarketplace = () => {
                                     <div className="w-24 h-24 rounded-3xl bg-gray-800 border-4 border-[#020024] p-1 overflow-hidden shadow-2xl">
                                         {inf.photo_url ? (
                                             <img
-                                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${inf.photo_url}`}
+                                                src={inf.photo_url.startsWith('http') ? inf.photo_url : `${API_BASE}${inf.photo_url.startsWith('/') ? '' : '/'}${inf.photo_url}`}
                                                 alt={inf.full_name}
                                                 className="w-full h-full object-cover rounded-2xl"
                                             />
