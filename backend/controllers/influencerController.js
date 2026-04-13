@@ -79,14 +79,19 @@ exports.updateStatus = async (req, res) => {
             const subject = "Update on your Influencer Application - FoundU";
             const text = `Hi ${app.full_name},\n\nThank you for applying to the FoundU Influencer Marketplace. Unfortunately, after reviewing your promotion reel, we've decided not to move forward at this time as it didn't quite meet our current expectations.\n\nYou are welcome to resubmit your application anytime with a new reel!\n\nBest regards,\nFoundU Team`;
             const html = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #333;">Influencer Application Update</h2>
-                    <p>Hi <strong>${app.full_name}</strong>,</p>
-                    <p>Thank you for your interest in joining the FoundU Influencer Marketplace.</p>
-                    <p>After careful review of your application and promotion reel, we've decided not to move forward at this time. We're looking for content that aligns very specifically with our brand's current direction.</p>
-                    <p><strong>Don't worry!</strong> You can resubmit your application at any time with a new reel. We'd love to see more of your creativity.</p>
-                    <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; color: #777; font-size: 12px;">
-                        Best regards,<br>The FoundU Team
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+                    <div style="background: #020024; padding: 20px; text-align: center;">
+                        <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+                    </div>
+                    <div style="padding: 20px;">
+                        <h2 style="color: #333;">Influencer Application Update</h2>
+                        <p>Hi <strong>${app.full_name}</strong>,</p>
+                        <p>Thank you for your interest in joining the FoundU Influencer Marketplace.</p>
+                        <p>After careful review of your application and promotion reel, we've decided not to move forward at this time. We're looking for content that aligns very specifically with our brand's current direction.</p>
+                        <p><strong>Don't worry!</strong> You can resubmit your application at any time with a new reel. We'd love to see more of your creativity.</p>
+                        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; color: #777; font-size: 12px;">
+                            Best regards,<br>The FoundU Team
+                        </div>
                     </div>
                 </div>
             `;
@@ -126,20 +131,25 @@ exports.updateStatus = async (req, res) => {
             const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
             const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. You are now part of the FoundU Influencer Marketplace.\n\nHere are your login credentials:\nEmail: ${app.email}\nPassword: ${rawPassword}\n\nYou can log in and manage your profile here: ${loginUrl}\n\nBest regards,\nFoundU Team`;
             const html = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #3b82f6;">Welcome to FoundU Influencer Marketplace! 🚀</h2>
-                    <p>Hi <strong>${app.full_name}</strong>,</p>
-                    <p>Amazing news! Your promotion reel was approved, and we are thrilled to have you on board.</p>
-                    <div style="background: #f4f7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="margin-top: 0; color: #1e40af; font-size: 16px;">Your Login Credentials</h3>
-                        <p style="margin: 5px 0;"><strong>Email:</strong> ${app.email}</p>
-                        <p style="margin: 5px 0;"><strong>Password:</strong> <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">${rawPassword}</code></p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+                    <div style="background: #020024; padding: 20px; text-align: center;">
+                        <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
                     </div>
-                    <p>You can change your password anytime from your profile settings.</p>
-                    <div style="margin: 30px 0; text-align: center;">
-                        <a href="${loginUrl}" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Login Now</a>
+                    <div style="padding: 20px;">
+                        <h2 style="color: #3b82f6;">Welcome to FoundU Influencer Marketplace! 🚀</h2>
+                        <p>Hi <strong>${app.full_name}</strong>,</p>
+                        <p>Amazing news! Your promotion reel was approved, and we are thrilled to have you on board.</p>
+                        <div style="background: #f4f7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="margin-top: 0; color: #1e40af; font-size: 16px;">Your Login Credentials</h3>
+                            <p style="margin: 5px 0;"><strong>Email:</strong> ${app.email}</p>
+                            <p style="margin: 5px 0;"><strong>Password:</strong> <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">${rawPassword}</code></p>
+                        </div>
+                        <p>You can change your password anytime from your profile settings.</p>
+                        <div style="margin: 30px 0; text-align: center;">
+                            <a href="${loginUrl}" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Login Now</a>
+                        </div>
+                        <p style="font-size: 14px; color: #666;">If you have any questions, feel free to reply to this email.</p>
                     </div>
-                    <p style="font-size: 14px; color: #666;">If you have any questions, feel free to reply to this email.</p>
                 </div>
             `;
             await mailService.sendEmail(app.email, subject, text, html);

@@ -333,14 +333,19 @@ exports.forgotPassword = async (req, res) => {
     const subject = "Reset Your Password - FoundU";
     const text = `You requested a password reset. Please use the following link to reset your password:\n\n${resetLink}\n\nIf you did not request this, please ignore this email.`;
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #333;">Password Reset Request</h2>
-        <p>You requested a password reset for your FoundU account.</p>
-        <p>Click the button below to reset your password:</p>
-        <div style="margin: 20px 0;">
-          <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+        <div style="background: #020024; padding: 20px; text-align: center;">
+          <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
         </div>
-        <p style="margin-top: 20px; font-size: 12px; color: #777;">If you did not request this, please ignore this email. This link will expire shortly.</p>
+        <div style="padding: 20px;">
+          <h2 style="color: #333;">Password Reset Request</h2>
+          <p>You requested a password reset for your FoundU account.</p>
+          <p>Click the button below to reset your password:</p>
+          <div style="margin: 20px 0;">
+            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+          </div>
+          <p style="margin-top: 20px; font-size: 12px; color: #777;">If you did not request this, please ignore this email. This link will expire shortly.</p>
+        </div>
       </div>
     `;
 
