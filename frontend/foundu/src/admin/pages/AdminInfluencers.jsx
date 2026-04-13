@@ -68,17 +68,28 @@ const AdminInfluencers = () => {
                             <div key={app.id} className="bg-white/10 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-2xl group hover:border-blue-500/40 transition-all duration-500 shadow-2xl">
                                 <div className="grid grid-cols-1 lg:grid-cols-12">
                                     {/* Visuals Preview */}
-                                    <div className="lg:col-span-3 h-64 lg:h-full relative overflow-hidden bg-gray-900">
-                                        <img
-                                            src={app.photo_url ? `${import.meta.env.VITE_API_URL}${app.photo_url}` : "/placeholder.png"}
-                                            alt={app.full_name}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/400x400?text=Profile+Photo";
-                                            }}
-                                        />
-                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
+                                    <div className="lg:col-span-3 h-64 lg:h-full relative overflow-hidden bg-gray-900 flex items-center justify-center">
+                                        {app.photo_url ? (
+                                            <img
+                                                src={`${import.meta.env.VITE_API_URL}${app.photo_url}`}
+                                                alt={app.full_name}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div 
+                                            className="w-full h-full bg-gradient-to-br from-blue-900/40 to-black flex flex-col items-center justify-center gap-2"
+                                            style={{ display: app.photo_url ? 'none' : 'flex' }}
+                                        >
+                                            <div className="w-16 h-16 rounded-[1.5rem] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                                                <User className="w-8 h-8" />
+                                            </div>
+                                            <span className="text-[9px] font-black text-blue-300/40 tracking-[0.2em] uppercase">No Profile Photo</span>
+                                        </div>
+                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6 z-10">
                                             <span className={`w-fit px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${app.status === 'accepted' ? 'bg-green-500 shadow-lg shadow-green-500/30' :
                                                 app.status === 'rejected' ? 'bg-red-500 shadow-lg shadow-red-500/30' : 'bg-blue-600 shadow-lg shadow-blue-600/30'
                                                 } text-white`}>

@@ -12,17 +12,37 @@ const gradientBlackToBlue = {
 function LoginSignup() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [userType, setUserType] = useState(searchParams.get('type') || 'freelancer')
+  const [userType, setUserType] = useState('') // Start empty to force selection
   const authStatus = searchParams.get('auth')
   const [isLogin, setIsLogin] = useState(true)
 
   // 🚨 SUCCESS REDIRECT: Immediate redirect if success is in URL
   if (authStatus === 'success') {
     const t = searchParams.get('redirect') || '/';
+    console.log("[Auth] Google Success! Redirecting to:", t);
     localStorage.setItem('auth_sync_pending', 'true');
-    localStorage.removeItem('token');
-    window.location.replace(t);
-    return null; // Stop rendering the login page entirely
+    window.location.href = t; // Use .href for more reliable bounce
+    return null;
+  }
+
+  // 🚨 ALREADY LOGGED IN: If user is already authenticated, don't show the login page
+  const loggedInUserId = localStorage.getItem('user_id');
+  const loggedInUserType = localStorage.getItem('user_type');
+  if (loggedInUserId && loggedInUserType && !authStatus) {
+    const isComplete = localStorage.getItem('is_profile_complete') === '1';
+    let target = '/';
+    if (!isComplete) {
+      if (loggedInUserType === 'freelancer') target = '/freelancer-profile';
+      else if (loggedInUserType === 'cofounder') target = '/cofounder-profile';
+      else if (loggedInUserType === 'founder') target = '/startup-profile';
+    } else {
+      if (loggedInUserType === 'freelancer') target = '/freelancer-dashboard';
+      else if (loggedInUserType === 'cofounder') target = '/cofounder-dashboard';
+      else if (loggedInUserType === 'founder') target = '/startup-dashboard';
+      else if (loggedInUserType === 'influencer') target = '/influencer-marketplace';
+    }
+    window.location.replace(target);
+    return null;
   }
 
   // Handle incoming auth status from Social Redirects (Errors & No Account)
@@ -37,8 +57,37 @@ function LoginSignup() {
       newParams.delete('auth');
       setSearchParams(newParams);
     } else if (authStatus === 'error') {
-      toast.error('Authentication failed. Please try again.', { theme: 'dark' });
+      // Only show error if we aren't actually logged in
+      if (!localStorage.getItem('user_id')) {
+        toast.error('Authentication failed. Please try again.', { theme: 'dark' });
+      }
     }
+  }, [authStatus]);
+
+  // 🚨 AUTO-EXIT GUARD: If we detect login data arrival while on this page, GET OUT!
+  useEffect(() => {
+    const checkAndExit = () => {
+      const uid = localStorage.getItem('user_id');
+      const utype = localStorage.getItem('user_type');
+      
+      if (uid && utype && !authStatus) {
+        console.log("[Auth] Already logged in detect, redirecting...");
+        const type = utype.toLowerCase();
+        let target = '/';
+        
+        if (type === 'freelancer') target = '/freelancer-dashboard';
+        else if (type === 'cofounder') target = '/cofounder-dashboard';
+        else if (type === 'founder') target = '/startup-dashboard';
+        else if (type === 'influencer') target = '/influencer-marketplace';
+        
+        window.location.href = target;
+      }
+    };
+
+    checkAndExit();
+    // Also check on interval for a few seconds just in case of race conditions
+    const interval = setInterval(checkAndExit, 500);
+    return () => clearInterval(interval);
   }, [authStatus]);
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -128,27 +177,24 @@ function LoginSignup() {
 
         toast.success(res.data.message || 'Login successful', { theme: 'dark' })
 
-        // Determine target based on profile completeness (same as Google)
-        const isComplete = userData.is_profile_complete === 1;
+        // Login always goes to Dashboard (unless profile is critically incomplete)
         const type = userData.user_type.toLowerCase();
         let target = '/';
-
-        if (!isComplete) {
-          if (type === 'freelancer') target = '/freelancer-profile';
-          else if (type === 'cofounder') target = '/cofounder-profile';
-          else if (type === 'founder') target = '/startup-profile';
-        } else {
-          if (type === 'freelancer') target = '/freelancer-dashboard';
-          else if (type === 'cofounder') target = '/cofounder-dashboard';
-          else if (type === 'founder') target = '/startup-dashboard';
-          else if (type === 'influencer') target = '/influencer-marketplace';
-        }
+        
+        if (type === 'freelancer') target = '/freelancer-dashboard';
+        else if (type === 'cofounder') target = '/cofounder-dashboard';
+        else if (type === 'founder') target = '/startup-dashboard';
+        else if (type === 'influencer') target = '/influencer-marketplace';
 
         // Full reload to target to ensure clean state and trigger sync
         window.location.href = target;
       } else {
         // ... Signup Block ...
-        const validUserType = ['freelancer', 'founder', 'cofounder'].includes(userType)
+        if (!userType) {
+          return toast.error('Please select your role (Freelancer, Founder, etc.)', { theme: 'dark' });
+        }
+
+        const validUserType = ['freelancer', 'founder', 'cofounder', 'influencer'].includes(userType)
           ? userType
           : 'freelancer'
 
@@ -374,8 +420,10 @@ function LoginSignup() {
                           <select
                             value={userType}
                             onChange={(e) => setUserType(e.target.value)}
+                            required
                             className="w-full px-4 py-3.5 rounded-xl bg-[#1A1F2C] border border-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium appearance-none cursor-pointer"
                           >
+                            <option value="" disabled>Select your role...</option>
                             <option value="freelancer">Freelancer - Looking for exciting projects</option>
                             <option value="founder">Startup / Founder - Looking for talent</option>
                             <option value="cofounder">Co-founder - Looking for a business partner</option>

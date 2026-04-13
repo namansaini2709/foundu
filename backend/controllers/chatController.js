@@ -128,14 +128,23 @@ exports.sendMessage = (req, res) => {
                     "/chatbox"
                   );
 
-                  // Email Notification
-                  emailNotificationService.sendEmailNotification(
-                    receiverId,
-                    "New Message Received 💬",
-                    `You have one more message from <strong>${senderName}</strong> on FoundU:<br><br><em>"${preview}"</em><br><br>Login to your inbox to reply.`,
-                    "Open Chatbox",
-                    `${process.env.FRONTEND_URL || "http://localhost:5173"}/chatbox`
-                  );
+                  // Global Live Badge Update
+                  notificationService.sendGlobalMessageAlert(receiverId);
+
+                  // Email Notification (Only if NOT on live chat)
+                  const isLive = notificationService.isUserInRoom(receiverId, chatId);
+                  if (!isLive) {
+                    console.log(`[Chat] Receiver ${receiverId} is NOT in room. Sending email notification.`);
+                    emailNotificationService.sendEmailNotification(
+                      receiverId,
+                      "New Message Received 💬",
+                      `You have one more message from <strong>${senderName}</strong> on FoundU:<br><br><em>"${preview}"</em><br><br>Login to your inbox to reply.`,
+                      "Open Chatbox",
+                      `${process.env.FRONTEND_URL || "http://localhost:5173"}/chatbox`
+                    );
+                  } else {
+                    console.log(`[Chat] Receiver ${receiverId} is LIVE in room. Skipping email.`);
+                  }
                 }
               );
             }
@@ -196,5 +205,44 @@ exports.createChat = (req, res) => {
         },
       );
     });
+  });
+};
+// Mark all messages in a chat as seen
+exports.markAsSeen = (req, res) => {
+  const userId = req.user?.id || req.session?.user?.id || null;
+  const { chatId } = req.params;
+
+  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+  db.query(
+    "UPDATE messages SET is_seen = 1 WHERE chat_id = ? AND sender_id != ? AND is_seen = 0",
+    [chatId, userId],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    }
+  );
+};
+
+// Get total unread messages across all chats
+exports.getTotalUnreadCount = (req, res) => {
+  const userId = req.user?.id || req.session?.user?.id || null;
+
+  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+  const query = `
+    SELECT 
+      SUM((SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = 0 AND sender_id != ?)) as total
+    FROM chats c
+    JOIN chat_participants cp ON c.id = cp.chat_id
+    WHERE cp.user_id = ?
+  `;
+
+  db.query(query, [userId, userId], (err, results) => {
+    if (err) {
+      console.error("Error in getTotalUnreadCount:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ total: results[0].total || 0 });
   });
 };

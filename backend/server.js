@@ -263,6 +263,12 @@ app.use((err, req, res, next) => {
 server.listen(PORT, () => {
   console.log(`🚀 FoundU backend running on ${PORT}`);
 
+  // 🛠️ DATABASE FIX: Expand user_type column to allow 'influencer' and others
+  db.query("ALTER TABLE users MODIFY COLUMN user_type VARCHAR(50)", (err) => {
+    if (err) console.warn("[DB FIX] Could not alter user_type: ", err.message);
+    else console.log("[DB FIX] user_type column expanded successfully.");
+  });
+
   // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
   const { checkUnreadMessages } = require("./services/unreadMessageService");
   const scheduleNoonCheck = () => {

@@ -151,7 +151,7 @@ exports.updateStatus = async (req, res) => {
         }
 
     } catch (err) {
-        console.error("Error in updateStatus:", err);
+        console.error("Error in updateStatus (Influencer):", err);
         res.status(500).json({ success: false, message: err.message });
     }
 };

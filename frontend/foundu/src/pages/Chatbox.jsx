@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { getUserId } from "../utils/authUtils";
+import { socket } from "../socket";
 import {
   FaPaperPlane,
   FaSearch,
@@ -9,6 +11,9 @@ import {
 } from "react-icons/fa";
 const API_URL = `/api/chat`;
 const Chatbox = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const targetUserId = queryParams.get("userId");
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -23,17 +28,64 @@ const Chatbox = () => {
     if (storedUserId) setCurrentUserId(parseInt(storedUserId));
     fetchChats();
   }, []);
+  // Handle URL parameters for direct messaging
+  useEffect(() => {
+    if (chats.length > 0 && targetUserId && !activeChat) {
+      const targetIdNum = parseInt(targetUserId);
+      
+      // 1. Check if we already have a chat with this user
+      const existingChat = chats.find(c => c.other_user_id === targetIdNum);
+      
+      if (existingChat) {
+        console.log("[Chat] Auto-selecting existing chat for user:", targetUserId);
+        setActiveChat(existingChat);
+      } else {
+        // 2. If no chat exists, try to start a new one
+        console.log("[Chat] No active chat found, attempting to create for user:", targetUserId);
+        handleStartChat(targetIdNum);
+      }
+    }
+  }, [chats, targetUserId]);
   useEffect(() => {
     if (activeChat) {
+      console.log("[Chat] Opening chat:", activeChat.chat_id);
       fetchMessages(activeChat.chat_id);
+      handleMarkAsSeen(activeChat.chat_id);
+
+      // Tell the server I am active in this room
+      socket.emit("join_room", activeChat.chat_id);
+      
       // Optional: Poll for messages every 3 seconds
       const interval = setInterval(
         () => fetchMessages(activeChat.chat_id),
         3000,
       );
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        socket.emit("leave_room", activeChat.chat_id);
+      };
     }
   }, [activeChat]);
+
+  const handleMarkAsSeen = async (chatId) => {
+    try {
+      // Find how many were unread before clearing
+      const chat = chats.find(c => c.chat_id === chatId);
+      const clearedCount = chat?.unread_count || 0;
+
+      await api.patch(`${API_URL}/${chatId}/seen`);
+      // Update local chats list to clear unread count visually
+      setChats(prev => prev.map(c => c.chat_id === chatId ? { ...c, unread_count: 0 } : c));
+
+      // Dispatch event for GlobalChatOverlay badge
+      if (clearedCount > 0) {
+        window.dispatchEvent(new CustomEvent("messages_seen", { detail: { clearedCount } }));
+      }
+    } catch (err) {
+      console.error("Error marking as seen:", err);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -115,10 +167,10 @@ const Chatbox = () => {
     }
   };
   return (
-    <div className="flex h-screen bg-black text-gray-100 font-sans overflow-hidden">
+    <div className="flex w-full h-full bg-black text-gray-100 font-sans overflow-hidden">
       {/* Sidebar */}
       <div className="w-[30%] sm:w-[240px] bg-gray-900 border-r border-gray-800 flex flex-col">
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 pt-16 border-b border-gray-800">
           <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Messages
           </h2>

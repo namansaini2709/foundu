@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
-import { Bell, PlusSquare } from "lucide-react";
+import { Bell, PlusSquare, MessageSquare } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
@@ -52,7 +52,7 @@ function Navbar() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   // Fetch user data if logged in
   useEffect(() => {
     const isPending =
@@ -102,11 +102,6 @@ function Navbar() {
           return;
         }
 
-        if (!userId) {
-          setLoading(false);
-          return;
-        }
-
         // If we don't have user data yet (got userId from localStorage), fetch it
         if (!user) {
           const response = await api.get(`/api/users/${userId}`);
@@ -120,10 +115,18 @@ function Navbar() {
         socket.connect();
         socket.emit("register", userId);
 
-        // Get initial unread count
+        // Get initial unread count (Notifications)
         const notifRes = await api.get(`/api/notifications`);
         if (notifRes.data.success && Array.isArray(notifRes.data.data)) {
           setUnreadCount(notifRes.data.data.filter((n) => !n.is_read).length);
+        }
+
+        // Get initial unread count (Messages)
+        try {
+          const chatRes = await api.get(`/api/chat/total-unread`);
+          setUnreadMessagesCount(chatRes.data.total || 0);
+        } catch (e) {
+          console.warn("[Chat] Could not fetch unread count.");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -146,6 +149,12 @@ function Navbar() {
 
     socket.on("new_notification", handleNewNotification);
 
+    // Also listen for new messages via socket to update global count
+    const handleNewMessage = () => {
+      setUnreadMessagesCount(prev => prev + 1);
+    };
+    socket.on("new_message_global", handleNewMessage);
+
     // Listen for read events from Notifications page
     const handleRead = () => {
       setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -154,6 +163,7 @@ function Navbar() {
 
     return () => {
       socket.off("new_notification", handleNewNotification);
+      socket.off("new_message_global", handleNewMessage);
       window.removeEventListener("notification_read", handleRead);
     };
   }, []);
