@@ -15,6 +15,16 @@ exports.handleSocketConnection = (socket) => {
     console.log(`Socket mapped: User ${userId} -> Socket ${socket.id}`);
   });
 
+  socket.on("join_room", (roomId) => {
+    console.log(`Socket ${socket.id} joining room ${roomId}`);
+    socket.join(`room_${roomId}`);
+  });
+
+  socket.on("leave_room", (roomId) => {
+    console.log(`Socket ${socket.id} leaving room ${roomId}`);
+    socket.leave(`room_${roomId}`);
+  });
+
   socket.on("disconnect", () => {
     for (const [userId, socketId] of connectedUsers.entries()) {
       if (socketId === socket.id) {
@@ -23,6 +33,15 @@ exports.handleSocketConnection = (socket) => {
       }
     }
   });
+};
+
+exports.isUserInRoom = (userId, roomId) => {
+  const socketId = connectedUsers.get(userId.toString());
+  if (!io || !socketId) return false;
+
+  const roomName = `room_${roomId}`;
+  const room = io.sockets.adapter.rooms.get(roomName);
+  return room ? room.has(socketId) : false;
 };
 
 exports.sendNotification = (userId, title, message, type = "general", link = null) => {
@@ -55,4 +74,11 @@ exports.sendNotification = (userId, title, message, type = "general", link = nul
       resolve(result);
     });
   });
+};
+
+exports.sendGlobalMessageAlert = (userId) => {
+  const targetSocketId = connectedUsers.get(userId.toString());
+  if (io && targetSocketId) {
+    io.to(targetSocketId).emit("new_message_global");
+  }
 };

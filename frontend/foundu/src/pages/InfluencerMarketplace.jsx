@@ -30,7 +30,7 @@ const InfluencerMarketplace = () => {
         try {
             const res = await api.post('/api/chat/create', { otherUserId: userId });
             if (res.data.chatId) {
-                navigate('/chatbox');
+                navigate(`/chatbox?userId=${userId}`);
             }
         } catch (err) {
             console.error("Error creating chat:", err);

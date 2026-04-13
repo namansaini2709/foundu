@@ -469,7 +469,7 @@ export default function JobApplicationsDashboard() {
         autoClose: 1000,
       });
       setTimeout(() => {
-        navigate("/chatbox");
+        navigate(`/chatbox?userId=${applicantId}`);
       }, 1000);
     } catch (err) {
       console.error("Error creating chat:", err);

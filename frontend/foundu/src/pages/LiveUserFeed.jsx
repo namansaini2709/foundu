@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import Footer from "../components/Footer";
 import {
@@ -34,6 +34,7 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
   const [newReviewStars, setNewReviewStars] = useState(5);
   const [submitting, setSubmitting] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -237,7 +238,7 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
       {/* Message Button */}
       <div className="pt-8 border-t border-white/5">
         <button
-          onClick={() => window.location.href = `/chatbox?userId=${userDetails.id}`}
+          onClick={() => navigate(`/chatbox?userId=${userDetails.id}`)}
           className="w-full py-5 rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-lg shadow-2xl shadow-blue-600/20 transition-all transform active:scale-95 flex items-center justify-center gap-3"
         >
           Send Message <Send className="w-5 h-5" />
@@ -321,6 +322,8 @@ const LiveUserFeed = () => {
   const viewMode = queryParams.get("view");
   const currentUserId = getUserId();
   const reelContainerRef = useRef(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => { fetchPosts(); }, [viewMode]);
 
@@ -633,7 +636,7 @@ const LiveUserFeed = () => {
             <h3 className="text-3xl font-black text-white/40 mb-3">No content found</h3>
             <p className="text-gray-600 font-bold mb-8">Be the first to share something amazing.</p>
             <button
-              onClick={() => window.location.href = "/create-post"}
+              onClick={() => navigate("/create-post")}
               className="px-8 py-4 bg-white text-[#020024] font-black text-base rounded-3xl hover:bg-blue-500 hover:text-white transition-all"
             >
               Create First Post
