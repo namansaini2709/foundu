@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import {
@@ -203,7 +204,12 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
           setActivePopup("idealab");
         }}
       >
-        <Lightbulb size={28} />
+        <DotLottieReact
+          src="https://lottie.host/8c864797-eeb7-4343-b267-f6025eac61c4/yAkSQSiKsv.lottie"
+          loop
+          autoplay
+          style={{ width: "200px", height: "120px" }}
+        />
       </div>
     );
   }
@@ -340,9 +346,8 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                       {QUESTIONS[qIdx].opts.map((o) => (
                         <button
                           key={o.v}
-                          className={`q-opt ${
-                            answers[QUESTIONS[qIdx].id] === o.v ? "sel" : ""
-                          }`}
+                          className={`q-opt ${answers[QUESTIONS[qIdx].id] === o.v ? "sel" : ""
+                            }`}
                           onClick={() =>
                             setAnswers({
                               ...answers,
@@ -360,9 +365,9 @@ const IdeaLabPopup = ({ userId, activePopup, setActivePopup }) => {
                         qIdx < QUESTIONS.length - 1
                           ? setQIdx(qIdx + 1)
                           : handleRunAnalysis(
-                              `Analyze discovery profile: ${JSON.stringify(answers)}`,
-                              "New Venture Discovery",
-                            )
+                            `Analyze discovery profile: ${JSON.stringify(answers)}`,
+                            "New Venture Discovery",
+                          )
                       }
                     >
                       Next Step <ChevronRight size={18} />

@@ -12,6 +12,7 @@ const navItems = [
   { label: "Testimonials", icon: "⭐", path: "/admin/testimonials" },
   { label: "Notifications", icon: "🔔", path: "/admin/notifications" },
   { label: "Influencers", icon: "🔥", path: "/admin/influencers" },
+  { label: "Queries", icon: "❓", path: "/admin/queries" },
   { label: "Users", icon: "👥", path: "/admin/users", soon: true },
   { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true },
 ];

@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, Tag } from 'lucide-react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { toast } from 'react-toastify';
+import api from "../utils/axiosConfig";
 
 const gradientBlueToBlack = {
     background: "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
@@ -28,16 +29,48 @@ const ContactUs = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const handleChange = (e) => {
+    const [loading, setLoading] = useState(false);
 
+    const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Contact form submitted:", formData);
-        toast.success("Thank you! Your message has been sent successfully.");
-        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+
+        if (!formData.name) {
+            toast.error("Please enter your full name.");
+            return;
+        }
+        if (!formData.email) {
+            toast.error("Please enter your email address.");
+            return;
+        }
+        if (!formData.subject) {
+            toast.error("Please enter a subject.");
+            return;
+        }
+        if (!formData.message) {
+            toast.error("Please enter your message.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await api.post("/api/queries/submit", formData);
+            if (res.data.success) {
+                toast.success(res.data.message || "Thank you! Your message has been sent successfully.");
+                setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+            } else {
+                toast.error(res.data.error || "Failed to send message. Please try again.");
+            }
+        } catch (error) {
+            console.error("Submission Error:", error);
+            const errorMsg = error.response?.data?.error || "Connection error. Please try again later.";
+            toast.error(errorMsg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -55,7 +88,7 @@ const ContactUs = () => {
                                     <p className="text-blue-300 text-lg">We are keen to hear from you :)</p>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="relative group">
                                             <label className="text-gray-400 text-sm mb-2 block font-medium">Full Name *</label>
@@ -141,11 +174,12 @@ const ContactUs = () => {
 
                                     <button
                                         type="submit"
-                                        className="group relative inline-flex items-center justify-center px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold text-white overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-500/20"
+                                        disabled={loading}
+                                        className={`group relative inline-flex items-center justify-center px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold text-white overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-500/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     >
                                         <span className="relative z-10 flex items-center gap-2">
-                                            Submit
-                                            <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                            {loading ? 'Submitting...' : 'Submit'}
+                                            {!loading && <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
                                         </span>
                                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                                     </button>
@@ -161,7 +195,8 @@ const ContactUs = () => {
                                     {renderLottie ? (
                                         <DotLottieReact
                                             key="contact-animation"
-                                            src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
+                                            // src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
+                                            src="https://lottie.host/77bb6091-df3c-4efa-be74-7b447fad2ffa/arWdXdjlSk.lottie"
                                             loop
                                             autoplay
                                             className="w-full h-full object-contain transform hover:scale-105 transition-transform duration-700"
@@ -192,7 +227,7 @@ const ContactUs = () => {
                                             </div>
                                             <div>
                                                 <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">Call Us</p>
-                                                <p className="text-white font-medium">+91 9311293521</p>
+                                                <p className="text-white font-medium">+91 9773575434</p>
                                             </div>
                                         </div>
                                     </div>
