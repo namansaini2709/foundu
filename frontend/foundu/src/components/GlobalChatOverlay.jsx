@@ -100,11 +100,11 @@ const GlobalChatOverlay = ({ userId: propUserId }) => {
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Sidebar Panel */}
-      <div
-        className={`fixed top-0 left-0 h-full w-[90vw] md:w-[45vw] bg-black z-[100] shadow-[10px_0_30px_rgba(0,0,0,0.5)] border-r border-gray-800 transition-transform duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] flex flex-col ${
+      {/* Sidebar Overlay */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-full md:w-[450px] bg-[#020024] shadow-2xl transition-all duration-500 ease-in-out transform z-[999] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } border-r border-white/10`}
       >
         {/* Floating Close Button */}
         {isOpen && (

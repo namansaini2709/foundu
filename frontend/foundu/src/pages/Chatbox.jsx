@@ -167,10 +167,10 @@ const Chatbox = () => {
     }
   };
   return (
-    <div className="flex h-screen bg-black text-gray-100 font-sans overflow-hidden">
+    <div className="flex w-full h-full bg-black text-gray-100 font-sans overflow-hidden">
       {/* Sidebar */}
       <div className="w-[30%] sm:w-[240px] bg-gray-900 border-r border-gray-800 flex flex-col">
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 pt-16 border-b border-gray-800">
           <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Messages
           </h2>
