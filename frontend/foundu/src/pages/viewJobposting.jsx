@@ -34,7 +34,7 @@ export default function JobApplicationsDashboard() {
   const [manualApplicants, setManualApplicants] = useState([]);
   const [aiMatchedApplicants, setAiMatchedApplicants] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
-  const [lottieUrl, setLottieUrl] = useState("https://lottie.host/7900b147-380d-4347-9759-4f7db972e834/M17yvHkCno.lottie");
+  const [lottieUrl, setLottieUrl] = useState("https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie");
   const [animationError, setAnimationError] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [loading, setLoading] = useState(true);

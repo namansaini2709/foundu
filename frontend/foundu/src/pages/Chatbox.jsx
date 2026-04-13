@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { getUserId } from "../utils/authUtils";
+import { socket } from "../socket";
 import {
   FaPaperPlane,
   FaSearch,
