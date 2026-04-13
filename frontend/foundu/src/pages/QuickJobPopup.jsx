@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
-import { 
-    Briefcase, X, Zap, Rocket, CheckCircle2, 
+import {
+    Briefcase, X, Zap, Rocket, CheckCircle2,
     ArrowRight, Loader2, Edit3, Globe, Clock, IndianRupee,
     UserPlus, Users, Layout, MapPin, AlignLeft, ListChecks
 } from "lucide-react";
@@ -12,7 +13,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [phase, setPhase] = useState("selection"); // selection, questions, loading, preview
     const [hiringType, setHiringType] = useState(null); // freelancer, cofounder
-    const [qStep, setQStep] = useState(0); 
+    const [qStep, setQStep] = useState(0);
 
     const [inputs, setInputs] = useState({
         budget: "",        // Freelancer
@@ -232,8 +233,12 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
         if (activePopup && activePopup !== "quickjob") return null;
         return (
             <div className="fab-quickjob" onClick={() => { setIsOpen(true); setActivePopup("quickjob"); }}>
-                <Briefcase size={28} />
-                <div className="fab-badge">AI</div>
+                <DotLottieReact
+                    src="https://lottie.host/7dce804e-19dd-4362-a69b-4e3121ccf219/6f9O7SB0Qq.lottie"
+                    loop
+                    autoplay
+                    style={{ width: "200px", height: "120px" }}
+                />
             </div>
         );
     }
@@ -283,7 +288,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                     {phase === "questions" && (
                         <div className="qj-questions">
                             <div className="step-bar">
-                                <div className="step-progress" style={{ width: `${((qStep+1)/(hiringType === 'freelancer' ? 4 : 3))*100}%` }} />
+                                <div className="step-progress" style={{ width: `${((qStep + 1) / (hiringType === 'freelancer' ? 4 : 3)) * 100}%` }} />
                             </div>
 
                             {/* FREELANCER FLOW */}
@@ -293,11 +298,11 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                         <div className="q-wrap">
                                             <h3 className="q-label">Job Vision</h3>
                                             <p className="q-hint">Describe the role in your words...</p>
-                                            <textarea 
-                                                className="q-textarea" 
+                                            <textarea
+                                                className="q-textarea"
                                                 placeholder="Example: I need a developer who can build a simple landing page for my edtech startup..."
                                                 value={inputs.description}
-                                                onChange={(e) => setInputs({...inputs, description: e.target.value})}
+                                                onChange={(e) => setInputs({ ...inputs, description: e.target.value })}
                                                 autoFocus
                                             />
                                         </div>
@@ -308,7 +313,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <p className="q-hint">Preferred work arrangement?</p>
                                             <div className="chip-grid">
                                                 {WORK_TYPES.map(t => (
-                                                    <button key={t} className={`chip ${inputs.workType === t ? 'active' : ''}`} onClick={() => setInputs({...inputs, workType: t})}>{t}</button>
+                                                    <button key={t} className={`chip ${inputs.workType === t ? 'active' : ''}`} onClick={() => setInputs({ ...inputs, workType: t })}>{t}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -319,7 +324,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <p className="q-hint">Preferred working environment?</p>
                                             <div className="chip-grid">
                                                 {JOB_TYPES.map(t => (
-                                                    <button key={t} className={`chip ${inputs.jobType === t ? 'active' : ''}`} onClick={() => setInputs({...inputs, jobType: t})}>{t}</button>
+                                                    <button key={t} className={`chip ${inputs.jobType === t ? 'active' : ''}`} onClick={() => setInputs({ ...inputs, jobType: t })}>{t}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -328,12 +333,12 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                         <div className="q-wrap">
                                             <h3 className="q-label">Budget / Price Range</h3>
                                             <p className="q-hint">Kaisa budget range aap plan kar rahe hain?</p>
-                                            <input 
-                                                type="text" 
-                                                className="q-input" 
+                                            <input
+                                                type="text"
+                                                className="q-input"
                                                 placeholder="e.g. ₹50k - 1L, Negotiable..."
                                                 value={inputs.budget}
-                                                onChange={(e) => setInputs({...inputs, budget: e.target.value})}
+                                                onChange={(e) => setInputs({ ...inputs, budget: e.target.value })}
                                                 autoFocus
                                             />
                                         </div>
@@ -348,7 +353,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <p className="q-hint">What kind of co-founder are you looking for?</p>
                                             <div className="chip-grid">
                                                 {COFOUNDER_ROLES.map(t => (
-                                                    <button key={t} className={`chip ${inputs.roleType === t ? 'active' : ''}`} onClick={() => setInputs({...inputs, roleType: t})}>{t}</button>
+                                                    <button key={t} className={`chip ${inputs.roleType === t ? 'active' : ''}`} onClick={() => setInputs({ ...inputs, roleType: t })}>{t}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -357,12 +362,12 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                         <div className="q-wrap">
                                             <h3 className="q-label">Compensation</h3>
                                             <p className="q-hint">Kaisa compensation plan kar rahe hain?</p>
-                                            <input 
-                                                type="text" 
-                                                className="q-input" 
+                                            <input
+                                                type="text"
+                                                className="q-input"
                                                 placeholder="e.g. Equity only, Equity + Stipend, Negotiable..."
                                                 value={inputs.compensation}
-                                                onChange={(e) => setInputs({...inputs, compensation: e.target.value})}
+                                                onChange={(e) => setInputs({ ...inputs, compensation: e.target.value })}
                                                 autoFocus
                                             />
                                         </div>
@@ -373,7 +378,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <p className="q-hint">Preferred working environment?</p>
                                             <div className="chip-grid">
                                                 {JOB_TYPES.map(t => (
-                                                    <button key={t} className={`chip ${inputs.jobType === t ? 'active' : ''}`} onClick={() => setInputs({...inputs, jobType: t})}>{t}</button>
+                                                    <button key={t} className={`chip ${inputs.jobType === t ? 'active' : ''}`} onClick={() => setInputs({ ...inputs, jobType: t })}>{t}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -416,7 +421,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
 
                                     {previewData.hiringType === 'freelancer' ? (
                                         <div className="ps-box">
-                                            <h4 className="ps-title"><Briefcase size={16}/> {previewData.freelancer.jobTitle}</h4>
+                                            <h4 className="ps-title"><Briefcase size={16} /> {previewData.freelancer.jobTitle}</h4>
                                             <div className="ps-grid">
                                                 <div><strong>Category:</strong> {previewData.common.roleCategories.join(", ")}</div>
                                                 <div><strong>Work Type:</strong> {previewData.freelancer.workType}</div>
@@ -432,13 +437,13 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">REQUIREMENTS</p>
                                                 <ul className="ps-list">
-                                                    {previewData.freelancer.requirements.map((r,i) => <li key={i}>{r}</li>)}
+                                                    {previewData.freelancer.requirements.map((r, i) => <li key={i}>{r}</li>)}
                                                 </ul>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="ps-box alt">
-                                            <h4 className="ps-title"><UserPlus size={16}/> {previewData.cofounder.jobTitle}</h4>
+                                            <h4 className="ps-title"><UserPlus size={16} /> {previewData.cofounder.jobTitle}</h4>
                                             <div className="ps-grid">
                                                 <div><strong>Role Type:</strong> {previewData.cofounder.roleType}</div>
                                                 <div><strong>Compensation:</strong> {previewData.cofounder.compensation}</div>
@@ -455,13 +460,13 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">REQUIREMENTS</p>
                                                 <ul className="ps-list">
-                                                    {previewData.cofounder.requirements.map((r,i) => <li key={i}>{r}</li>)}
+                                                    {previewData.cofounder.requirements.map((r, i) => <li key={i}>{r}</li>)}
                                                 </ul>
                                             </div>
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">RESPONSIBILITIES</p>
                                                 <ul className="ps-list">
-                                                    {previewData.cofounder.responsibilities.map((r,i) => <li key={i}>{r}</li>)}
+                                                    {previewData.cofounder.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
                                                 </ul>
                                             </div>
                                         </div>
@@ -470,7 +475,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                             </div>
 
                             <div className="qj-actions">
-                                <button className="qj-sec-btn" onClick={() => setPhase("questions")}><Edit3 size={16}/> Edit</button>
+                                <button className="qj-sec-btn" onClick={() => setPhase("questions")}><Edit3 size={16} /> Edit</button>
                                 <button className="qj-publish-btn" onClick={handleSubmit} disabled={loading}>
                                     {loading ? "Publishing..." : <>Submit Job <Rocket size={18} /></>}
                                 </button>

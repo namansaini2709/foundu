@@ -117,6 +117,7 @@ const authRoutes = require("./routes/authRoutes");
 const aiMatchRoutes = require("./routes/aiMatchRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
+const queryRoutes = require("./routes/queryRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -160,6 +161,7 @@ app.use("/api", testEmailRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/influencers", influencerRoutes);
+app.use("/api/queries", queryRoutes);
 const submissionRoutes = require("./routes/submissionRoutes");
 app.use("/api/submissions", submissionRoutes);
 

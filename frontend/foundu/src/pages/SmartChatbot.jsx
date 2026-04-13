@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { toast } from "react-toastify";
 import api from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
@@ -315,8 +316,8 @@ function SuggestionCard({ candidate, onInvite, userRole }) {
         <span className="sc-rating">⭐ {candidate.avgRating}</span>
         <span className="sc-cred">🏅 {candidate.credibility}</span>
         <span className="sc-badges-row">
-          {candidate.blueTick   && <span className="sc-badge-tag" title="Blue Tick — Identity Verified">✅</span>}
-          {candidate.greenTick  && <span className="sc-badge-tag" title="Green Tick — 3+ Projects Done">🟢</span>}
+          {candidate.blueTick && <span className="sc-badge-tag" title="Blue Tick — Identity Verified">✅</span>}
+          {candidate.greenTick && <span className="sc-badge-tag" title="Green Tick — 3+ Projects Done">🟢</span>}
           {candidate.goldenTick && <span className="sc-badge-tag" title="Golden Tick — Highly Active">🏆</span>}
         </span>
       </div>
@@ -368,7 +369,7 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
         message: msg,
         job_id: jobContext
       });
-      
+
       onSend();
       onClose();
 
@@ -413,15 +414,15 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
   const jobMatch = location.pathname.match(/\/job(?:posting)?[/=?]?(\d+)/i);
   const queryJobId = new URLSearchParams(location.search).get("job_id");
   const jobId = jobMatch?.[1] || queryJobId || null;
-  const [isOpen, setIsOpen]         = useState(false);
-  const [step, setStep]             = useState(0);       // 0=greeting, 1-5=questions, 6=results
-  const [messages, setMessages]     = useState([]);
-  const [isTyping, setIsTyping]     = useState(false);
-  const [filters, setFilters]       = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+  const [step, setStep] = useState(0);       // 0=greeting, 1-5=questions, 6=results
+  const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [filters, setFilters] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [inviteTarget, setInviteTarget] = useState(null);
-  const [hasNotif, setHasNotif]     = useState(true);
-  const messagesEndRef               = useRef(null);
+  const [hasNotif, setHasNotif] = useState(true);
+  const messagesEndRef = useRef(null);
 
   /* ── Pages where chatbot should be HIDDEN ───────────────── */
   const hiddenPaths = ["/login-signup", "/signup"];
@@ -494,7 +495,7 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
       // All questions done → show results
       await addBotMsg("Great! Analyzing all profiles using credibility scores, badge verification, and AI matching...");
       setStep("loading");
-      
+
       try {
         const res = await api.post(`/api/ai/chat-suggestions`, {
           role: userRole,
@@ -508,7 +509,7 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
             role: s.user_type || s.domain,
             initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
             // Map credibility if available
-            credibility: s.credibility_score ? `${s.credibility_score-5}-${s.credibility_score+5}` : "70-75",
+            credibility: s.credibility_score ? `${s.credibility_score - 5}-${s.credibility_score + 5}` : "70-75",
             blueTick: true, // Mocking ticks for now based on score
             skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Tech", "FoundU Verified"]
           }));
@@ -539,22 +540,22 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
   /* Context-aware transition lines for natural conversation */
   const getTransitionLine = (option) => {
     const lines = {
-      "Freelancer":                "Looking for freelancers",
-      "Co-Founder":                "Looking for a co-founder",
-      "Show me both":              "Showing all talent types",
-      "Tech":                      "Tech domain scoped",
-      "Design":                    "Design domain scoped",
-      "Marketing":                 "Marketing domain scoped",
-      "Fresher":                   "Fresher-level preference noted",
-      "Mid-Level":                 "Mid-level preference noted",
-      "Senior":                    "Senior-level preference noted",
-      "Any Level":                 "Open to any experience level",
-      "Highest Rating":            "Prioritizing top-rated talent",
-      "Best Credibility":          "Prioritizing most credible profiles",
-      "Exact Skill Match":         "Prioritizing skill-exact matches",
-      "Discover Hidden Talent":    "Including hidden talent in search",
-      "Yes, show hidden talent":   "Including proactive talent discovery",
-      "Applicants only":           "Limiting to applicants only",
+      "Freelancer": "Looking for freelancers",
+      "Co-Founder": "Looking for a co-founder",
+      "Show me both": "Showing all talent types",
+      "Tech": "Tech domain scoped",
+      "Design": "Design domain scoped",
+      "Marketing": "Marketing domain scoped",
+      "Fresher": "Fresher-level preference noted",
+      "Mid-Level": "Mid-level preference noted",
+      "Senior": "Senior-level preference noted",
+      "Any Level": "Open to any experience level",
+      "Highest Rating": "Prioritizing top-rated talent",
+      "Best Credibility": "Prioritizing most credible profiles",
+      "Exact Skill Match": "Prioritizing skill-exact matches",
+      "Discover Hidden Talent": "Including hidden talent in search",
+      "Yes, show hidden talent": "Including proactive talent discovery",
+      "Applicants only": "Limiting to applicants only",
     };
     return lines[option] || "Preference noted";
   };
@@ -661,7 +662,16 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
         }}
         aria-label="Open AI Assistant"
       >
-        <span className="sc-fab-icon">{isOpen ? "✕" : "✨"}</span>
+        <span className="sc-fab-icon">
+          {isOpen ? "✕" : (
+            <DotLottieReact
+              src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
+              loop
+              autoplay
+              style={{ width: "200px", height: "200px" }}
+            />
+          )}
+        </span>
         {hasNotif && !isOpen && <span className="sc-notif-dot" />}
       </button>
       {/* Chat popup */}
@@ -671,7 +681,12 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
           <div className="sc-header">
             <div className="sc-header-left">
               <div className="sc-avatar">
-                ✨
+                <DotLottieReact
+                  src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
+                  loop
+                  autoplay
+                  style={{ width: "56px", height: "56px" }}
+                />
                 <span className="sc-avatar-online" />
               </div>
               <div className="sc-header-info">
@@ -708,7 +723,14 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
           <div className="sc-messages">
             {step === 0 && messages.length === 0 && (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "#4b5563" }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>✨</div>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>
+                  <DotLottieReact
+                    src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
+                    loop
+                    autoplay
+                    style={{ width: "120px", height: "120px", margin: "0 auto" }}
+                  />
+                </div>
                 <p style={{ fontSize: 13 }}>Starting AI Assistant...</p>
               </div>
             )}

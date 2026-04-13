@@ -43,6 +43,7 @@ import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AdminTestimonials from "./admin/pages/AdminTestimonials";
 import AdminNotifications from "./admin/pages/AdminNotifications";
 import AdminInfluencers from "./admin/pages/AdminInfluencers";
+import AdminQueries from "./admin/pages/AdminQueries";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -58,6 +59,8 @@ import OurTeam from "./pages/OurTeam";
 import ContactUs from "./pages/ContactUs";
 import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
+import NotFound from "./pages/NotFound";
+import FAQ from "./pages/FAQ";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -185,6 +188,7 @@ function App() {
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
         <Route path="/admin/influencers" element={<AdminInfluencers />} />
         <Route path="/admin/notifications" element={<AdminNotifications />} />
+        <Route path="/admin/queries" element={<AdminQueries />} />
         {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
 
         <Route path="/about-details" element={<AboutDetails />} />
@@ -196,6 +200,10 @@ function App() {
         />
         <Route path="/our-team" element={<OurTeam />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/faq" element={<FAQ />} />
+
+        {/* Catch-all 404 Route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {isLoggedIn && (
         <>
