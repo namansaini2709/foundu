@@ -446,17 +446,19 @@ const StartupProfile = () => {
                             (Upload File)
                           </span>
                         </label>
-                        <div className="flex items-center gap-4">
-                          <input
-                            type="file"
-                            id="startupLogo"
-                            name="startupLogo"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="flex-grow px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                          />
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                          <div className="flex-grow relative">
+                            <input
+                              type="file"
+                              id="startupLogo"
+                              name="startupLogo"
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-xs sm:text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[10px] sm:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                            />
+                          </div>
                           {formData.startupLogo && (
-                            <div className="w-12 h-12 rounded-lg border border-blue-500/30 overflow-hidden shrink-0 bg-gray-900 flex items-center justify-center">
+                            <div className="w-16 h-16 sm:w-12 sm:h-12 rounded-lg border border-blue-500/30 overflow-hidden shrink-0 bg-gray-900 flex items-center justify-center self-center sm:self-auto">
                               <img
                                 src={
                                   formData.startupLogo instanceof File

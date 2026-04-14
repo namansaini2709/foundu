@@ -6,13 +6,17 @@ async function checkSchema() {
         const [users] = await db.promise().query("DESCRIBE users");
         const [jobs] = await db.promise().query("DESCRIBE foundu_jobs");
         const [applicants] = await db.promise().query("DESCRIBE job_applicants");
+        const [startup_profiles] = await db.promise().query("DESCRIBE startup_profiles");
 
-        console.log("--- USERS ---");
-        console.table(users);
-        console.log("--- JOBS ---");
-        console.table(jobs);
-        console.log("--- APPLICANTS ---");
-        console.table(applicants);
+        require('fs').writeFileSync('schema_output.json', JSON.stringify({
+            users,
+            jobs,
+            applicants,
+            startup_profiles
+        }, null, 2));
+        console.log("Schema written to schema_output.json");
+        console.log("--- STARTUP PROFILES ---");
+        console.table(startup_profiles);
 
         process.exit(0);
     } catch (err) {
