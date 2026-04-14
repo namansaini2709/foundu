@@ -23,10 +23,107 @@ import {
   Search,
   FileCheck,
   ChevronRight,
-  Activity
+  Activity,
 } from "lucide-react";
 import Footer from "../components/Footer";
-
+import api from "../utils/axiosConfig";
+// Move Data Outside Component to prevent recreation
+// const FEATURES = [
+//   {
+//     name: "Founder Compatibility",
+//     fullName: "Founder–Founder Compatibility Score",
+//     description: "Analyzes mindset, risk tolerance, vision alignment, and working style between you and potential co-founders.",
+//     detailedDescription: "Resumes don't build unicorns. Synergistic minds do. Our AI analyzes the 'soul' of your collaboration, identifying potential friction points in decision-making and vision alignment before you sign the paperwork. We simulate years of partnership stress in minutes.",
+//     whenToUse: "Before onboarding a co-founder or discussing equity splits.",
+//     icon: <BrainCircuit className="w-5 h-5" />,
+//     accent: "blue",
+//     recommended: true,
+//     metrics: ["Vision Alignment: 92%", "Risk Tolerance Sync: 84%", "Communication Style: Fluid"]
+//   },
+//   {
+//     name: "Founder Readiness",
+//     fullName: "Founder Readiness Score",
+//     description: "Evaluates whether you are prepared to hire, partner, or scale based on clarity and capacity.",
+//     detailedDescription: "Are you truly ready to lead? Scaling too early is the #1 startup killer. This score evaluates your operational maturity, personal bandwidth, and execution capacity to ensure you're not building on a shaky foundation.",
+//     whenToUse: "Before hiring your first employee or seeking external partners.",
+//     icon: <FileCheck className="w-5 h-5" />,
+//     accent: "green",
+//     metrics: ["Execution Capacity: 78%", "Clarity of Mission: High", "Resource Stability: Mid"]
+//   },
+//   {
+//     name: "Founder Simulator",
+//     fullName: "AI Founder Simulator",
+//     description: "Simulates co-founder conversations and challenges your decisions like a partner.",
+//     detailedDescription: "Practice the hard conversations before they happen. Our AI acts as a seasoned co-founder, questioning your assumptions, challenging your pivot ideas, and preparing you for the reality of high-stakes startup life.",
+//     whenToUse: "When validating major decisions or feeling uncertain about a pivot.",
+//     icon: <MessageSquare className="w-5 h-5" />,
+//     accent: "purple",
+//   },
+//   {
+//     name: "Startup DNA Score",
+//     fullName: "Startup DNA Score",
+//     description: "Defines your internal execution speed, risk appetite, and style.",
+//     detailedDescription: "Every startup has a unique code. Our DNA analysis identifies your team's natural tempo—whether you're a blitzscaling rocket or a calculated, product-first lab. Finding talent that matches this DNA is the secret to 10x growth.",
+//     whenToUse: "To find people who truly fit your startup culture.",
+//     icon: <Workflow className="w-5 h-5" />,
+//     accent: "blue",
+//   },
+//   {
+//     name: "Burn Reality Checker",
+//     fullName: "Burn Reality Checker",
+//     description: "Analyze burn rate, hiring speed, and runway sustainability with AI.",
+//     detailedDescription: "The runway is shorter than you think. Our AI looks beyond your spreadsheet to analyze your actual hiring patterns and execution speed, giving you a realistic 'impact burn' assessment.",
+//     whenToUse: "Before making hiring or major vendor decisions.",
+//     icon: <TrendingUp className="w-5 h-5" />,
+//     accent: "yellow",
+//   },
+//   {
+//     name: "Trial Sprint Gen",
+//     fullName: "Trial Sprint Generator",
+//     description: "Creates short testing cycles before you commit to long-term hires.",
+//     detailedDescription: "Stop guessing. Start testing. This generator creates custom, 2-week performance benchmarks tailored to the role you're hiring, allowing you to see actual output before signing a contract.",
+//     whenToUse: "Before finalizing any high-impact hire or partner.",
+//     icon: <Zap className="w-5 h-5" />,
+//     accent: "orange",
+//   },
+//   {
+//     name: "AI Idea Generator",
+//     fullName: "AI Idea Generator & Stress-Tester",
+//     description: "Refines and stress-tests your startup idea based on execution feasibility.",
+//     detailedDescription: "Ideas are easy; execution is everything. This tool rips your idea apart and helps you rebuild it stronger, identifying market gaps and technical hurdles you might have overlooked.",
+//     whenToUse: "During early ideation or when considering a product expansion.",
+//     icon: <Lightbulb className="w-5 h-5" />,
+//     accent: "blue",
+//   },
+//   {
+//     name: "Role Identification",
+//     fullName: '"Who Do You Really Need?" AI',
+//     description: "Identifies the exact role or capability your startup needs right now.",
+//     detailedDescription: "Don't hire a CTO when you need a Lead Architect. Don't hire a CMO when you need a Growth Hacker. Our AI analyzes your backlog and current velocity to identify the specific gap in your armor.",
+//     whenToUse: "When unsure whether to hire, partner, or outsource.",
+//     icon: <Target className="w-5 h-5" />,
+//     accent: "purple",
+//     recommended: true,
+//   },
+//   {
+//     name: "Pitch Deck Templates",
+//     fullName: "AI-Recommended Pitch Deck Templates",
+//     description: "Deck structures tailored to your startup stage and model.",
+//     detailedDescription: "Investors see thousands of decks. We ensure yours hits the exact notes they are looking for, based on successful raises in your specific niche and stage.",
+//     whenToUse: "Before investor outreach or major demo days.",
+//     icon: <BarChart className="w-5 h-5" />,
+//     accent: "blue",
+//   },
+//   {
+//     name: "Talent Recs",
+//     fullName: "AI People & Talent Recommendations",
+//     description: "AI-curated recommendations based on DNA and execution style.",
+//     detailedDescription: "The final step in your journey. We suggest specific individuals from the Foundu network who don't just have the skills, but the exact DNA match for your startup's current trajectory.",
+//     whenToUse: "After reviewing insights and setting your readiness scores.",
+//     icon: <Search className="w-5 h-5" />,
+//     accent: "green",
+//   }
+// ];
 const StartupDashboard = () => {
   const navigate = useNavigate();
   const [userJobs, setUserJobs] = useState([]);
@@ -37,7 +134,7 @@ const StartupDashboard = () => {
     capitalInvested: 0,
     activeProposals: 0,
     liveJobs: 0,
-    selectedJobs: 0
+    selectedJobs: 0,
   });
 
   const userId = localStorage.getItem("user_id");
@@ -75,36 +172,36 @@ const StartupDashboard = () => {
   const stats = [
     {
       title: "Total Jobs Posted",
-      value: dashboardStats.totalJobsPosted.toString().padStart(2, '0'),
+      value: dashboardStats.totalJobsPosted.toString().padStart(2, "0"),
       subtitle: "Active Opportunities",
       icon: <Target className="w-6 h-6" />,
       color: "blue",
       btnText: "Post Job",
-      onClick: () => navigate("/add-job")
+      onClick: () => navigate("/add-job"),
     },
     {
       title: "Active Freelancers",
-      value: dashboardStats.activeFreelancers.toString().padStart(2, '0'),
+      value: dashboardStats.activeFreelancers.toString().padStart(2, "0"),
       subtitle: "Ongoing Collaborations",
       icon: <Users className="w-6 h-6" />,
-      color: "green"
+      color: "green",
     },
     {
       title: "Capital Invested",
       value: `₹${(dashboardStats.capitalInvested || 0).toLocaleString()}`,
       subtitle: "All Time",
       icon: <IndianRupee className="w-6 h-6" />,
-      color: "yellow"
+      color: "yellow",
     },
     {
       title: "Active Proposals",
-      value: dashboardStats.activeProposals.toString().padStart(2, '0'),
+      value: dashboardStats.activeProposals.toString().padStart(2, "0"),
       subtitle: "Total Applicants",
       icon: <Handshake className="w-6 h-6" />,
       color: "purple",
       btnText: "View All",
-      onClick: () => navigate("/jobposting")
-    }
+      onClick: () => navigate("/jobposting"),
+    },
   ];
 
   const getStatBorder = (color) => {
@@ -138,7 +235,7 @@ const StartupDashboard = () => {
               DASHBOARD<span className="text-blue-500">.</span>
             </h1>
           </div>
-          <button 
+          <button
             onClick={() => navigate("/add-job")}
             className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-500/20 flex items-center gap-3 group"
           >
@@ -155,17 +252,27 @@ const StartupDashboard = () => {
               className={`group relative bg-white/5 backdrop-blur-xl border rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:bg-white/10 ${getStatBorder(stat.color)}`}
             >
               <div className="flex items-center justify-between mb-6">
-                <div className={`p-4 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-400 group-hover:scale-110 transition-transform`}>
+                <div
+                  className={`p-4 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-400 group-hover:scale-110 transition-transform`}
+                >
                   {stat.icon}
                 </div>
-                <div className="text-gray-500 text-[10px] font-black tracking-widest uppercase">Live Engagement</div>
+                <div className="text-gray-500 text-[10px] font-black tracking-widest uppercase">
+                  Live Engagement
+                </div>
               </div>
-              <div className="text-4xl font-black text-white mb-2">{stat.value}</div>
-              <div className="text-gray-400 font-medium mb-6 uppercase text-xs tracking-wider">{stat.title}</div>
+              <div className="text-4xl font-black text-white mb-2">
+                {stat.value}
+              </div>
+              <div className="text-gray-400 font-medium mb-6 uppercase text-xs tracking-wider">
+                {stat.title}
+              </div>
               <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                <span className="text-[10px] text-gray-500 font-bold">{stat.subtitle}</span>
+                <span className="text-[10px] text-gray-500 font-bold">
+                  {stat.subtitle}
+                </span>
                 {stat.btnText && (
-                  <button 
+                  <button
                     onClick={stat.onClick}
                     className="text-blue-400 text-xs font-black flex items-center gap-1 hover:text-blue-300 transition-colors"
                   >
@@ -186,14 +293,22 @@ const StartupDashboard = () => {
             </h2>
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Live Now</span>
-                <span className="text-xl font-black text-blue-400">{dashboardStats.liveJobs.toString().padStart(2, "0")}</span>
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  Live Now
+                </span>
+                <span className="text-xl font-black text-blue-400">
+                  {dashboardStats.liveJobs.toString().padStart(2, "0")}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Selected Applicants</span>
-                <span className="text-xl font-black text-green-400">{dashboardStats.selectedJobs.toString().padStart(2, "0")}</span>
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  Selected Applicants
+                </span>
+                <span className="text-xl font-black text-green-400">
+                  {dashboardStats.selectedJobs.toString().padStart(2, "0")}
+                </span>
               </div>
-              <button 
+              <button
                 onClick={() => navigate("/jobposting")}
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
               >
@@ -203,36 +318,65 @@ const StartupDashboard = () => {
           </div>
 
           {loadingJobs ? (
-            <div className="text-center py-20 text-gray-500">Retrieving job records...</div>
+            <div className="text-center py-20 text-gray-500">
+              Retrieving job records...
+            </div>
           ) : userJobs.length === 0 ? (
             <div className="text-center py-20 border-2 border-dashed border-white/10 rounded-[2rem]">
               <p className="text-gray-500 mb-4">No jobs posted yet.</p>
-              <button onClick={() => navigate("/add-job")} className="text-blue-400 font-bold hover:underline">Start your first listing →</button>
+              <button
+                onClick={() => navigate("/add-job")}
+                className="text-blue-400 font-bold hover:underline"
+              >
+                Start your first listing →
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {userJobs.map((job) => (
-                <div key={job.job_id} className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative">
-                  <div className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${job.payment_status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
-                    {job.payment_status === 'paid' ? '● Payment Verified' : '○ Payment Pending'}
+                <div
+                  key={job.job_id}
+                  className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative"
+                >
+                  <div
+                    className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
+                      job.payment_status === "paid"
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-red-500/20 text-red-400"
+                    }`}
+                  >
+                    {job.payment_status === "paid"
+                      ? "● Payment Verified"
+                      : "○ Payment Pending"}
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{job.job_title}</h3>
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                    {job.job_title}
+                  </h3>
                   <div className="flex gap-4 mb-6">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Type: {job.job_type}</span>
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Budget: {job.budget_range}</span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
+                      Type: {job.job_type}
+                    </span>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
+                      Budget: {job.budget_range}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between pt-6 border-t border-white/5">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-500 uppercase font-black mb-1">Total Bill Paid</span>
-                      <span className="text-lg font-black text-white">₹{(job.total_amount || 0).toLocaleString()}</span>
+                      <span className="text-[10px] text-gray-500 uppercase font-black mb-1">
+                        Total Bill Paid
+                      </span>
+                      <span className="text-lg font-black text-white">
+                        ₹{(job.total_amount || 0).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${job.is_completed ? 'bg-blue-500' : 'bg-green-500 animate-pulse'}`}></div>
+                      <div
+                        className={`w-2 h-2 rounded-full ${job.is_completed ? "bg-blue-500" : "bg-green-500 animate-pulse"}`}
+                      ></div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        {job.is_completed ? 'Job Completed' : 'Active Listing'}
+                        {job.is_completed ? "Job Completed" : "Active Listing"}
                       </span>
                     </div>
                   </div>
@@ -254,14 +398,31 @@ const StartupDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Startup Portals / Next Actions */}
             <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-400/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
-              <div className="absolute top-6 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest z-10">PREMIUM</div>
+              <div className="absolute top-6 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest z-10">
+                PREMIUM
+              </div>
               <div className="relative z-10">
-                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">Startup Portals</h3>
-                <p className="text-gray-300 text-base mb-10 max-w-md font-light">Deploy specialized business hubs instantly to manage hiring, leads, and vendors.</p>
+                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+                  Startup Portals
+                </h3>
+                <p className="text-gray-300 text-base mb-10 max-w-md font-light">
+                  Deploy specialized business hubs instantly to manage hiring,
+                  leads, and vendors.
+                </p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                  {["Hiring & Talent Hub", "CRM Lead Manager", "Support Desk", "Vendor Portal"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-white text-sm font-bold bg-white/5 p-3 rounded-xl border border-white/5">
-                      <div className="w-5 h-5 rounded-full bg-yellow-400/20 flex items-center justify-center text-[10px] text-yellow-400">✓</div>
+                  {[
+                    "Hiring & Talent Hub",
+                    "CRM Lead Manager",
+                    "Support Desk",
+                    "Vendor Portal",
+                  ].map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 text-white text-sm font-bold bg-white/5 p-3 rounded-xl border border-white/5"
+                    >
+                      <div className="w-5 h-5 rounded-full bg-yellow-400/20 flex items-center justify-center text-[10px] text-yellow-400">
+                        ✓
+                      </div>
                       {item}
                     </li>
                   ))}
@@ -278,8 +439,13 @@ const StartupDashboard = () => {
                 <div className="p-4 rounded-2xl bg-blue-500/10 text-blue-400 w-fit mb-6">
                   <BarChart className="w-8 h-8" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">Pitch Deck Pro</h3>
-                <p className="text-gray-300 text-base mb-10 max-w-sm font-light italic">Generate investor-ready slides and refine your narrative with our proprietary AI engine.</p>
+                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+                  Pitch Deck Pro
+                </h3>
+                <p className="text-gray-300 text-base mb-10 max-w-sm font-light italic">
+                  Generate investor-ready slides and refine your narrative with
+                  our proprietary AI engine.
+                </p>
                 <div className="mt-auto">
                   <button className="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs">
                     LAUNCH DECK BUILDER
@@ -293,8 +459,9 @@ const StartupDashboard = () => {
 
       <Footer />
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;
         }
@@ -312,7 +479,9 @@ const StartupDashboard = () => {
           scrollbar-width: thin;
           scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
         }
-      `}} />
+      `,
+        }}
+      />
     </div>
   );
 };

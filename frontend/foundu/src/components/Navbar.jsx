@@ -345,11 +345,11 @@ function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div
-        className={`transition-all duration-300 ${
-          scrolled
-            ? "bg-black/80 backdrop-blur-md border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+        className={`transition-all duration-500 ${
+          scrolled || isOpen
+            ? "bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-2xl"
             : "bg-transparent border-transparent"
-        }`}
+        } hover:bg-white/[0.08] hover:backdrop-blur-2xl transition-all duration-500`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
