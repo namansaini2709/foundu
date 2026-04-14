@@ -26,7 +26,6 @@ import {
   Activity,
 } from "lucide-react";
 import Footer from "../components/Footer";
-import api from "../utils/axiosConfig";
 // Move Data Outside Component to prevent recreation
 // const FEATURES = [
 //   {

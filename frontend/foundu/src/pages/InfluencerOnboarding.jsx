@@ -16,6 +16,7 @@ import {
   Utensils,
   Dumbbell,
   Laptop,
+  DollarSign,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
