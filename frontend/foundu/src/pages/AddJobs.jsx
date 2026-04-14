@@ -321,15 +321,15 @@ export default function AddJobs() {
         <div className="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-indigo-600/10 rounded-full blur-[100px]"></div>
       </div>
 
-      <main className="relative z-10 pt-32 px-6 pb-20 max-w-5xl mx-auto">
-        <h1 className="text-4xl font-black mb-10 tracking-tighter uppercase">
+      <main className="relative z-10 pt-20 md:pt-32 px-4 md:px-6 pb-20 max-w-5xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-black mb-8 md:mb-10 tracking-tighter uppercase">
           Create a new job<span className="text-blue-500">.</span>
         </h1>
 
         {/* Step 1: Hiring Type */}
-        <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 mb-6 transition-all duration-500">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
+        <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 mb-6 transition-all duration-500">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase flex items-center gap-3">
               <span className="text-blue-500 italic">1 —</span> Hiring Type{" "}
               <span className="text-red-500 text-sm">*</span>
             </h2>
@@ -339,7 +339,7 @@ export default function AddJobs() {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 key: "freelancer",
@@ -358,16 +358,16 @@ export default function AddJobs() {
                 onClick={() =>
                   setFormData((s) => ({ ...s, hiringType: c.key }))
                 }
-                className={`p-8 text-left rounded-[2rem] border transition-all duration-300 ${
+                className={`p-6 md:p-8 text-left rounded-[1.5rem] md:rounded-[2rem] border transition-all duration-300 ${
                   formData.hiringType === c.key
                     ? "bg-blue-600/10 border-blue-500 text-white shadow-xl shadow-blue-500/10"
                     : "bg-white/5 border-white/10 text-gray-400 hover:border-blue-400/50 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <div className="font-black text-xl mb-1 tracking-tighter">
+                <div className="font-black text-lg md:text-xl mb-1 tracking-tighter">
                   {c.title}
                 </div>
-                <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">
                   {c.subtitle}
                 </div>
               </button>
@@ -377,9 +377,9 @@ export default function AddJobs() {
 
         {/* Step 2: Common Questions */}
         {currentStep >= 1 && (
-          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
+          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+              <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase flex items-center gap-3">
                 <span className="text-blue-500 italic">2 —</span> Common
                 Questions
               </h2>
@@ -415,9 +415,9 @@ export default function AddJobs() {
 
         {/* Step 3: Role Specific */}
         {currentStep >= 2 && (
-          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
+          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+              <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase flex items-center gap-3">
                 <span className="text-blue-500 italic">3 —</span> Role Specific
               </h2>
               {currentStep > 2 && (
@@ -428,7 +428,7 @@ export default function AddJobs() {
             </div>
 
             {(hiringType === "freelancer" || hiringType === "both") && (
-              <div className="mb-10 p-8 rounded-[2rem] border border-blue-500/20 bg-blue-500/5">
+              <div className="mb-10 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-blue-500/20 bg-blue-500/5">
                 <h3 className="font-black mb-8 text-xl tracking-tighter uppercase text-blue-400">
                   Freelancer Job Details
                 </h3>
@@ -726,7 +726,7 @@ export default function AddJobs() {
             )}
 
             {(hiringType === "cofounder" || hiringType === "both") && (
-              <div className="mb-10 p-8 rounded-[2rem] border border-purple-500/20 bg-purple-500/5">
+              <div className="mb-10 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-purple-500/20 bg-purple-500/5">
                 <h3 className="font-black mb-8 text-xl tracking-tighter uppercase text-purple-400">
                   Cofounder Position Details
                 </h3>
@@ -1044,12 +1044,12 @@ export default function AddJobs() {
 
         {/* Step 4: Review & Submit */}
         {currentStep >= 3 && (
-          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
-            <h2 className="text-2xl font-black tracking-tight uppercase mb-8">
+          <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 mb-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-5">
+            <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase mb-8">
               4 — Review & Submit
             </h2>
-            <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5">
-              <div className="mb-6 flex gap-10">
+            <div className="bg-white/5 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-white/5">
+              <div className="mb-6 flex flex-col sm:flex-row gap-6 sm:gap-10">
                 <div className="flex-1">
                   <strong className="text-blue-400 text-[10px] font-black tracking-widest uppercase block mb-1">
                     Hiring Type
@@ -1180,7 +1180,7 @@ export default function AddJobs() {
 
               {/* ── Bill Summary (Only for Freelancer) ── */}
               {hiringType !== "cofounder" && (
-                <div className="mt-8 p-8 rounded-[2rem] border-2 border-green-500/30 bg-green-500/5">
+                <div className="mt-8 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 border-green-500/30 bg-green-500/5">
                   <h3 className="font-black mb-6 text-xl text-green-400 tracking-tighter uppercase">
                     Bill Summary
                   </h3>
@@ -1199,11 +1199,11 @@ export default function AddJobs() {
                       <span>FoundU Commission (3%)</span>
                       <span>₹{commission.toLocaleString()}</span>
                     </div>
-                    <div className="border-t border-white/10 mt-6 pt-6 flex justify-between items-end">
+                    <div className="border-t border-white/10 mt-6 pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
                       <span className="text-[10px] font-black text-gray-500 uppercase pb-1">
                         Total Amount
                       </span>
-                      <span className="text-4xl font-black text-white tracking-tighter">
+                      <span className="text-3xl md:text-4xl font-black text-white tracking-tighter">
                         ₹{totalAmount.toLocaleString()}
                       </span>
                     </div>
@@ -1215,11 +1215,11 @@ export default function AddJobs() {
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between gap-6 mt-12">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 md:gap-6 mt-12">
           {currentStep > 0 ? (
             <button
               onClick={handleBack}
-              className="px-10 py-5 rounded-3xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase hover:bg-white/10 transition-all flex items-center gap-2"
+              className="px-8 md:px-10 py-4 md:py-5 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -1227,11 +1227,11 @@ export default function AddJobs() {
             <div />
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             {currentStep < 3 ? (
               <button
                 onClick={handleNext}
-                className="px-12 py-5 rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] tracking-widest uppercase transition-all shadow-2xl shadow-blue-600/30 flex items-center gap-2 group"
+                className="px-10 md:px-12 py-4 md:py-5 rounded-2xl md:rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] tracking-widest uppercase transition-all shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-2 group"
               >
                 Next{" "}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -1240,7 +1240,7 @@ export default function AddJobs() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-14 py-5 rounded-3xl bg-green-600 hover:bg-green-500 text-white font-black text-[10px] tracking-widest uppercase transition-all shadow-2xl shadow-green-600/30 disabled:opacity-50 flex items-center gap-2 group"
+                className="px-12 md:px-14 py-4 md:py-5 rounded-2xl md:rounded-3xl bg-green-600 hover:bg-green-500 text-white font-black text-[10px] tracking-widest uppercase transition-all shadow-2xl shadow-green-600/30 disabled:opacity-50 flex items-center justify-center gap-2 group"
               >
                 {loading ? "Processing..." : "Submit Job"}{" "}
                 <Zap className="w-4 h-4 group-hover:rotate-12 transition-transform" />

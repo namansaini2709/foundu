@@ -91,9 +91,7 @@ const StartupProfile = () => {
   // Fetch profile by user ID
   const fetchProfile = async (userId) => {
     try {
-      const response = await api.get(
-        `/api/startup-profiles/user/${userId}`
-      );
+      const response = await api.get(`/api/startup-profiles/user/${userId}`);
       const profile = response.data;
       // Helper to parse JSON safely
       const safeParse = (data) => {
@@ -187,12 +185,17 @@ const StartupProfile = () => {
     const errors = [];
     switch (currentStep) {
       case 1: // Founder DNA
-        if (!formData.startupName?.trim()) errors.push("Startup Name is required");
-        if (!formData.founderType?.trim()) errors.push("Founder type is required");
+        if (!formData.startupName?.trim())
+          errors.push("Startup Name is required");
+        if (!formData.founderType?.trim())
+          errors.push("Founder type is required");
         if (!formData.whyBuilding?.trim())
           errors.push("Why are you building a startup is required");
         if (!formData.superpower?.trim()) errors.push("Superpower is required");
-        if (formData.superpower === "Other" && !formData.superpowerOther?.trim()) {
+        if (
+          formData.superpower === "Other" &&
+          !formData.superpowerOther?.trim()
+        ) {
           errors.push("Please specify your superpower");
         }
         if (formData.weaknesses.length === 0)
@@ -211,7 +214,8 @@ const StartupProfile = () => {
           errors.push("Problem impact is required");
         if (!formData.solutionBuilding?.trim())
           errors.push("Solution building is required");
-        if (!formData.monetization?.trim()) errors.push("Monetization is required");
+        if (!formData.monetization?.trim())
+          errors.push("Monetization is required");
         if (!formData.unfairAdvantage?.trim())
           errors.push("Unfair advantage is required");
         break;
@@ -220,10 +224,12 @@ const StartupProfile = () => {
           errors.push("Monthly investment is required");
         if (!formData.survivalWithoutRevenue?.trim())
           errors.push("Survival without revenue is required");
-        if (!formData.biggestRisk?.trim()) errors.push("Biggest risk is required");
+        if (!formData.biggestRisk?.trim())
+          errors.push("Biggest risk is required");
         break;
       case 4: // Hiring & Execution
-        if (!formData.currentNeed?.trim()) errors.push("Current need is required");
+        if (!formData.currentNeed?.trim())
+          errors.push("Current need is required");
         if (!formData.outcome30Days?.trim())
           errors.push("30-day outcome is required");
         if (!formData.executionFailures?.trim())
@@ -232,7 +238,8 @@ const StartupProfile = () => {
           errors.push("At least one trust factor is required");
         break;
       case 5: // Vendor Intelligence
-        if (!formData.useVendors?.trim()) errors.push("Vendor usage is required");
+        if (!formData.useVendors?.trim())
+          errors.push("Vendor usage is required");
         break;
       case 6: // AI Idea & Strategy Engine
         if (!formData.currentStage?.trim())
@@ -327,24 +334,26 @@ const StartupProfile = () => {
       data.append("executionFailures", formData.executionFailures);
       data.append("trustFactors", JSON.stringify(formData.trustFactors));
       data.append("useVendors", formData.useVendors);
-      data.append("vendorCategories", JSON.stringify(formData.vendorCategories));
-      data.append("vendorPreference", JSON.stringify(formData.vendorPreference));
+      data.append(
+        "vendorCategories",
+        JSON.stringify(formData.vendorCategories),
+      );
+      data.append(
+        "vendorPreference",
+        JSON.stringify(formData.vendorPreference),
+      );
       data.append("currentStage", formData.currentStage);
       data.append("growthBlocker", formData.growthBlocker);
       data.append("magicFix", formData.magicFix);
       data.append("dashboards", JSON.stringify(formData.dashboards));
       data.append("currentTools", formData.currentTools);
-      const response = await api.post(
-        `/api/startup-profiles`,
-        data,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await api.post(`/api/startup-profiles`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       console.log("Profile created:", response.data);
       toast.success("Profile created successfully! Redirecting...");
       setTimeout(() => {
-        navigate("/startup-services");
+        navigate("/startup-dashboard");
       }, 1500);
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -363,15 +372,15 @@ const StartupProfile = () => {
   };
   return (
     <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
-      <div className="pt-16 pb-8">
+      <div className="pt-20 md:pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           {/* Step Indicator */}
           <div className="mb-6">
-            <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">
+            <div className="flex items-center justify-center space-x-1 sm:space-x-2 mb-6 flex-wrap gap-y-2">
               {[1, 2, 3, 4, 5, 6, 7].map((step) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-xs ${
                       currentStep >= step
                         ? "bg-blue-500 text-white"
                         : "bg-gray-700/50 text-gray-400"
@@ -381,7 +390,7 @@ const StartupProfile = () => {
                   </div>
                   {step < 7 && (
                     <div
-                      className={`w-8 h-1 ${
+                      className={`w-4 sm:w-8 h-1 ${
                         currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
                       }`}
                     ></div>
@@ -393,22 +402,22 @@ const StartupProfile = () => {
               Complete Your Startup Profile
             </h1>
             <p className="text-blue-200 text-sm text-center">
-              Step {currentStep} of 7 - Fill in your details to connect with the right talent
+              Step {currentStep} of 7 - Fill in your details to connect with the
+              right talent
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Step 1: Founder DNA */}
             {currentStep === 1 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🧠 STEP 1 – Founder DNA (Founder Readiness +
-                        Compatibility Engine)
+                       STEP 1-Founder DNA
                       </h2>
                       <div>
                         <label
@@ -432,7 +441,10 @@ const StartupProfile = () => {
                           htmlFor="startupLogo"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          Startup Logo <span className="text-blue-300 font-normal">(Upload File)</span>
+                          Startup Logo{" "}
+                          <span className="text-blue-300 font-normal">
+                            (Upload File)
+                          </span>
                         </label>
                         <div className="flex items-center gap-4">
                           <input
@@ -445,12 +457,16 @@ const StartupProfile = () => {
                           />
                           {formData.startupLogo && (
                             <div className="w-12 h-12 rounded-lg border border-blue-500/30 overflow-hidden shrink-0 bg-gray-900 flex items-center justify-center">
-                              <img 
-                                src={formData.startupLogo instanceof File 
-                                  ? URL.createObjectURL(formData.startupLogo) 
-                                  : (formData.startupLogo?.startsWith('http') ? formData.startupLogo : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${formData.startupLogo}`)} 
-                                alt="Logo Preview" 
-                                className="max-w-full max-h-full object-contain" 
+                              <img
+                                src={
+                                  formData.startupLogo instanceof File
+                                    ? URL.createObjectURL(formData.startupLogo)
+                                    : formData.startupLogo?.startsWith("http")
+                                      ? formData.startupLogo
+                                      : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${formData.startupLogo}`
+                                }
+                                alt="Logo Preview"
+                                className="max-w-full max-h-full object-contain"
                               />
                             </div>
                           )}
@@ -458,7 +474,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          1. What best describes you right now? <span className="text-red-500">*</span>
+                          1. What best describes you right now?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -490,7 +507,8 @@ const StartupProfile = () => {
                           htmlFor="whyBuilding"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          2. Why are you building a startup? <span className="text-red-500">*</span>
+                          2. Why are you building a startup?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="whyBuilding"
@@ -504,7 +522,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          3. What is your superpower? <span className="text-red-500">*</span>
+                          3. What is your superpower?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -547,7 +566,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          4. What are you weak at? <span className="text-red-500">*</span>
+                          4. What are you weak at?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -605,7 +625,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          6. What type of co-founder would you work best with? <span className="text-red-500">*</span>
+                          6. What type of co-founder would you work best with?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -644,22 +665,22 @@ const StartupProfile = () => {
             {/* Step 2: Startup DNA */}
             {currentStep === 2 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🧬 STEP 2 – Startup DNA (Startup DNA Score + AI
-                        Simulator)
+                         STEP 2 – Startup DNA 
                       </h2>
                       <div>
                         <label
                           htmlFor="problemSolving"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          7. What problem are you solving? <span className="text-red-500">*</span>
+                          7. What problem are you solving?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="problemSolving"
@@ -676,7 +697,8 @@ const StartupProfile = () => {
                           htmlFor="whoHasProblem"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          8. Who exactly has this problem? <span className="text-red-500">*</span>
+                          8. Who exactly has this problem?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="whoHasProblem"
@@ -690,7 +712,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          9. What happens if this problem is not solved? <span className="text-red-500">*</span>
+                          9. What happens if this problem is not solved?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -722,7 +745,8 @@ const StartupProfile = () => {
                           htmlFor="solutionBuilding"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          10. What solution are you building? <span className="text-red-500">*</span>
+                          10. What solution are you building?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="solutionBuilding"
@@ -736,7 +760,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          11. How will you make money? <span className="text-red-500">*</span>
+                          11. How will you make money?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <select
                           name="monetization"
@@ -757,7 +782,8 @@ const StartupProfile = () => {
                           htmlFor="unfairAdvantage"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          12. What is your unfair advantage? <span className="text-red-500">*</span>
+                          12. What is your unfair advantage?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="unfairAdvantage"
@@ -777,19 +803,19 @@ const StartupProfile = () => {
             {/* Step 3: Burn Reality */}
             {currentStep === 3 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🔥 STEP 3 – Burn Reality (Burn Reality Checker +
-                        Readiness Score)
+                         STEP 3 – Burn Reality 
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          13. How much can you invest per month? <span className="text-red-500">*</span>
+                          13. How much can you invest per month?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {["₹0", "₹10k–50k", "₹50k–2L", "₹2L+"].map(
@@ -818,7 +844,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          14. How long can you survive without revenue? <span className="text-red-500">*</span>
+                          14. How long can you survive without revenue?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
@@ -850,7 +877,8 @@ const StartupProfile = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          15. What is your biggest risk right now? <span className="text-red-500">*</span>
+                          15. What is your biggest risk right now?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -887,19 +915,19 @@ const StartupProfile = () => {
             {/* Step 4: Hiring & Execution */}
             {currentStep === 4 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🚀 STEP 4 – Hiring & Execution (AI Matching + Trial
-                        Sprint Generator)
+                        STEP 4 – Hiring & Execution
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          16. What do you need right now? <span className="text-red-500">*</span>
+                          16. What do you need right now?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -933,7 +961,8 @@ const StartupProfile = () => {
                           htmlFor="outcome30Days"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          17. What outcome must be achieved in the next 30 days? <span className="text-red-500">*</span>
+                          17. What outcome must be achieved in the next 30 days?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="outcome30Days"
@@ -950,7 +979,8 @@ const StartupProfile = () => {
                           htmlFor="executionFailures"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          18. What usually goes wrong when you try to execute? <span className="text-red-500">*</span>
+                          18. What usually goes wrong when you try to execute?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="executionFailures"
@@ -1002,18 +1032,19 @@ const StartupProfile = () => {
             {/* Step 5: Vendor Intelligence */}
             {currentStep === 5 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🧩 STEP 5 – Vendor Intelligence
+                         STEP 5 – Vendor Intelligence
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          20. Do you use vendors today? <span className="text-red-500">*</span>
+                          20. Do you use vendors today?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {["Yes", "No"].map((option) => (
@@ -1123,18 +1154,19 @@ const StartupProfile = () => {
             {/* Step 6: AI Idea & Strategy Engine */}
             {currentStep === 6 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        🧠 STEP 6 – AI Idea & Strategy Engine
+                         STEP 6 – AI Idea & Strategy Engine
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          23. What stage are you at? <span className="text-red-500">*</span>
+                          23. What stage are you at?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <select
                           name="currentStage"
@@ -1154,7 +1186,8 @@ const StartupProfile = () => {
                           htmlFor="growthBlocker"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          24. What is blocking your growth today? <span className="text-red-500">*</span>
+                          24. What is blocking your growth today?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="growthBlocker"
@@ -1192,18 +1225,19 @@ const StartupProfile = () => {
             {/* Step 7: Dashboard Intelligence */}
             {currentStep === 7 && (
               <div className="flex justify-center">
-                <div className="w-full md:w-[85%]">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
                   <div
-                    className="rounded-lg p-[2px] transition-all duration-300"
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        📊 STEP 7 – Dashboard Intelligence
+                         STEP 7 – Dashboard Intelligence
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          26. Which dashboards would you use weekly? <span className="text-red-500">*</span>
+                          26. Which dashboards would you use weekly?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {[
@@ -1237,7 +1271,8 @@ const StartupProfile = () => {
                           htmlFor="currentTools"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          27. What tools do you currently use? <span className="text-red-500">*</span>
+                          27. What tools do you currently use?{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           id="currentTools"
@@ -1255,22 +1290,22 @@ const StartupProfile = () => {
               </div>
             )}
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
+            <div className="flex flex-col sm:flex-row justify-between pt-6 gap-4">
               {currentStep > 1 && (
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="px-8 py-3 rounded-lg font-semibold text-lg border-2 border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white transition-all duration-200"
+                  className="px-8 py-4 rounded-xl font-bold text-base border-2 border-blue-500/50 text-blue-300 hover:bg-blue-500 hover:text-white transition-all duration-200 order-2 sm:order-1"
                 >
                   Back
                 </button>
               )}
-              <div className="flex-1"></div>
+              <div className="hidden sm:block flex-1"></div>
               {currentStep < 7 ? (
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] bg-blue-500 hover:bg-blue-600"
+                  className="text-white px-10 py-4 rounded-xl font-bold text-base hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] bg-blue-600 hover:bg-blue-500 order-1 sm:order-2"
                 >
                   Save and Next
                 </button>
@@ -1278,7 +1313,7 @@ const StartupProfile = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="text-white px-12 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600"
+                  className="text-white px-10 py-4 rounded-xl font-bold text-base hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-500 order-1 sm:order-2"
                 >
                   {loading ? "Saving..." : "Save Details"}
                 </button>
