@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserId } from "../utils/authUtils";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
+import { ArrowLeft, Briefcase } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
 import greenBadge from "../assets/greenbadge.png";
@@ -267,7 +268,7 @@ const FreelancerDashboard = () => {
                     Track your job applications & statuses
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 bg-gray-900/50 rounded-xl p-1 border border-white/10">
+                <div className="flex flex-nowrap items-center gap-1 bg-gray-900/50 rounded-xl p-1 border border-white/10 overflow-x-auto no-scrollbar">
                   {["all", "pending", "accepted", "rejected"].map((f) => (
                     <button
                       key={f}
