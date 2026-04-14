@@ -61,6 +61,7 @@ import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
+import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -201,6 +202,7 @@ function App() {
         <Route path="/our-team" element={<OurTeam />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
 
         {/* Catch-all 404 Route */}
         <Route path="*" element={<NotFound />} />

@@ -69,17 +69,17 @@ function LoginSignup() {
     const checkAndExit = () => {
       const uid = localStorage.getItem('user_id');
       const utype = localStorage.getItem('user_type');
-      
+
       if (uid && utype && !authStatus) {
         console.log("[Auth] Already logged in detect, redirecting...");
         const type = utype.toLowerCase();
         let target = '/';
-        
+
         if (type === 'freelancer') target = '/freelancer-dashboard';
         else if (type === 'cofounder') target = '/cofounder-dashboard';
         else if (type === 'founder') target = '/startup-dashboard';
         else if (type === 'influencer') target = '/influencer-marketplace';
-        
+
         window.location.href = target;
       }
     };
@@ -180,7 +180,7 @@ function LoginSignup() {
         // Login always goes to Dashboard (unless profile is critically incomplete)
         const type = userData.user_type.toLowerCase();
         let target = '/';
-        
+
         if (type === 'freelancer') target = '/freelancer-dashboard';
         else if (type === 'cofounder') target = '/cofounder-dashboard';
         else if (type === 'founder') target = '/startup-dashboard';

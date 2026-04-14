@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { 
+  ChevronDown, 
+  HelpCircle, 
+  Search, 
+  Zap, 
+  ArrowRight,
+  ShieldCheck,
+  Cpu,
+  Star,
+  Rocket
+} from 'lucide-react';
 
 const FAQ_DATA = [
     {
         section: "SECTION 1 — THE BIG PICTURE",
+        icon: <Rocket className="w-5 h-5" />,
         items: [
             { q: "What is FoundU?", a: "India’s first AI-powered Startup Universe. Find co-founders, freelancers, influencers, or let our AI generate a business opportunity for you. Every match is Credibility Scored so you only meet people worth your time." },
             { q: "Why does FoundU exist?", a: "Because startups fail due to bad teams, not bad ideas. We replace scattered tools like LinkedIn and WhatsApp with a dedicated ecosystem built strictly for startup formation and execution." },
@@ -17,6 +28,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 2 — FOR FOUNDERS",
+        icon: <Zap className="w-5 h-5 text-yellow-400" />,
         items: [
             { q: "I already have an idea. How does FoundU help me?", a: "First, our AI validates your idea with a data-backed probability score. Second, it matches you with compatible co-founders and talent. Third, it gives you \"Startup Portals\"—plug-and-play tools to execute from day one." },
             { q: "What if I don’t have a startup idea yet?", a: "Use the Opportunity Engine. Enter your skills and city, and our AI generates a personalized, data-backed business idea, an execution roadmap, and the exact team you need to build it." },
@@ -30,6 +42,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 3 — FOR CO-FOUNDERS",
+        icon: <Star className="w-5 h-5 text-blue-400" />,
         items: [
             { q: "What exactly does “co-founder” mean on FoundU?", a: "You are joining an early-stage startup as a founding partner for equity and ownership, not just exchanging time for a salary. You are a builder, not an employee." },
             { q: "How do I know the founders are serious?", a: "You see their Credibility Score, their real availability, their MVP status, and their track record before you engage. The days of committing to a slide-deck dreamer are over." },
@@ -41,6 +54,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 4 — FOR FREELANCERS",
+        icon: <ShieldCheck className="w-5 h-5 text-green-400" />,
         items: [
             { q: "How is FoundU different from Upwork or Fiverr?", a: "No bidding wars, no meaningless 5-star ratings, and 0% commission on your first projects. The AI matches you directly with vetted startups that need your exact skill." },
             { q: "What is the Freelancer Credibility Score?", a: "A percentile rating based on your actual platform performance (on-time delivery, client retention). Become a vetted professional founders are waiting for, not a cheap commodity." },
@@ -53,6 +67,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 5 — FOR INFLUENCERS",
+        icon: <Search className="w-5 h-5 text-purple-400" />,
         items: [
             { q: "What does FoundU offer influencers?", a: "1) AI matches your exact audience with a startup's target customer. 2) Zero agency commission cuts. 3) A Verified Badge system based on actual performance." },
             { q: "Do I need a huge following?", a: "No. Startups want trust, not just reach. Micro-influencers with highly engaged niches get some of the best matches on the platform." },
@@ -65,6 +80,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 6 — THE AI AND TECHNOLOGY",
+        icon: <Cpu className="w-5 h-5 text-blue-500" />,
         items: [
             { q: "Can AI really match compatibility?", a: "Yes. We use advanced LLM embeddings to convert your \"Startup DNA\" into a high-dimensional vector. We match you on how you think and work—similar to Netflix's algorithm, but for human synergy." },
             { q: "Is my data safe?", a: "Yes. Fully encrypted, never sold, and compliant with India’s DPDP Act 2023. You control what is visible." },
@@ -74,6 +90,7 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 7 — GETTING STARTED",
+        icon: <ArrowRight className="w-5 h-5 text-gray-400" />,
         items: [
             { q: "How long does it take to set up?", a: "Under 4 minutes. It feels like a personality assessment, not a job application." },
             { q: "When do I get my first match?", a: "Instantly. You’ll see your first three AI-generated matches the moment you finish onboarding." },
@@ -85,84 +102,151 @@ const FAQ_DATA = [
     },
     {
         section: "SECTION 8 — THE FOUNDING MEMBER OFFER",
+        icon: <Star className="w-5 h-5 text-yellow-500 animate-pulse" />,
         items: [
             { q: "What exactly do Founding Members get?", a: "Founders: Free Premium Access · Free AI Pitch Deck · 50% Off Development · VIP Badge\nCo-Founders: Free Premium Access · Priority Search · Mentorship Credits · VIP Badge\nFreelancers: 0% Commission on First Projects · Featured Profile · Priority Matching · Verified Badge\nInfluencers: 0% Commission on Brand Deals · Verified Badge · Featured in Campaigns" }
         ]
     }
 ];
 
-const gradientBlueToBlack = {
-    background: "linear-gradient(180deg, rgba(9, 9, 121, 1) 16%, rgba(2, 0, 36, 1) 100%)",
-};
-
 const FAQ = () => {
     const [openIndex, setOpenIndex] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const toggleAccordion = (index) => {
         setOpenIndex(openIndex === index ? null : index);
     };
 
     return (
-        <div className="min-h-screen flex flex-col" style={gradientBlueToBlack}>
+        <div className="min-h-screen bg-[#020024] selection:bg-blue-500/30">
             <Navbar />
 
-            <main className="flex-grow pt-32 pb-20 px-4">
-                <div className="max-w-7xl mx-auto flex flex-col items-center">
-                    <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold mb-6">
-                            <HelpCircle size={16} />
-                            <span>HELP CENTER</span>
+            {/* Background Ambient Effects */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-5%] left-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[0%] right-[-5%] w-[40%] h-[40%] bg-indigo-600/5 rounded-full blur-[100px]"></div>
+            </div>
+
+            <main className="relative z-10 pt-36 pb-32 px-6">
+                <div className="max-w-4xl mx-auto">
+                    {/* Header Section */}
+                    <div className="text-center mb-24">
+                        <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-blue-600/10 border border-blue-500/20 text-blue-400 text-[10px] font-black tracking-widest uppercase mb-8">
+                            <HelpCircle size={14} />
+                            <span>Central Knowledge Base</span>
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter">
-                            FREQUENTLY ASKED <span className="text-blue-500">QUESTIONS</span>
+                        <h1 className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter uppercase italic">
+                            Foundu <span className="text-blue-500 not-italic">Intelligence.</span>
                         </h1>
-                        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                            Everything you need to know about the FoundU ecosystem.
+                        <p className="text-gray-400 text-lg font-medium max-w-2xl mx-auto leading-relaxed">
+                            Everything you need to know about the most advanced startup ecosystem. 
+                            If it's not here, our AI is already building it.
                         </p>
                     </div>
 
-                    <div className="w-full lg:w-3/4 space-y-12">
-                        {FAQ_DATA.map((section, sIdx) => (
-                            <div key={sIdx} className="space-y-4">
-                                <h2 className="text-blue-500 font-bold text-sm tracking-[0.2em] px-4 uppercase">
-                                    {section.section}
-                                </h2>
-                                <div className="space-y-3">
-                                    {section.items.map((item, iIdx) => {
-                                        const uniqueIdx = `${sIdx}-${iIdx}`;
-                                        const isOpen = openIndex === uniqueIdx;
-                                        return (
-                                            <div
-                                                key={iIdx}
-                                                className={`group border border-white/10 rounded-2xl transition-all duration-300 ${isOpen ? 'bg-white/5 border-white/20' : 'hover:bg-white/[0.02]'}`}
-                                            >
-                                                <button
-                                                    onClick={() => toggleAccordion(uniqueIdx)}
-                                                    className="w-full px-6 py-5 flex items-center justify-between text-left"
+                    {/* Search Bar */}
+                    <div className="relative mb-24 group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                        <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl p-2 flex items-center">
+                            <div className="p-4">
+                                <Search className="w-6 h-6 text-gray-500" />
+                            </div>
+                            <input 
+                                type="text" 
+                                placeholder="Search queries, protocols, or startup logic..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-transparent border-none focus:outline-none text-white font-bold placeholder-gray-600 py-4"
+                            />
+                        </div>
+                    </div>
+
+                    {/* accordion Sections */}
+                    <div className="space-y-20">
+                        {FAQ_DATA.map((section, sIdx) => {
+                            // Filter logic (simple)
+                            const hasMatch = section.items.some(item => 
+                                item.q.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                item.a.toLowerCase().includes(searchQuery.toLowerCase())
+                            );
+
+                            if (searchQuery && !hasMatch) return null;
+
+                            return (
+                                <div key={sIdx} className="animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                    <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-6">
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
+                                            {section.icon}
+                                        </div>
+                                        <h2 className="text-blue-500 font-black text-xs tracking-[0.3em] uppercase italic">
+                                            {section.section}
+                                        </h2>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {section.items.map((item, iIdx) => {
+                                            const uniqueIdx = `${sIdx}-${iIdx}`;
+                                            const isOpen = openIndex === uniqueIdx;
+                                            
+                                            if (searchQuery && 
+                                                !item.q.toLowerCase().includes(searchQuery.toLowerCase()) && 
+                                                !item.a.toLowerCase().includes(searchQuery.toLowerCase())) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={iIdx}
+                                                    className={`group border transition-all duration-500 rounded-[2rem] overflow-hidden ${
+                                                        isOpen 
+                                                            ? 'bg-white/5 border-blue-500/30 shadow-2xl shadow-blue-500/5' 
+                                                            : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                                                    }`}
                                                 >
-                                                    <span className={`text-lg font-semibold transition-colors ${isOpen ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                                                        {item.q}
-                                                    </span>
-                                                    <div className={`flex-shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : 'text-gray-500'}`}>
-                                                        <ChevronDown size={20} />
-                                                    </div>
-                                                </button>
-                                                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                                    <div className="px-6 pb-6 text-gray-400 leading-relaxed whitespace-pre-line">
-                                                        {item.a}
+                                                    <button
+                                                        onClick={() => toggleAccordion(uniqueIdx)}
+                                                        className="w-full px-8 py-7 flex items-center justify-between text-left group-hover:px-10 transition-all duration-500"
+                                                    >
+                                                        <span className={`text-xl font-black tracking-tight transition-colors duration-500 ${
+                                                            isOpen ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                                                        }`}>
+                                                            {item.q}
+                                                        </span>
+                                                        <div className={`flex-shrink-0 ml-4 p-2 rounded-full transition-all duration-500 ${
+                                                            isOpen ? 'bg-blue-600 text-white rotate-180' : 'bg-white/5 text-gray-600 group-hover:bg-white/10'
+                                                        }`}>
+                                                            <ChevronDown size={20} />
+                                                        </div>
+                                                    </button>
+                                                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                                                        isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                                                    }`}>
+                                                        <div className="px-8 pb-8 md:px-10 md:pb-10">
+                                                            <div className="h-[2px] w-12 bg-blue-500/50 mb-8"></div>
+                                                            <p className="text-gray-400 text-lg font-medium leading-relaxed whitespace-pre-line border-l-4 border-blue-500/10 pl-8">
+                                                                {item.a}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </main>
 
             <Footer />
+            <style dangerouslySetInnerHTML={{ __html: `
+                .animate-in { animation: fadeInUp 0.5s ease-out forwards; }
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}} />
         </div>
     );
 };
