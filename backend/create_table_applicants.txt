@@ -1,0 +1,19 @@
+CREATE TABLE `job_applicants` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `job_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `applicant_type` enum('freelancer','cofounder') NOT NULL,
+  `freelancer_id` int DEFAULT NULL,
+  `cofounder_id` int DEFAULT NULL,
+  `status` enum('pending','accepted','rejected','completed') DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `payment_status` enum('pending','paid') DEFAULT 'pending',
+  `razorpay_order_id` varchar(255) DEFAULT NULL,
+  `razorpay_payment_id` varchar(255) DEFAULT NULL,
+  `amount_paid` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `job_id` (`job_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `job_applicants_ibfk_1` FOREIGN KEY (`job_id`) REFERENCES `foundu_jobs` (`job_id`),
+  CONSTRAINT `job_applicants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
