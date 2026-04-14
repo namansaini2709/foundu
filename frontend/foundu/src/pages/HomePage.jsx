@@ -238,7 +238,7 @@ const TrustedBy = ({ startups }) => {
         borderTop: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
-      <h2 className="text-center text-4xl md:text-5xl font-bold mb-12 relative z-10">
+      <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold mb-12 relative z-10 px-4">
         <span className="text-white">Trusted by </span>
         <span className="text-blue-300">{logos.length}+ Startups</span>
       </h2>
@@ -453,8 +453,8 @@ const UsersWeCater = ({ navigate }) => {
       }}
     >
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="flex flex-col items-center mb-12 md:mb-20">
-          <h2 className="text-center text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6">
+        <div className="flex flex-col items-center mb-10 md:mb-20">
+          <h2 className="text-center text-3xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6 px-4">
             <span className="text-white">TYPES OF USERS </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
               WE CATER
@@ -546,17 +546,17 @@ const CategorySteps = () => {
       }}
     >
       <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-28">
+        <div className="text-center mb-16 md:mb-28">
           <h2 className="text-4xl md:text-7xl font-black text-white mb-6 uppercase tracking-tight">
             THE ROADMAP
           </h2>
           <div className="h-1.5 w-24 bg-blue-500 mx-auto rounded-full mb-6"></div>
-          <p className="text-blue-400 font-bold uppercase tracking-[0.4em] text-xs">
+          <p className="text-blue-400 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs px-4">
             Clear steps for every role
           </p>
         </div>
 
-        <div className="space-y-40 md:space-y-60">
+        <div className="space-y-24 md:space-y-60">
           {categories.map((cat, idx) => (
             <div
               key={idx}
@@ -578,7 +578,7 @@ const CategorySteps = () => {
                 <h4 className="text-3xl md:text-5xl font-black text-white mb-8 relative z-10">
                   {cat.type} Journey
                 </h4>
-                <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed">
+                <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed px-4">
                   "{cat.description}"
                 </p>
               </div>
@@ -672,8 +672,8 @@ const FoundUAIs = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 blur-[150px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-8xl font-black mb-6 uppercase tracking-tighter">
+        <div className="text-center mb-12 md:mb-20">
+          <h2 className="text-3xl sm:text-5xl md:text-8xl font-black mb-6 uppercase tracking-tighter px-4">
             <span className="text-white">POWERED BY </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-lime-400 animate-gradient">
               FOUNDU AI
@@ -698,7 +698,7 @@ const FoundUAIs = () => {
               <div
                 className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}
               ></div>
-              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
                 <div
                   className={`w-24 h-24 rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
                 >
@@ -763,7 +763,7 @@ const WhatIsFoundu = ({ navigate }) => (
           {/* </div> */}
         </div>
         <div className="relative">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 md:mb-10 leading-tight text-center lg:text-left">
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 md:mb-10 leading-tight text-center lg:text-left px-4">
             <span className="text-white">WHAT IS </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
               FOUNDU
@@ -814,7 +814,7 @@ const NumbersSection = ({ publicStats }) => {
         borderTop: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
-      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
+      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10 px-4">
         <span className="text-white">OUR </span>
         <span className="text-blue-300">ACHIEVEMENT</span>
       </h2>
@@ -823,7 +823,7 @@ const NumbersSection = ({ publicStats }) => {
         — here's what we've achieved so far.
       </p>
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-8 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -892,7 +892,7 @@ const Testimonials = ({ testimonialsList }) => {
       }}
     >
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
+        <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10 px-4">
           <span className="text-white">What our </span>
           <span className="text-blue-300">users are saying</span>
         </h2>
@@ -997,7 +997,7 @@ const InfluencersSection = ({ navigate }) => {
             <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
               New Community
             </div>
-            <h2 className="text-4xl md:text-7xl font-black text-white mb-8 leading-tight">
+            <h2 className="text-4xl md:text-7xl font-black text-white mb-8 leading-tight px-4 md:px-0">
               FOR THE <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 INFLUENCERS

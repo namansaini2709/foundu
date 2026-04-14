@@ -282,9 +282,9 @@ export default function AddJobs() {
     }
   };
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <main className="pt-28 pb-12 w-full max-w-5xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-6">Create a new job</h1>
+    <div className="min-h-screen flex flex-col bg-black text-white overflow-x-hidden">
+      <main className="pt-28 pb-12 w-full max-w-5xl mx-auto px-4 md:px-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">Create a new job</h1>
         {/* Step 1: Hiring Type */}
         <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
           <div className="flex items-center justify-between mb-4">
@@ -327,9 +327,9 @@ export default function AddJobs() {
         </section>
         {/* Step 2: Common Questions */}
         {currentStep >= 1 && (
-          <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
+          <section className="bg-gray-900/40 p-4 md:p-6 rounded-2xl mb-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">2 — Common Questions</h2>
+              <h2 className="text-lg md:text-xl font-semibold">2 — Common Questions</h2>
               {currentStep > 1 && (
                 <span className="text-green-500 text-sm">✓ Completed</span>
               )}
@@ -359,16 +359,16 @@ export default function AddJobs() {
         )}
         {/* Step 3: Role Specific */}
         {currentStep >= 2 && (
-          <section className="bg-gray-900/40 p-6 rounded-2xl mb-4">
+          <section className="bg-gray-900/40 p-4 md:p-6 rounded-2xl mb-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">3 — Role Specific</h2>
+              <h2 className="text-lg md:text-xl font-semibold">3 — Role Specific</h2>
               {currentStep > 2 && (
                 <span className="text-green-500 text-sm">✓ Completed</span>
               )}
             </div>
             {(hiringType === "freelancer" || hiringType === "both") && (
               <div className="mb-6 p-4 rounded-lg border border-blue-500/30 bg-gray-800">
-                <h3 className="font-semibold mb-3 text-lg">
+                <h3 className="font-semibold mb-3 text-base md:text-lg">
                   Freelancer Job Details
                 </h3>
                 {/* Role Category */}
@@ -401,7 +401,7 @@ export default function AddJobs() {
                     ].map((w) => (
                       <label
                         key={w}
-                        className={`px-3 py-2 rounded-md border cursor-pointer transition-colors text-center ${formData.freelancer.workType === w
+                        className={`px-2 py-2 rounded-md border cursor-pointer transition-colors text-center text-xs md:text-sm ${formData.freelancer.workType === w
                           ? "bg-blue-500 border-blue-500"
                           : "bg-gray-800 border-gray-700 hover:border-blue-400"
                           }`}
@@ -460,7 +460,7 @@ export default function AddJobs() {
                         }))
                       }
                       className="w-full bg-gray-800 p-2 rounded-md border border-gray-700 text-white"
-                      placeholder="e.g. $2000, ₹50,000"
+                      placeholder="e.g. ₹5,000, ₹50,000"
                     />
                   </div>
                   <div>

@@ -2,6 +2,8 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Linkedin, Mail } from 'lucide-react';
+import hardik from '../assets/hardik.png';
+import krish from '../assets/krish.png';
 
 const gradientBlackToBlue = {
     background: "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -9,46 +11,18 @@ const gradientBlackToBlue = {
 
 const teamMembers = [
     {
-        name: "Rajesh Kumar",
+        name: "Hardik Gambhir",
         role: "Founder & CEO",
-        description: "Visionary leader with 10+ years of experience in the startup ecosystem. Passionate about connecting talent with opportunity.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rajesh",
-        linkedin: "#"
+        description: "Dedicated to shaping the strategic vision and fostering the high-level partnerships that drive our ecosystem forward. He bridges the gap between disruptive ideas and sustainable business growth.",
+        image: hardik,
+        linkedin: "https://in.linkedin.com/in/hardik-gambhir"
     },
     {
-        name: "Priya Sharma",
+        name: "Krish Batra",
         role: "Co-Founder & CTO",
-        description: "Tech innovator and former software architect at top Silicon Valley firms. Driving the AI-powered matching engine at Foundu.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
-        linkedin: "#"
-    },
-    {
-        name: "Amit Patel",
-        role: "Lead Developer",
-        description: "Full-stack wizard with a knack for building scalable architecture and smooth user experiences.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit",
-        linkedin: "#"
-    },
-    {
-        name: "Sneha Reddy",
-        role: "Design Lead",
-        description: "Transforming complex workflows into elegant, intuitive designs. Sneha ensures Foundu is as beautiful as it is functional.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha",
-        linkedin: "#"
-    },
-    {
-        name: "Vikram Singh",
-        role: "Marketing Manager",
-        description: "Growth hacker and community builder. Vikram is the voice of Foundu, sharing our mission with the world.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram",
-        linkedin: "#"
-    },
-    {
-        name: "Ananya Rao",
-        role: "Operations Lead",
-        description: "Ensuring everything runs like clockwork. Ananya manages partnerships and internal operations with precision.",
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ananya",
-        linkedin: "#"
+        description: "Responsible for the technical roadmap and the seamless integration of our core technologies. He ensures that our platform remains scalable, secure, and at the forefront of digital innovation.",
+        image: krish,
+        linkedin: "https://www.linkedin.com/in/krish-batra-a15477313/"
     }
 ];
 
@@ -64,9 +38,9 @@ const OurTeam = () => {
 
                 <div className="max-w-7xl mx-auto relative z-10">
                     <div className="text-center mb-16 px-4">
-                        <h1 className="text-4xl md:text-7xl font-bold mb-6">
-                            <span className="text-white">Our </span>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Team</span>
+                        <h1 className="text-3xl md:text-7xl font-bold mb-6">
+                            <span className="text-white uppercase">Our </span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 uppercase">Team</span>
                         </h1>
                         <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto font-light">
                             Meet the passionate individuals building the future of technical collaboration and startup growth.

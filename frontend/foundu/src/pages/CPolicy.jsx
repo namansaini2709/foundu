@@ -29,10 +29,11 @@ export default function CPolicy() {
           <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 rounded-3xl border border-blue-500/20 mb-6 shadow-xl shadow-blue-500/10">
             <Cookie className="w-10 h-10 text-blue-400" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+          <h1 className="text-3xl md:text-6xl font-bold text-white mb-6 tracking-tight">
             Cookie{" "}
-            <span className="text-blue-400 text-shadow-glow">Policy</span>
+            <span className="text-blue-400 text-shadow-glow uppercase">Policy</span>
           </h1>
+ Broadway
           <p className="text-gray-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
             We use cookies to enhance your journey through the Foundu ecosystem.
             This policy explains how and why we utilize these technologies.
@@ -40,14 +41,14 @@ export default function CPolicy() {
         </div>
 
         {/* Content Container - 85% Width */}
-        <div className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-20 shadow-2xl relative overflow-hidden group">
+        <div className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl md:rounded-[3rem] p-6 md:p-20 shadow-2xl relative overflow-hidden group">
           {/* Ambient Glows */}
           <div className="absolute -bottom-48 -left-48 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/15 transition-colors duration-1000"></div>
 
           <div className="relative z-10 space-y-20 text-gray-300">
             {/* 1. What Are Cookies? */}
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                 <HelpCircle className="w-8 h-8 text-blue-400" />
                 1. What Are Cookies?
               </h2>
@@ -69,8 +70,8 @@ export default function CPolicy() {
             </section>
 
             {/* 2. Categories of Cookies We Use */}
-            <section className="p-10 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner">
-              <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+            <section className="p-6 md:p-10 bg-white/5 rounded-3xl md:rounded-[2.5rem] border border-white/5 shadow-inner">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-8 flex items-center gap-4">
                 <ListFilter className="w-8 h-8 text-blue-400" />
                 2. Cookie Categories
               </h2>

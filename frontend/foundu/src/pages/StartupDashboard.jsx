@@ -3,7 +3,7 @@ import {
   Plus,
   Target,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   Users,
   Handshake,
   Zap,
@@ -166,7 +166,7 @@ const StartupDashboard = () => {
       title: "Capital Invested",
       value: `₹${userJobs.reduce((acc, job) => acc + (job.total_amount || 0), 0).toLocaleString()}`,
       subtitle: "All Time",
-      icon: <DollarSign className="w-6 h-6" />,
+      icon: <IndianRupee className="w-6 h-6" />,
       color: "yellow"
     },
     {
@@ -207,7 +207,7 @@ const StartupDashboard = () => {
         <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-indigo-600/10 rounded-full blur-[100px]"></div>
       </div>
-      <main className="relative z-10 pt-32 px-6 pb-20 max-w-[1700px] mx-auto">
+      <main className="relative z-10 pt-24 md:pt-32 px-4 md:px-6 pb-20 max-w-[1400px] mx-auto overflow-x-hidden">
         {/* Welcome Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-white/5 pb-12">
           <div>
@@ -215,7 +215,7 @@ const StartupDashboard = () => {
               <Rocket className="w-4 h-4" />
               Startup Command Center
             </div>
-            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter">
               DASHBOARD<span className="text-blue-500">.</span>
             </h1>
           </div>
@@ -252,9 +252,9 @@ const StartupDashboard = () => {
         </section>
 
         {/* ── NEW: MY JOB LISTINGS ── */}
-        <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-10 overflow-hidden">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
+        <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 overflow-hidden">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
               <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
               My Job Listings
             </h2>
@@ -343,14 +343,14 @@ const StartupDashboard = () => {
           {/* CENTER - Feature Analysis View */}
           <div className="xl:w-[55%]">
             {FEATURES[activeFeatureIndex] && (
-              <section className="min-h-[700px] flex flex-col bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] overflow-hidden relative group">
+              <section className="min-h-[700px] flex flex-col bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] overflow-hidden relative group">
                 {/* Decorative bar */}
                 <div className="h-3 w-full flex">
                   <div className="bg-blue-500 w-1/3"></div>
                   <div className="bg-indigo-500/50 w-1/3"></div>
                   <div className="bg-purple-500/20 w-1/3"></div>
                 </div>
-                <div className="p-12 flex-grow flex flex-col">
+                <div className="p-6 md:p-12 flex-grow flex flex-col">
                   {/* Analysis Info */}
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-10 mb-16">
                     <div className="flex-grow">
@@ -359,7 +359,7 @@ const StartupDashboard = () => {
                           {FEATURES[activeFeatureIndex].icon}
                         </div>
                         <div>
-                          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-3">
+                          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-3">
                             {FEATURES[activeFeatureIndex].fullName}
                           </h2>
                           <div className="flex items-center gap-2">
@@ -368,7 +368,7 @@ const StartupDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      <p className="text-2xl text-gray-200 font-light leading-relaxed border-l-4 border-blue-500/30 pl-10">
+                      <p className="text-lg md:text-2xl text-gray-200 font-light leading-relaxed border-l-4 border-blue-500/30 pl-6 md:pl-10">
                         {FEATURES[activeFeatureIndex].detailedDescription}
                       </p>
                     </div>
@@ -412,9 +412,9 @@ const StartupDashboard = () => {
                   </div>
                   <button className="mt-auto relative w-full py-10 bg-blue-600 hover:bg-blue-500 transition-all rounded-[2.5rem] overflow-hidden group/btn shadow-2xl shadow-blue-700/40">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                    <div className="relative z-10 flex items-center justify-center gap-6">
-                      <span className="text-2xl font-black tracking-tight text-white uppercase">Initialize Deep Analysis Center</span>
-                      <ArrowRight className="w-8 h-8 group-hover/btn:translate-x-4 transition-transform" />
+                    <div className="relative z-10 flex items-center justify-center gap-3 md:gap-6 px-4">
+                      <span className="text-lg md:text-2xl font-black tracking-tight text-white uppercase text-center">Initialize Deep Analysis Center</span>
+                      <ArrowRight className="w-6 h-6 md:w-8 md:h-8 group-hover/btn:translate-x-4 transition-transform" />
                     </div>
                   </button>
                 </div>
@@ -425,8 +425,8 @@ const StartupDashboard = () => {
           <aside className="xl:w-1/4">
             <div className="space-y-8">
               {/* Ready Portals */}
-              <div className="bg-gray-800/40 backdrop-blur-xl border border-blue-700/50 rounded-[2.5rem] p-10">
-                <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase">Next Actions</h2>
+              <div className="bg-gray-800/40 backdrop-blur-xl border border-blue-700/50 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10">
+                <h2 className="text-2xl md:text-3xl font-black text-white mb-8 tracking-tighter uppercase">Next Actions</h2>
                 <div className="bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-400/50 rounded-3xl p-8 mb-8 relative overflow-hidden group/p">
                   <div className="absolute top-4 right-4 bg-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest">PREMIUM</div>
                   <h3 className="text-2xl font-black text-white mb-3">Startup Portals</h3>

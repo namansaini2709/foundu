@@ -78,7 +78,7 @@ const Notifications = () => {
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col">
             <div className="flex-1 pt-28 pb-12 flex justify-center px-4">
-                <div className="w-full md:w-[75%] max-w-5xl">
+                <div className="w-full md:w-[85%] lg:w-[75%] max-w-5xl px-2 md:px-0">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30">
                             <Bell className="w-6 h-6 text-blue-400" />
@@ -123,23 +123,25 @@ const Notifications = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    {/* Hover Actions */}
-                                    <div className="absolute top-1/2 -translate-y-1/2 right-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                                    {/* Action Buttons */}
+                                    <div className="mt-4 flex md:absolute md:top-1/2 md:-translate-y-1/2 md:right-6 gap-3 md:opacity-0 group-hover:opacity-100 transition-all duration-300 md:translate-x-4 group-hover:translate-x-0">
                                         {!n.is_read && (
                                             <button
                                                 onClick={() => markAsRead(n.id)}
-                                                className="p-2.5 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-green-500/20 group/btn"
+                                                className="flex-1 md:flex-none p-2.5 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-green-500/20 group/btn flex items-center justify-center gap-2"
                                                 title="Mark as Read"
                                             >
                                                 <Check className="w-5 h-5 group-hover/btn:scale-110" />
+                                                <span className="md:hidden text-xs font-bold uppercase tracking-widest">Mark read</span>
                                             </button>
                                         )}
                                         <button
                                             onClick={() => deleteNotification(n.id, !n.is_read)}
-                                            className="p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-red-500/20 group/btn"
+                                            className="flex-1 md:flex-none p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-red-500/20 group/btn flex items-center justify-center gap-2"
                                             title="Delete"
                                         >
                                             <Trash2 className="w-5 h-5 group-hover/btn:scale-110" />
+                                            <span className="md:hidden text-xs font-bold uppercase tracking-widest">Delete</span>
                                         </button>
                                     </div>
                                 </div>

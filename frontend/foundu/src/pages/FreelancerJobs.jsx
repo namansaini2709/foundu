@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Briefcase, DollarSign, Clock, MapPin } from "lucide-react";
+import { Search, Briefcase, IndianRupee, Clock, MapPin } from "lucide-react";
 import Footer from "../components/Footer";
 // Gradient styles - same as HomePage
 const gradientBlackToBlue = {
@@ -120,7 +120,7 @@ function FreelancerJobs() {
       </p>
       {/* Stipend (Optional - can be removed if not needed) */}
       <div className="flex items-center gap-2 mb-4 text-blue-300 relative z-10">
-        <DollarSign className="w-3.5 h-3.5" />
+        <IndianRupee className="w-3.5 h-3.5" />
         <span className="font-semibold text-xs">{job.stipend}</span>
       </div>
       {/* Apply Now Button */}
@@ -213,10 +213,10 @@ function FreelancerJobs() {
                   className="w-full px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-700/50 text-white focus:outline-none focus:border-blue-400 transition-colors"
                 >
                   <option value="">All Ranges</option>
-                  <option value="0-1k">$0 - $1k</option>
-                  <option value="1-3k">$1k - $3k</option>
-                  <option value="3-5k">$3k - $5k</option>
-                  <option value="5k+">$5k+</option>
+                  <option value="0-1k">₹0 - ₹1k</option>
+                  <option value="1-3k">₹1k - ₹3k</option>
+                  <option value="3-5k">₹3k - ₹5k</option>
+                  <option value="5k+">₹5k+</option>
                 </select>
               </div>
               {/* Experience Level */}
@@ -271,8 +271,7 @@ function FreelancerJobs() {
               {availableJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="w-full"
-                  style={{ aspectRatio: "1 / 1" }}
+                  className="w-full flex"
                 >
                   <JobCard job={job} showMatch={false} isApiJob={true} />
                 </div>

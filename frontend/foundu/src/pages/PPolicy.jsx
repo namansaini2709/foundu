@@ -17,7 +17,7 @@ export default function PPolicy() {
           <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 rounded-3xl border border-blue-500/20 mb-6 shadow-xl shadow-blue-500/10">
             <Shield className="w-10 h-10 text-blue-400" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">Privacy <span className="text-blue-400 text-shadow-glow">Policy</span></h1>
+          <h1 className="text-3xl md:text-6xl font-bold text-white mb-6 tracking-tight">Privacy <span className="text-blue-400 text-shadow-glow uppercase">Policy</span></h1>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
             At Foundu, our commitment to your privacy is unwavering. We've built our platform on a foundation of security, transparency, and user-centric data control.
           </p>
@@ -25,7 +25,7 @@ export default function PPolicy() {
 
         {/* Content Container - 85% Width */}
         <div 
-          className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-20 shadow-2xl relative overflow-hidden group"
+          className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl md:rounded-[3rem] p-6 md:p-20 shadow-2xl relative overflow-hidden group"
         >
           {/* Ambient Glows */}
           <div className="absolute -top-48 -right-48 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/15 transition-colors duration-1000"></div>
@@ -35,7 +35,7 @@ export default function PPolicy() {
             
             {/* 1. Introduction & Scope */}
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                 <Lock className="w-8 h-8 text-blue-400" />
                 1. Scope & Acceptance
               </h2>
@@ -50,8 +50,8 @@ export default function PPolicy() {
             </section>
 
              {/* 2. Lawful Basis for Processing (GDPR/CCPA) */}
-             <section className="p-10 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner">
-              <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4 text-shadow-glow">
+             <section className="p-6 md:p-10 bg-white/5 rounded-3xl md:rounded-[2.5rem] border border-white/5 shadow-inner">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-8 flex items-center gap-4 text-shadow-glow">
                 <ShieldAlert className="w-8 h-8 text-blue-400" />
                 2. Lawful Basis for Processing
               </h2>

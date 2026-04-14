@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import api, { API_BASE } from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
 import {
@@ -34,8 +33,6 @@ export default function JobApplicationsDashboard() {
   const [manualApplicants, setManualApplicants] = useState([]);
   const [aiMatchedApplicants, setAiMatchedApplicants] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
-  const [lottieUrl, setLottieUrl] = useState("https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie");
-  const [animationError, setAnimationError] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -824,7 +821,7 @@ export default function JobApplicationsDashboard() {
   }
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         background:
           "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
@@ -1059,17 +1056,8 @@ export default function JobApplicationsDashboard() {
           )}
           {!selectedJob && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center h-[400px] flex flex-col items-center justify-center">
-              <div className="w-64 h-64 mb-4">
-                {!animationError ? (
-                  <DotLottieReact
-                    src={lottieUrl}
-                    loop
-                    autoplay
-                    onError={() => setAnimationError(true)}
-                  />
-                ) : (
-                  <Briefcase className="text-gray-600 mx-auto" size={48} />
-                )}
+              <div className="w-16 h-16 mb-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Briefcase className="text-gray-500" size={32} />
               </div>
               {jobs.length > 0 ? (
                 <p className="text-gray-400 text-lg">

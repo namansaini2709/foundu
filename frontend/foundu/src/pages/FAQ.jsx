@@ -113,8 +113,8 @@ const FAQ = () => {
                             <HelpCircle size={16} />
                             <span>HELP CENTER</span>
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter">
-                            FREQUENTLY ASKED <span className="text-blue-500">QUESTIONS</span>
+                        <h1 className="text-3xl md:text-6xl font-black text-white mb-6 tracking-tighter">
+                            FREQUENTLY ASKED <span className="text-blue-500 uppercase">QUESTIONS</span>
                         </h1>
                         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
                             Everything you need to know about the FoundU ecosystem.

@@ -121,23 +121,23 @@ export default function JobDashboardFreelancer() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <div className="pt-24 pb-20 px-6 max-w-6xl mx-auto space-y-8">
+            <div className="pt-24 pb-20 px-4 md:px-6 max-w-6xl mx-auto space-y-8 overflow-x-hidden">
 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900/50 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900/50 border border-white/10 rounded-3xl p-5 md:p-8 backdrop-blur-xl shadow-2xl">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Ongoing Gig</span>
                             <span className="text-gray-500 font-mono text-xs">#{jobId}</span>
                         </div>
-                        <h1 className="text-4xl font-black">{job?.job_title}</h1>
-                        <p className="text-gray-400 font-medium">Hired by <span className="text-yellow-400">@{founder?.full_name}</span></p>
+                        <h1 className="text-2xl md:text-4xl font-black">{job?.job_title}</h1>
+                        <p className="text-gray-400 font-medium text-sm md:text-base">Hired by <span className="text-yellow-400">@{founder?.full_name}</span></p>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 text-right">
+                    <div className="flex flex-col md:items-end gap-2 md:text-right">
                         <div>
                             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Expected Payout</p>
-                            <p className="text-3xl font-black text-green-400">{job?.budget_range || '₹10,000'}</p>
+                            <p className="text-2xl md:text-3xl font-black text-green-400">{job?.budget_range || '₹10,000'}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             {submission?.deadline && (status !== 'completed') && (
@@ -146,7 +146,7 @@ export default function JobDashboardFreelancer() {
                                     onExpire={() => setIsDeadlineExceeded(true)}
                                 />
                             )}
-                            <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${status === 'completed' ? 'bg-green-500/10 border-green-500 text-green-500' :
+                            <div className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border ${status === 'completed' ? 'bg-green-500/10 border-green-500 text-green-500' :
                                 status === 'submitted' ? 'bg-blue-500/10 border-blue-500 text-blue-500' :
                                     status === 'changes_requested' ? 'bg-red-500/10 border-red-500 text-red-500' :
                                         'bg-yellow-500/10 border-yellow-500 text-yellow-500'
@@ -218,12 +218,12 @@ export default function JobDashboardFreelancer() {
 
                         {/* Request Changes Feedback */}
                         {status === 'changes_requested' && submission?.feedback && (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 space-y-4 animate-pulse">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-5 md:p-8 space-y-4 animate-pulse">
                                 <div className="flex items-center gap-3 text-red-500">
                                     <AlertCircle size={20} />
-                                    <h2 className="text-xl font-black uppercase tracking-tight">Changes Requested</h2>
+                                    <h2 className="text-lg md:text-xl font-black uppercase tracking-tight">Changes Requested</h2>
                                 </div>
-                                <div className="bg-black/40 border border-white/5 rounded-2xl p-6">
+                                <div className="bg-black/40 border border-white/5 rounded-2xl p-5 md:p-6">
                                     <p className="text-gray-300 text-sm italic font-medium leading-relaxed">
                                         "{submission.feedback}"
                                     </p>
@@ -233,7 +233,7 @@ export default function JobDashboardFreelancer() {
                         )}
 
                         {/* Founder's Instructions Display */}
-                        <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/5 border border-white/10 rounded-3xl p-8 space-y-6">
+                        <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/5 border border-white/10 rounded-3xl p-5 md:p-8 space-y-6">
                             <div className="flex items-center gap-3">
                                 <Target className="text-blue-400" />
                                 <h2 className="text-xl font-black uppercase tracking-tight">Instructions</h2>
@@ -261,7 +261,7 @@ export default function JobDashboardFreelancer() {
 
                         {/* Freelancer Work Submission Form */}
                         {(status === 'in_progress' || status === 'submitted' || status === 'changes_requested' || status === 'completed') && (
-                            <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-8 space-y-6">
+                            <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-5 md:p-8 space-y-6">
                                 <div className="flex items-center gap-3">
                                     <Upload className="text-yellow-500" />
                                     <h2 className="text-xl font-black uppercase tracking-tight">Upload Your Work</h2>

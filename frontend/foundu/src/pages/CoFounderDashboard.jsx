@@ -88,16 +88,16 @@ const CoFounderDashboard = () => {
   };
   return (
     <div
-      className="min-h-screen text-white font-sans"
+      className="min-h-screen text-white font-sans overflow-x-hidden"
       style={gradientBlackToBlue}
     >
       <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-8 mb-8 shadow-lg">
-          <h1 className="text-4xl font-bold text-white mb-2 text-center">
+        <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-5 md:p-8 mb-8 shadow-lg">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 text-center">
             CO-FOUNDER DASHBOARD
           </h1>
-          <p className="text-blue-200 text-lg text-center">
+          <p className="text-blue-200 text-base md:text-lg text-center px-4">
             Manage your chats, applications, and verified badges
           </p>
           {/* ═══════════════════════════════════════════════
@@ -130,7 +130,7 @@ const CoFounderDashboard = () => {
           </div>
         </div>
         {/* Content Area */}
-        <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-8 min-h-[500px]">
+        <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl shadow-xl p-5 md:p-8 min-h-[500px]">
           {/* ═══════════ APPLICATIONS TAB ═══════════ */}
           {activeTab === "applications" && (
             <div>
@@ -143,7 +143,7 @@ const CoFounderDashboard = () => {
                     Track your co-founder job applications & statuses
                   </p>
                 </div>
-                <div className="flex items-center gap-2 bg-gray-900/50 rounded-xl p-1 border border-white/10">
+                <div className="flex flex-wrap items-center gap-2 bg-gray-900/50 rounded-xl p-1 border border-white/10">
                   {["all", "pending", "accepted", "rejected"].map((f) => (
                     <button
                       key={f}
@@ -235,7 +235,7 @@ const CoFounderDashboard = () => {
                   onClick={refreshBadges}
                   className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2"
                 >
-                  <span>🔄</span> Refresh Badges
+                  Refresh Badges
                 </button>
               </div>
               {/* Verification Badges */}
@@ -249,7 +249,7 @@ const CoFounderDashboard = () => {
                   <h3 className="text-lg font-semibold text-blue-300 mb-6 pl-3 border-l-4 border-blue-500">
                     Verification Badge
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {(badgeData?.blue_tick_verified === 1 ||
                       badgeData?.blue_tick_verified === true) && (
                       <div className="flex flex-col items-center p-8 bg-gray-700/30 rounded-xl border border-blue-500/30 hover:border-blue-400 transition-all group">
@@ -307,7 +307,7 @@ const CoFounderDashboard = () => {
                   <h3 className="text-lg font-semibold text-red-300 mb-6 pl-3 border-l-4 border-red-500">
                     Credibility Score Badge
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {(credibilityData?.badge === "90-95" ||
                       badgeData?.credibility_badge === "90-95") && (
                       <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-all group">

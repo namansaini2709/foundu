@@ -32,11 +32,11 @@ function StartupServices() {
           </div>
           {/* Right - Text Content */}
           <div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="text-white">Foundu Startup </span>
               <span className="text-blue-300">Dashboard</span>
             </h1>
-            <p className="text-gray-300 text-lg mb-4 leading-relaxed">
+            <p className="text-gray-300 text-base md:text-lg mb-4 leading-relaxed">
               Your AI-powered command center for startup intelligence. Get
               real-time insights, AI-driven recommendations, and actionable
               analytics to make informed decisions about hiring, partnerships,
@@ -89,7 +89,7 @@ function StartupServices() {
     ];
     return (
       <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
-        <h2 className="text-center text-4xl md:text-6xl font-bold mb-16">
+        <h2 className="text-center text-3xl md:text-6xl font-bold mb-12 md:mb-16 px-4">
           <span className="text-white">OUR </span>
           <span className="text-blue-300">MVPs</span>
         </h2>
@@ -278,8 +278,8 @@ function StartupServices() {
       return () => clearInterval(interval);
     }, []);
     return (
-      <section className="py-32 px-4 relative" style={gradientBlackToBlue}>
-        <h2 className="text-center text-4xl md:text-6xl font-bold mb-16">
+      <section className="py-16 md:py-32 px-4 relative" style={gradientBlackToBlue}>
+        <h2 className="text-center text-3xl md:text-6xl font-bold mb-12 md:mb-16 px-4">
           <span className="text-white">4 SIMPLE STEPS OF </span>
           <span className="text-blue-300">MATCHING</span>
         </h2>
@@ -386,7 +386,7 @@ function StartupServices() {
     ];
     return (
       <section className="py-32 px-4 relative" style={gradientBlueToBlack}>
-        <h2 className="text-center text-4xl md:text-6xl font-bold mb-4">
+        <h2 className="text-center text-3xl md:text-6xl font-bold mb-4 px-4">
           <span className="text-white">WHY USERS </span>
           <span className="text-blue-300">TRUST FOUNDU</span>
         </h2>

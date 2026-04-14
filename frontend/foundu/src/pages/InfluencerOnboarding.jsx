@@ -10,7 +10,7 @@ import {
   Zap,
   ArrowRight,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   Heart,
   Globe,
   Utensils,

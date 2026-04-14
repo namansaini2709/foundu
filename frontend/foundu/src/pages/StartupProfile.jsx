@@ -364,7 +364,7 @@ const StartupProfile = () => {
   return (
     <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
       <div className="pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           {/* Step Indicator */}
           <div className="mb-6">
             <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">
@@ -400,12 +400,12 @@ const StartupProfile = () => {
             {/* Step 1: Founder DNA */}
             {currentStep === 1 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧠 STEP 1 – Founder DNA (Founder Readiness +
                         Compatibility Engine)
@@ -644,12 +644,12 @@ const StartupProfile = () => {
             {/* Step 2: Startup DNA */}
             {currentStep === 2 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧬 STEP 2 – Startup DNA (Startup DNA Score + AI
                         Simulator)
@@ -777,12 +777,12 @@ const StartupProfile = () => {
             {/* Step 3: Burn Reality */}
             {currentStep === 3 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🔥 STEP 3 – Burn Reality (Burn Reality Checker +
                         Readiness Score)
@@ -887,12 +887,12 @@ const StartupProfile = () => {
             {/* Step 4: Hiring & Execution */}
             {currentStep === 4 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🚀 STEP 4 – Hiring & Execution (AI Matching + Trial
                         Sprint Generator)
@@ -1002,12 +1002,12 @@ const StartupProfile = () => {
             {/* Step 5: Vendor Intelligence */}
             {currentStep === 5 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧩 STEP 5 – Vendor Intelligence
                       </h2>
@@ -1123,12 +1123,12 @@ const StartupProfile = () => {
             {/* Step 6: AI Idea & Strategy Engine */}
             {currentStep === 6 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         🧠 STEP 6 – AI Idea & Strategy Engine
                       </h2>
@@ -1192,12 +1192,12 @@ const StartupProfile = () => {
             {/* Step 7: Dashboard Intelligence */}
             {currentStep === 7 && (
               <div className="flex justify-center">
-                <div className="w-[85%]">
+                <div className="w-full md:w-[85%]">
                   <div
                     className="rounded-lg p-[2px] transition-all duration-300"
                     style={gradientBlue}
                   >
-                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                    <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                         📊 STEP 7 – Dashboard Intelligence
                       </h2>

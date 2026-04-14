@@ -69,7 +69,7 @@ const CreatePost = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans">
+        <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans overflow-x-hidden">
 
             <main className="flex-grow pt-32 pb-20 px-6">
                 <div className="max-w-4xl mx-auto">
@@ -82,17 +82,17 @@ const CreatePost = () => {
                             <ChevronLeft className="w-5 h-5" />
                             Back
                         </button>
-                        <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                        <h1 className="text-2xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
                             Create New Post
                         </h1>
-                        <div className="w-24"></div> {/* Spacer */}
+                        <div className="hidden md:block w-24"></div> {/* Spacer */}
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         {/* Upload Section */}
                         <div className="space-y-6">
                             <div 
-                                className={`relative aspect-square rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden group
+                                className={`relative aspect-square rounded-3xl md:rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden group
                                     ${preview ? 'border-transparent shadow-2xl shadow-blue-500/20' : 'border-white/10 hover:border-blue-500/50 bg-white/5'}
                                 `}
                             >
@@ -125,7 +125,7 @@ const CreatePost = () => {
                         </div>
 
                         {/* Details Section */}
-                        <div className="flex flex-col h-full bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-xl relative overflow-hidden">
+                        <div className="flex flex-col h-full bg-white/5 border border-white/10 rounded-3xl md:rounded-[3rem] p-6 md:p-10 backdrop-blur-xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] -z-10 animate-pulse"></div>
 
                             <div className="mb-8">
@@ -137,7 +137,7 @@ const CreatePost = () => {
                                     value={caption}
                                     onChange={(e) => setCaption(e.target.value)}
                                     placeholder="Write a compelling story about this post..." 
-                                    className="w-full h-48 bg-black/40 border border-white/5 rounded-3xl p-6 text-white text-lg placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 transition-all resize-none leading-relaxed font-medium"
+                                    className="w-full h-32 md:h-48 bg-black/40 border border-white/5 rounded-3xl p-6 text-white text-base md:text-lg placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 transition-all resize-none leading-relaxed font-medium"
                                 />
                             </div>
 
