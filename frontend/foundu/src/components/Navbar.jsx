@@ -12,7 +12,7 @@ import logo from "../assets/whitelogo.png";
 const defaultNavLinks = [
   { label: "Hire Freelancer", to: "/freelancer-jobs" },
   { label: "Onboard Influencer", to: "/onboard-influencer" },
-  { label: "Find Best Match", to: "/signup" },
+  { label: "Find Best Match", to: "/login-signup" },
   { label: "For Startups", to: "/startup-services" },
   { label: "About Us", to: "/about-details" },
 ];
