@@ -48,7 +48,7 @@ const InfluencerMarketplace = () => {
             
             if (res.data.chat_id || res.data.chatId) {
                 const chatId = res.data.chat_id || res.data.chatId;
-                navigate(`/chatbox?userId=${influencerUserId}`);
+                window.dispatchEvent(new CustomEvent("open_chat", { detail: { userId: influencerUserId } }));
             }
         } catch (err) {
             console.error("Error creating chat:", err);

@@ -238,7 +238,7 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
       {/* Message Button */}
       <div className="pt-8 border-t border-white/5">
         <button
-          onClick={() => navigate(`/chatbox?userId=${userDetails.id}`)}
+          onClick={() => window.dispatchEvent(new CustomEvent("open_chat", { detail: { userId: userDetails.id } }))}
           className="w-full py-5 rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-lg shadow-2xl shadow-blue-600/20 transition-all transform active:scale-95 flex items-center justify-center gap-3"
         >
           Send Message <Send className="w-5 h-5" />

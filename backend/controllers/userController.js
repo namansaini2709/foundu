@@ -121,14 +121,14 @@ exports.signup = async (req, res) => {
       "/profile",
     );
 
-    // Send Welcome Email
-    emailNotificationService.sendEmailNotification(
-      result.insertId,
-      "Welcome to FoundU! 🎉",
-      "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
-      "Complete Your Profile",
-      `${process.env.FRONTEND_URL || "http://localhost:5173"}/profile`,
-    );
+      const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+      emailNotificationService.sendEmailNotification(
+        result.insertId,
+        "Welcome to FoundU! 🎉",
+        "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
+        "Complete Your Profile",
+        `${baseUrl}/profile`,
+      );
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ error: error.message });
@@ -335,7 +335,7 @@ exports.forgotPassword = async (req, res) => {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
         <div style="background: #020024; padding: 20px; text-align: center;">
-          <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+          <img src="https://www.foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
         </div>
         <div style="padding: 20px;">
           <h2 style="color: #333;">Password Reset Request</h2>

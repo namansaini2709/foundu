@@ -461,13 +461,13 @@ export default function JobApplicationsDashboard() {
         otherUserId: applicantId,
         userId: parseInt(getUserId()),
       });
-      toast.success("Redirecting to chat...", {
+      toast.success("Opening chat...", {
         theme: "dark",
-        autoClose: 1000,
+        autoClose: 500,
       });
       setTimeout(() => {
-        navigate(`/chatbox?userId=${applicantId}`);
-      }, 1000);
+        window.dispatchEvent(new CustomEvent("open_chat", { detail: { userId: applicantId } }));
+      }, 500);
     } catch (err) {
       console.error("Error creating chat:", err);
       toast.error("Failed to start chat. Make sure you are logged in.", {

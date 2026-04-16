@@ -38,10 +38,13 @@ const sendWhatsAppMatchAlert = async (toPhoneNumber, userName, matches, customMe
             // Fallback: Default Job Alert format
             textMessage = `🎯 *FoundU Match Alert!*\nHi ${userName}, our AI found ${matches.length} new jobs that perfectly fit your skills:\n\n`;
 
+            const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME);
+            const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+
             matches.forEach((m, index) => {
                 textMessage += `*${index + 1}. ${m.job_title} @ ${m.startup_name}*\n`;
                 textMessage += `💡 _${m.reason}_\n`;
-                textMessage += `🔗 Apply: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${m.job_id}\n\n`;
+                textMessage += `🔗 Apply: ${baseUrl}/job/${m.job_id}\n\n`;
             });
 
             textMessage += `_Don't want these alerts? Update preferences in your dashboard._`;

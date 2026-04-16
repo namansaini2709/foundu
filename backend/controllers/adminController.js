@@ -250,12 +250,13 @@ exports.approveBlueTick = async (req, res) => {
     );
 
     // 🔥 Email Notification
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
     emailNotificationService.sendEmailNotification(
       user_id,
       "Blue Tick Approved! 🌟",
       "Congratulations! Your social verification request has been approved. You now have a Blue Tick badge on your profile, signaling high credibility to other users.",
       "View Your Profile",
-      `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+      `${baseUrl}/profile`
     );
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -288,12 +289,13 @@ exports.rejectBlueTick = async (req, res) => {
     );
 
     // 🔥 Email Notification
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
     emailNotificationService.sendEmailNotification(
       user_id,
       "Blue Tick Request Update 🛡️",
       "We've reviewed your request for social verification. Unfortunately, we couldn't verify your account at this time. Please ensure your links are correct and try again later.",
       "Update Profile Socials",
-      `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+      `${baseUrl}/profile`
     );
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -334,7 +336,8 @@ exports.sendBulkNotification = async (req, res) => {
     };
 
     const actionText = "View Dashboard";
-    const actionLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`;
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+    const actionLink = `${baseUrl}/dashboard`;
 
     for (const user of recipients) {
       try {
