@@ -14,7 +14,7 @@ const generateTemplate = (title, message, actionText = null, actionLink = null) 
       <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 20px auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
-        .header { background: #020024; padding: 30px; text-align: center; }
+        .header { background: #000000; padding: 30px; text-align: center; }
         .header h1 { color: #3b82f6; margin: 0; font-size: 28px; letter-spacing: 2px; }
         .header span { color: #ffffff; font-weight: normal; }
         .content { padding: 40px; }

@@ -334,7 +334,7 @@ exports.forgotPassword = async (req, res) => {
     const text = `You requested a password reset. Please use the following link to reset your password:\n\n${resetLink}\n\nIf you did not request this, please ignore this email.`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
-        <div style="background: #020024; padding: 20px; text-align: center;">
+        <div style="background: #000000; padding: 20px; text-align: center;">
           <img src="https://www.foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
         </div>
         <div style="padding: 20px;">

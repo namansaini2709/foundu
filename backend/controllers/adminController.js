@@ -337,17 +337,24 @@ exports.sendBulkNotification = async (req, res) => {
 
     const actionText = "View Dashboard";
     const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
-    const actionLink = `${baseUrl}/dashboard`;
 
     for (const user of recipients) {
       try {
+        // 🚀 Dynamic routing based on user type
+        let dashboardPath = "/dashboard";
+        if (user.user_type === "freelancer") dashboardPath = "/freelancer-dashboard";
+        else if (user.user_type === "founder") dashboardPath = "/startup-dashboard";
+        else if (user.user_type === "cofounder") dashboardPath = "/cofounder-dashboard";
+
+        const personalizedActionLink = `${baseUrl}${dashboardPath}`;
+
         // Platform Notification
         await notificationService.sendNotification(
           user.id,
           title,
           message,
           "broadcast",
-          "/dashboard"
+          dashboardPath
         );
 
         // Email Notification
@@ -356,8 +363,22 @@ exports.sendBulkNotification = async (req, res) => {
           title,
           message,
           actionText,
-          actionLink
+          personalizedActionLink
         );
+
+        // 🔥 WhatsApp Notification
+        if (user.phone) {
+          try {
+            await whatsappService.sendWhatsAppMatchAlert(
+              user.phone, 
+              user.full_name, 
+              [], 
+              `📢 *FoundU Broadcast*\n\n*${title}*\n\n${message}\n\n🔗 Dashboard: ${personalizedActionLink}\n\n_Stay connected with FoundU._`
+            );
+          } catch (waErr) {
+            console.error(`WhatsApp failed for user ${user.id}:`, waErr);
+          }
+        }
 
         results.success++;
       } catch (err) {
