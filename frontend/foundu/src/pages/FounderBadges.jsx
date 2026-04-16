@@ -145,7 +145,7 @@ const FounderBadges = () => {
                         </div>
                         <div className="flex-shrink-0">
                             {blueTickVerified ? (
-                                <button disabled className="bg-blue-500/30 border border-blue-400/30 text-blue-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">✅ Verified</button>
+                                <button disabled className="bg-blue-500/30 border border-blue-400/30 text-blue-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">Verified</button>
                             ) : blueTickStatus === 'pending' ? (
                                 <button disabled className="bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2">
                                     <Loader2 size={16} className="animate-spin" /> Pending
@@ -186,7 +186,7 @@ const FounderBadges = () => {
                         <div className="flex-shrink-0">
                             {greenTickVerified ? (
                                 <button disabled className="bg-green-500/30 border border-green-400/30 text-green-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">
-                                    ✅ Awarded
+                                    Awarded
                                 </button>
                             ) : (
                                 <button disabled className="bg-green-500/20 border border-green-500/30 text-green-400 px-8 py-3 rounded-lg font-semibold cursor-not-allowed text-xs uppercase tracking-widest">

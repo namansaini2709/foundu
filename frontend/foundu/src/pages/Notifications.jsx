@@ -5,9 +5,98 @@ import Footer from '../components/Footer';
 import { toast } from 'react-toastify';
 import api from '../utils/axiosConfig';
 import { socket } from '../socket';
+import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion';
+
+const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSignal }) => {
+    const x = useMotionValue(0);
+
+    useEffect(() => {
+        if (resetSignal) {
+            animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
+        }
+    }, [resetSignal, x]);
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="relative overflow-hidden rounded-2xl mb-2 last:mb-0 bg-[#000000]"
+        >
+            {/* Action Layer (Underneath) */}
+            <div className="absolute inset-0 bg-[#000000] flex items-center justify-end px-6 gap-3">
+                {!n.is_read && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); markAsRead(n.id); animate(x, 0); }}
+                        className="w-11 h-11 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-green-500/20"
+                    >
+                        <Check className="w-6 h-6" />
+                    </button>
+                )}
+                <button
+                    onClick={(e) => { e.stopPropagation(); deleteNotification(n.id, !n.is_read); }}
+                    className="w-11 h-11 bg-red-500 hover:bg-red-600 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-red-500/20"
+                >
+                    <Trash2 className="w-6 h-6" />
+                </button>
+            </div>
+
+            {/* Content Layer */}
+            <motion.div
+                style={{ x }}
+                drag="x"
+                dragConstraints={{ left: -150, right: 0 }}
+                dragElastic={0.05}
+                onDragEnd={(_, info) => {
+                    if (info.offset.x < -40) {
+                        animate(x, -150, { type: 'spring', stiffness: 300, damping: 30 });
+                    } else {
+                        animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
+                    }
+                }}
+                className={`relative z-10 p-5 bg-[#000000] border border-white/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center cursor-grab active:cursor-grabbing hover:bg-[#050505] transition-colors rounded-2xl ${n.is_read ? 'opacity-50 grayscale-[0.3]' : ''}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex-shrink-0 relative">
+                    {getIcon(n.type)}
+                    {!n.is_read && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                             <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                        </span>
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                        <h3 className={`font-black text-base sm:text-lg tracking-tight truncate ${n.is_read ? 'text-gray-500' : 'text-white'}`}>
+                            {n.title}
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-[10px] uppercase font-black text-gray-700 tracking-wider">
+                            <Clock className="w-3 h-3" />
+                            {new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                    </div>
+                    <p className={`text-[13px] sm:text-sm leading-relaxed line-clamp-2 ${n.is_read ? 'text-gray-600' : 'text-gray-400'}`}>
+                        {n.message}
+                    </p>
+                </div>
+
+                {/* Mobile/Small Device Swipe Hint */}
+                <div className="sm:hidden absolute right-3 bottom-3 opacity-20 flex gap-1 items-center animate-pulse">
+                    <span className="text-[9px] font-black uppercase tracking-tighter">Swipe</span>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
+
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [resetSignal, setResetSignal] = useState(false);
+
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
@@ -21,18 +110,20 @@ const Notifications = () => {
                 setLoading(false);
             }
         };
+
         fetchNotifications();
-        // Listen for new ones live while on this page
+
         const handleLiveNotif = (notif) => {
-            console.log("Live notification received on page:", notif);
             setNotifications(prev => [notif, ...prev]);
         };
+
         if (!socket.connected) socket.connect();
         const userId = getUserId();
         if (userId) socket.emit("register", userId);
         socket.on("new_notification", handleLiveNotif);
         return () => socket.off("new_notification", handleLiveNotif);
     }, []);
+
     const markAsRead = async (id) => {
         try {
             await api.put(`/api/notifications/${id}/read`);
@@ -45,6 +136,7 @@ const Notifications = () => {
             toast.error("Failed to mark as read");
         }
     };
+
     const deleteNotification = async (id, isUnread) => {
         try {
             await api.delete(`/api/notifications/${id}`);
@@ -57,6 +149,7 @@ const Notifications = () => {
             toast.error("Failed to delete notification");
         }
     };
+
     const typeConfigs = {
         success: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', glow: 'shadow-green-500/20' },
         payment: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', glow: 'shadow-green-500/20' },
@@ -66,6 +159,7 @@ const Notifications = () => {
         badge: { icon: Bell, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', glow: 'shadow-amber-500/20' },
         default: { icon: Info, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', glow: 'shadow-blue-500/20' }
     };
+
     const getIcon = (type) => {
         const config = typeConfigs[type] || typeConfigs.default;
         const IconComponent = config.icon;
@@ -75,91 +169,72 @@ const Notifications = () => {
             </div>
         );
     };
+
+    // Global click handler to reset all swiped items
+    useEffect(() => {
+        const handleClickOutside = () => {
+            setResetSignal(true);
+            setTimeout(() => setResetSignal(false), 100);
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
+
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col">
             <div className="flex-1 pt-28 pb-12 flex justify-center px-4">
-                <div className="w-full md:w-[85%] lg:w-[75%] max-w-5xl px-2 md:px-0">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30">
-                            <Bell className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-                            <p className="text-gray-400 text-sm">Stay updated with your latest activities</p>
+                <div className="w-full md:w-[85%] max-w-6xl">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 px-4 md:px-0">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                                <Bell className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
+                                    Notifications
+                                </h1>
+                                <p className="text-blue-400/50 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1 italic">Updates • Activity • Alerts</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="grid gap-4">
-                        {notifications.length > 0 ? (
-                            notifications.map((n) => (
-                                <div
-                                    key={n.id}
-                                    className={`group relative p-5 rounded-[2rem] border transition-all duration-500 backdrop-blur-xl ${n.is_read
-                                        ? 'bg-gray-900/40 border-white/5 opacity-60 grayscale-[0.3]'
-                                        : 'bg-gradient-to-br from-blue-600/10 to-purple-600/5 border-blue-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                                        } hover:scale-[1.01] hover:border-blue-500/60 hover:bg-gray-800/40`}
-                                >
-                                    <div className="flex gap-5">
-                                        <div className="relative">
-                                            {getIcon(n.type)}
-                                            {!n.is_read && (
-                                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
-                                                </span>
-                                            )}
+
+                    {/* Single Glass Container Covering All Notifications */}
+                    <div 
+                        className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-4 sm:p-8 shadow-2xl relative"
+                        onClick={(e) => e.stopPropagation()} 
+                    >
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] pointer-events-none"></div>
+                        
+                        <div className="flex flex-col gap-2">
+                            <AnimatePresence mode="popLayout">
+                                {notifications.length > 0 ? (
+                                    notifications.map((n) => (
+                                        <NotificationItem
+                                            key={n.id}
+                                            n={n}
+                                            markAsRead={markAsRead}
+                                            deleteNotification={deleteNotification}
+                                            getIcon={getIcon}
+                                            resetSignal={resetSignal}
+                                        />
+                                    ))
+                                ) : (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="text-center py-24"
+                                    >
+                                        <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+                                            <Bell className="w-10 h-10 text-blue-500 opacity-20" />
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className={`font-bold text-lg tracking-tight ${n.is_read ? 'text-gray-400' : 'text-white'}`}>
-                                                    {n.title}
-                                                </h3>
-                                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] uppercase font-black text-gray-500 tracking-[0.2em] shadow-inner">
-                                                    <Clock className="w-3 h-3 text-blue-400/50" />
-                                                    {new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </div>
-                                            </div>
-                                            <p className={`text-sm leading-relaxed ${n.is_read ? 'text-gray-500' : 'text-gray-300'}`}>
-                                                {n.message}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {/* Action Buttons */}
-                                    <div className="mt-4 flex md:absolute md:top-1/2 md:-translate-y-1/2 md:right-6 gap-3 md:opacity-0 group-hover:opacity-100 transition-all duration-300 md:translate-x-4 group-hover:translate-x-0">
-                                        {!n.is_read && (
-                                            <button
-                                                onClick={() => markAsRead(n.id)}
-                                                className="flex-1 md:flex-none p-2.5 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-green-500/20 group/btn flex items-center justify-center gap-2"
-                                                title="Mark as Read"
-                                            >
-                                                <Check className="w-5 h-5 group-hover/btn:scale-110" />
-                                                <span className="md:hidden text-xs font-bold uppercase tracking-widest">Mark read</span>
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => deleteNotification(n.id, !n.is_read)}
-                                            className="flex-1 md:flex-none p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 transform shadow-xl border border-red-500/20 group/btn flex items-center justify-center gap-2"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-5 h-5 group-hover/btn:scale-110" />
-                                            <span className="md:hidden text-xs font-bold uppercase tracking-widest">Delete</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-24 bg-gray-900/30 rounded-[3rem] border border-white/5 backdrop-blur-sm relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent"></div>
-                                <div className="relative z-10">
-                                    <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20 shadow-[0_0_50px_rgba(59,130,246,0.1)]">
-                                        <Bell className="w-10 h-10 text-blue-500 opactiy-50" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-white mb-2">Inbox Zen</h2>
-                                    <p className="text-gray-400 max-w-xs mx-auto text-sm leading-relaxed">
-                                        All caught up! We'll notify you here when the magic happens.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                                        <h2 className="text-2xl font-black text-white/30">Inbox Zen</h2>
+                                        <p className="text-gray-600 text-sm max-w-xs mx-auto">
+                                            All caught up! No new notifications at the moment.
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -167,4 +242,5 @@ const Notifications = () => {
         </div>
     );
 };
+
 export default Notifications;

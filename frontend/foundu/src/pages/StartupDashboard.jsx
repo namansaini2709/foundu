@@ -24,8 +24,13 @@ import {
   FileCheck,
   ChevronRight,
   Activity,
+  Award,
+  Shield,
+  CheckCircle,
 } from "lucide-react";
 import Footer from "../components/Footer";
+import blueBadge from "../assets/bluebadge.png";
+import greenBadge from "../assets/greenbadge.png";
 // Move Data Outside Component to prevent recreation
 // const FEATURES = [
 //   {
@@ -135,6 +140,11 @@ const StartupDashboard = () => {
     liveJobs: 0,
     selectedJobs: 0,
   });
+  const [badges, setBadges] = useState({
+    blue: false,
+    green: false,
+    loading: true
+  });
 
   const userId = localStorage.getItem("user_id");
 
@@ -142,8 +152,30 @@ const StartupDashboard = () => {
     if (userId) {
       fetchUserJobs();
       fetchDashboardStats();
+      fetchBadges();
     }
   }, [userId]);
+
+  const fetchBadges = async () => {
+    try {
+      // 1. Check verified status from socials
+      const socialRes = await api.get(`/api/user-socials/${userId}`);
+      const socialData = socialRes.data.data;
+      
+      // 2. Check jobs for green badge
+      const jobsRes = await api.get(`/api/jobs/user/${userId}`);
+      const jobCount = jobsRes.data.length;
+
+      setBadges({
+        blue: !!(socialData?.blue_tick_verified),
+        green: !!(socialData?.green_tick_verified || jobCount >= 3),
+        loading: false
+      });
+    } catch (err) {
+      console.error("Error fetching badges:", err);
+      setBadges(prev => ({ ...prev, loading: false }));
+    }
+  };
 
   const fetchDashboardStats = async () => {
     try {
@@ -384,6 +416,66 @@ const StartupDashboard = () => {
             </div>
           )}
         </section>
+        
+        {/* ── NEW: YOUR BADGES ── */}
+        <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
+              <Award className="w-8 h-8 text-blue-400 group-hover:rotate-12 transition-transform" />
+              Your Badges
+            </h2>
+            <button 
+              onClick={() => navigate('/founder-badges')}
+              className="px-6 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-blue-400"
+            >
+              Manage Badges
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Blue Tick Badge */}
+            <div className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.blue ? 'border-blue-500/30' : 'border-white/5 opacity-50'}`}>
+              <div className="flex items-center gap-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.blue ? 'bg-blue-500/20 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'bg-gray-800 border-gray-700'}`}>
+                  <img src={blueBadge} alt="Blue Badge" className={`w-12 h-12 object-contain ${!badges.blue && 'grayscale opacity-40'}`} />
+                </div>
+                <div>
+                  <h3 className="font-black text-white uppercase tracking-tight">Verification</h3>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                    {badges.blue ? 'Verified Founder' : 'Not Verified'}
+                  </p>
+                </div>
+              </div>
+              {badges.blue && <div className="absolute top-4 right-4"><CheckCircle className="w-4 h-4 text-blue-400" /></div>}
+            </div>
+
+            {/* Green Tick Badge */}
+            <div className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.green ? 'border-green-500/30' : 'border-white/5 opacity-50'}`}>
+              <div className="flex items-center gap-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.green ? 'bg-green-500/20 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'bg-gray-800 border-gray-700'}`}>
+                  <img src={greenBadge} alt="Green Badge" className={`w-12 h-12 object-contain ${!badges.green && 'grayscale opacity-40'}`} />
+                </div>
+                <div>
+                  <h3 className="font-black text-white uppercase tracking-tight">Active Recruiter</h3>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                    {badges.green ? 'Certified Recruiter' : 'Unlock at 3 Jobs'}
+                  </p>
+                </div>
+              </div>
+              {badges.green && <div className="absolute top-4 right-4"><CheckCircle className="w-4 h-4 text-green-400" /></div>}
+            </div>
+
+            {/* Placeholder for more badges */}
+            <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-6 flex items-center justify-center group cursor-pointer hover:bg-white/[0.08] transition-all" onClick={() => navigate('/founder-badges')}>
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                  <Plus className="w-4 h-4 text-gray-500" />
+                </div>
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Earn More Badges</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── NEW: FOUNDER ADD-ONS ── */}
         <section className="mt-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
@@ -446,7 +538,10 @@ const StartupDashboard = () => {
                   our proprietary AI engine.
                 </p>
                 <div className="mt-auto">
-                  <button className="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs">
+                  <button 
+                    onClick={() => navigate('/buy-pitch-deck')}
+                    className="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs"
+                  >
                     LAUNCH DECK BUILDER
                   </button>
                 </div>

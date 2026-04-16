@@ -459,7 +459,13 @@ exports.getUserById = (req, res) => {
 ========================= */
 exports.getMe = (req, res) => {
   const id = req.user.id;
-  db.query("SELECT * FROM users WHERE id = ?", [id], (err, rows) => {
+  const query = `
+    SELECT u.*, us.profile_picture_url 
+    FROM users u 
+    LEFT JOIN users_socials us ON u.id = us.user_id 
+    WHERE u.id = ?
+  `;
+  db.query(query, [id], (err, rows) => {
     if (err) {
       console.error("Error in getMe:", err);
       return res.status(500).json({ success: false, message: "Database Error" });

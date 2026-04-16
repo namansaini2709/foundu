@@ -127,13 +127,13 @@ const InfluencerOnboarding = () => {
           <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-8">
             Influencer Marketplace
           </div>
-          <h1 className="text-5xl md:text-8xl font-black mb-8 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-8xl font-black mb-8 leading-[1.1]">
             ONBOARD AS AN <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
               INFLUENCER
             </span>
           </h1>
-          <p className="text-gray-400 text-lg md:text-2xl max-w-3xl mx-auto mb-12 font-medium leading-relaxed">
+          <p className="text-gray-400 text-base md:text-2xl max-w-3xl mx-auto mb-12 font-medium leading-relaxed px-4">
             We are building a zero-commission marketplace for micro-influencers.
             Help startups grow, showcase your reach, and keep 100% of your
             earnings.
@@ -182,21 +182,26 @@ const InfluencerOnboarding = () => {
         </div>
       </section>
 
-      <section className="py-32 px-4 relative" id="apply">
-        <div className="max-w-6xl w-[75%] mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black mb-6">
+      <section className="py-20 md:py-32 px-4 relative" id="apply">
+        <div className="max-w-6xl w-full md:w-[85%] mx-auto">
+          <div className="text-center mb-16 px-4">
+            <h2 className="text-3xl md:text-6xl font-black mb-6">
               SUBMIT YOUR REEL
             </h2>
             <p className="text-gray-400 text-lg font-medium">
               Join our exclusive network of creators. Fill out the details
               below.
             </p>
+             <p className="text-gray-600 text-lg font-medium">
+             *Your follower count doesn’t matter
+the only thing that matters to us is your reach and creativity
+            </p>
+
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[3.5rem] shadow-2xl relative overflow-hidden"
+            className="bg-white/5 backdrop-blur-3xl border border-white/10 p-6 sm:p-8 md:p-12 rounded-[2rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[80px] rounded-full -mr-20 -mt-20"></div>
 
@@ -205,7 +210,7 @@ const InfluencerOnboarding = () => {
                 <label className="text-sm font-black uppercase tracking-widest text-blue-400 pl-2">
                   Category
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
@@ -279,8 +284,8 @@ const InfluencerOnboarding = () => {
 
               <div className="space-y-4">
                 <label className="text-sm font-black uppercase tracking-widest text-blue-400 pl-2">
-                  Phone Number It won’t be shown on your public profile, we
-                  respect your privacy ;
+                  Phone Number  ( It won’t be shown on your public profile, we
+                  respect your privacy )
                 </label>
                 <div className="relative">
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 font-bold">

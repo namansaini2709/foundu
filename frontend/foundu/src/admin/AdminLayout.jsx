@@ -22,6 +22,7 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const adminName = localStorage.getItem("admin_name") || "Admin";
   const [pendingCount, setPendingCount] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Guard — redirect non-admins away
   useEffect(() => {
@@ -47,13 +48,38 @@ export default function AdminLayout({ children }) {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="min-h-screen flex flex-col md:flex-row"
       style={{ background: "linear-gradient(180deg,rgba(2,0,36,1) 0%,rgba(9,9,121,0.85) 100%)" }}
     >
+      {/* ── Mobile Header ─────────────────────────── */}
+      <div className="md:hidden flex items-center justify-between px-6 py-4 bg-gray-900/50 border-b border-blue-900/40 backdrop-blur-sm sticky top-0 z-50">
+        <div className="text-xl font-black text-white tracking-widest">
+          FOUND<span className="text-blue-400">U</span>
+        </div>
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 text-white hover:bg-blue-900/30 rounded-lg transition-colors"
+        >
+          {isSidebarOpen ? "✕" : "☰"}
+        </button>
+      </div>
+
       {/* ── Sidebar ─────────────────────────────── */}
-      <aside className="w-60 flex-shrink-0 flex flex-col bg-gray-900/50 border-r border-blue-900/40 backdrop-blur-sm">
-        {/* Logo */}
-        <div className="px-6 py-5 border-b border-blue-900/30">
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out bg-gray-900 border-r border-blue-900/40 backdrop-blur-md
+        md:relative md:translate-x-0 md:flex md:flex-col md:bg-gray-900/50
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        {/* Sidebar Overlay (Mobile) */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 md:hidden -z-10"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Logo (Desktop) */}
+        <div className="hidden md:block px-6 py-5 border-b border-blue-900/30">
           <div className="text-2xl font-black text-white tracking-widest">
             FOUND<span className="text-blue-400">U</span>
           </div>
@@ -63,13 +89,14 @@ export default function AdminLayout({ children }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto mt-16 md:mt-0">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.soon ? "#" : item.path}
+                onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
                   ${isActive
                     ? "bg-blue-600/30 text-blue-300 border border-blue-500/40"
@@ -116,21 +143,21 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* ── Main Content ─────────────────────────── */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto h-screen">
         {/* Top bar */}
-        <header className="px-8 py-4 border-b border-blue-900/30 bg-gray-900/20 backdrop-blur-sm flex items-center justify-between">
-          <p className="text-gray-400 text-sm">
+        <header className="px-4 md:px-8 py-4 border-b border-blue-900/30 bg-gray-900/20 backdrop-blur-sm flex items-center justify-between">
+          <p className="text-gray-400 text-[10px] md:text-sm">
             {new Date().toLocaleDateString("en-IN", {
               weekday: "long", year: "numeric", month: "long", day: "numeric",
             })}
           </p>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-green-400 text-xs font-semibold">System Online</span>
+            <span className="text-green-400 text-[10px] md:text-xs font-semibold">System Online</span>
           </div>
         </header>
 
-        <div className="px-8 py-6">{children}</div>
+        <div className="px-4 md:px-8 py-6">{children}</div>
       </main>
     </div>
   );

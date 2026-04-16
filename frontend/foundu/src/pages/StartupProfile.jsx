@@ -21,6 +21,7 @@ const StartupProfile = () => {
   const [formData, setFormData] = useState({
     // Step 1: Founder DNA
     startupName: "",
+    ownerPhone: "+91",
     startupLogo: null, // Now holds File or URL string
     founderType: "",
     whyBuilding: "",
@@ -109,6 +110,7 @@ const StartupProfile = () => {
       // Map database fields to form state
       setFormData({
         startupName: profile.startup_name || "",
+        ownerPhone: profile.owner_phone || "+91",
         startupLogo: profile.startup_logo_url || null,
         founderType: profile.founder_type || "",
         whyBuilding: profile.why_building || "",
@@ -189,6 +191,8 @@ const StartupProfile = () => {
           errors.push("Startup Name is required");
         if (!formData.founderType?.trim())
           errors.push("Founder type is required");
+        if (!formData.ownerPhone?.trim() || formData.ownerPhone === "+91")
+          errors.push("Owner Phone Number is required");
         if (!formData.whyBuilding?.trim())
           errors.push("Why are you building a startup is required");
         if (!formData.superpower?.trim()) errors.push("Superpower is required");
@@ -308,6 +312,7 @@ const StartupProfile = () => {
       const data = new FormData();
       data.append("user_id", Number(userId));
       data.append("startup_name", formData.startupName);
+      data.append("owner_phone", formData.ownerPhone);
       if (formData.startupLogo instanceof File) {
         data.append("startup_logo", formData.startupLogo);
       } else if (formData.startupLogo) {
@@ -435,6 +440,25 @@ const StartupProfile = () => {
                           className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
                           placeholder="Enter your startup name"
                         />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="ownerPhone"
+                          className="block text-sm font-medium text-white mb-2"
+                        >
+                          Owner Phone (Your Phone Number) <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            id="ownerPhone"
+                            name="ownerPhone"
+                            value={formData.ownerPhone}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="+91 XXXXX XXXXX"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label
