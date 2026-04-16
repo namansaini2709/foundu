@@ -409,7 +409,7 @@ const CoFounderProfile = () => {
       {/* Main Content */}
       <div className="pt-24 pb-8 flex flex-col items-center">
         {/* View/Edit Toggle Bar */}
-        <div className="w-[85%] max-w-7xl mb-8">
+        <div className="w-full md:w-[85%] max-w-7xl mb-8 px-4">
           <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
             <button
               onClick={() => setViewMode("edit")}
@@ -474,7 +474,7 @@ const CoFounderProfile = () => {
               {/* Step 1: The Trust & Reputation Layer */}
               {currentStep === 1 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -658,12 +658,12 @@ const CoFounderProfile = () => {
               {/* Step 2: Deep Competency & Intelligence */}
               {currentStep === 2 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
                     >
-                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Deep Competency & Intelligence
                         </h2>
@@ -809,12 +809,12 @@ const CoFounderProfile = () => {
               {/* Step 3: The Financial & Time "Stress Test" */}
               {currentStep === 3 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
                     >
-                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           The Financial & Time "Stress Test"
                         </h2>
@@ -934,12 +934,12 @@ const CoFounderProfile = () => {
               {/* Step 4: The Ego & Psychology Match */}
               {currentStep === 4 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
                     >
-                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           The Ego & Psychology Match (The Oracle's Core)
                         </h2>
@@ -1084,12 +1084,12 @@ const CoFounderProfile = () => {
               {/* Step 5: Ethics & Value Alignment */}
               {currentStep === 5 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
                     >
-                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Ethics & Value Alignment
                         </h2>
@@ -1184,12 +1184,12 @@ const CoFounderProfile = () => {
               {/* Step 6: Targeted Requirement Filters */}
               {currentStep === 6 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
                     >
-                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-8 md:p-12 space-y-6 border border-blue-700/30">
+                      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 md:p-12 space-y-6 border border-blue-700/30">
                         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
                           Targeted Requirement Filters
                         </h2>

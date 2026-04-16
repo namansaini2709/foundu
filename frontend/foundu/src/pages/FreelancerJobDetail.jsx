@@ -3,7 +3,7 @@ import { getUserId, getUserType } from "../utils/authUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
-  DollarSign,
+  IndianRupee,
   Clock,
   MapPin,
   Briefcase,
@@ -263,14 +263,14 @@ function FreelancerJobDetail() {
   console.log("startup_logo_url:", startupData?.startup_logo_url);
   const buttonConfig = getApplyButtonConfig();
   return (
-    <div className="min-h-screen" style={gradientBlackToBlue}>
+    <div className="min-h-screen overflow-x-hidden" style={gradientBlackToBlue}>
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
       </div>
       <section className="pt-32 pb-16 px-4 relative z-10">
-        <div className="w-[85vw] mx-auto">
+        <div className="w-[95vw] md:w-[85vw] mx-auto">
           {/* Back Button */}
           <button
             onClick={() => navigate("/freelancer-jobs")}
@@ -280,9 +280,9 @@ function FreelancerJobDetail() {
             <span className="font-medium">Back to Jobs</span>
           </button>
           {/* Main Content Container */}
-          <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-8 md:p-12 shadow-2xl relative">
+          <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-6 md:p-12 shadow-2xl relative">
             {/* Header Section */}
-            <div className="flex items-start gap-6 mb-8 pb-8 border-b border-white/20">
+            <div className="flex flex-col md:flex-row items-start gap-6 mb-8 pb-8 border-b border-white/20">
               {/* Startup Logo */}
               {startupData?.startup_logo_url ? (
                 <div className="w-20 h-20 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 flex-shrink-0 overflow-hidden bg-white">
@@ -327,17 +327,20 @@ function FreelancerJobDetail() {
                 </div>
               )}
               <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                <h1 className="text-2xl md:text-4xl font-bold text-white mb-4">
                   {jobData.job_title}
                 </h1>
                 {/* Job Details Row */}
                 <div className="flex flex-wrap gap-6 items-center">
                   {/* Budget Range */}
-                  <div className="flex items-center gap-2 text-blue-300">
-                    {/* <DollarSign className="w-5 h-5" /> */}
-                    <span className="font-semibold text-lg">
-                      {jobData.budget_range || "Not specified"}
-                    </span>
+                  <div className="flex items-center gap-3 bg-gray-900/40 border border-white/5 rounded-2xl p-4 group hover:border-blue-500/30 transition-all">
+                    <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
+                      <IndianRupee className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 uppercase font-black">Stipend Range</p>
+                      <p className="text-white font-bold">{jobData?.budget_range || "Contact Founder"}</p>
+                    </div>
                   </div>
                   {/* Urgency */}
                   {jobData.urgency && (
@@ -376,18 +379,19 @@ function FreelancerJobDetail() {
                   )}
                 </div>
               </div>
-            </div>
-            {/* Apply Now Button */}
-            <div className="absolute top-6 right-4">
-              <button
-                onClick={handleApplyNow}
-                disabled={buttonConfig.disabled}
-                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''
-                  }`}
-              >
-                <Briefcase className="w-5 h-5" />
-                {buttonConfig.text}
-              </button>
+
+              {/* Apply Now Button - Responsive Placement */}
+              <div className="mt-8 md:absolute md:top-6 md:right-6">
+                <button
+                  onClick={handleApplyNow}
+                  disabled={buttonConfig.disabled}
+                  className={`${buttonConfig.className} w-full md:w-auto text-white px-8 py-4 md:py-3 rounded-xl md:rounded-lg font-bold text-base transition-all duration-300 transform md:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center justify-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''
+                    }`}
+                >
+                  <Briefcase className="w-5 h-5" />
+                  {buttonConfig.text}
+                </button>
+              </div>
             </div>
             {/* About Startup Section */}
             {startupData && (

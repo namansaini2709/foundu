@@ -3,7 +3,7 @@ import { getUserId, getUserType } from "../utils/authUtils";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
-  DollarSign,
+  IndianRupee,
   Briefcase,
   MapPin,
   CheckCircle,
@@ -186,7 +186,7 @@ function CoFounderJobDetail() {
   const buttonConfig = getApplyButtonConfig();
   const job = jobData; // For compatibility with existing JSX
   return (
-    <div className="min-h-screen" style={gradientBlackToBlue}>
+    <div className="min-h-screen overflow-x-hidden" style={gradientBlackToBlue}>
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
@@ -203,7 +203,7 @@ function CoFounderJobDetail() {
             <span className="font-medium">Back to Jobs</span>
           </button>
           {/* Main Content Container */}
-          <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-8 md:p-12 shadow-2xl relative">
+          <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-3xl p-6 md:p-12 shadow-2xl relative">
             {/* Header Section */}
             <div className="flex items-start gap-6 mb-8 pb-8 border-b border-white/20">
               {startupData?.startup_logo_url ? (
@@ -222,12 +222,14 @@ function CoFounderJobDetail() {
                 </div>
               )}
               <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                <h1 className="text-2xl md:text-4xl font-bold text-white mb-4">
                   {startupData?.startup_name || job.startup_name || "Unknown Startup"}
                 </h1>
                 <div className="flex flex-wrap gap-6 items-center">
                   <div className="flex items-center gap-2 text-blue-300">
-                    <DollarSign className="w-5 h-5" />
+                    <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
+                        <IndianRupee className="w-5 h-5" />
+                    </div>
                     <span className="font-semibold text-lg">{job.budget_range || job.compensation || "Not specified"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-blue-300">
@@ -252,17 +254,18 @@ function CoFounderJobDetail() {
                   )}
                 </div>
               </div>
-            </div>
-            {/* Show Interest Button - Top Right */}
-            <div className="absolute top-6 right-4">
-              <button
-                onClick={handleApplyNow}
-                disabled={buttonConfig.disabled}
-                className={`${buttonConfig.className} text-white px-8 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''}`}
-              >
-                <Briefcase className="w-5 h-5" />
-                {buttonConfig.text}
-              </button>
+
+              {/* Show Interest Button - Responsive Placement */}
+              <div className="mt-8 md:absolute md:top-6 md:right-6">
+                <button
+                  onClick={handleApplyNow}
+                  disabled={buttonConfig.disabled}
+                  className={`${buttonConfig.className} w-full md:w-auto text-white px-8 py-4 md:py-3 rounded-xl md:rounded-lg font-bold text-base transition-all duration-300 transform md:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-blue-500/50 flex items-center justify-center gap-2 ${buttonConfig.disabled ? 'opacity-80' : ''}`}
+                >
+                  <Briefcase className="w-5 h-5" />
+                  {buttonConfig.text}
+                </button>
+              </div>
             </div>
             {/* About Startup Section */}
             <div className="mb-8">

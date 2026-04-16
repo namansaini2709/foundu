@@ -17,7 +17,7 @@ export default function TermsOfService() {
           <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 rounded-3xl border border-blue-500/20 mb-6 shadow-xl shadow-blue-500/10">
             <Scale className="w-10 h-10 text-blue-400" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">Terms of <span className="text-blue-400 text-shadow-glow">Service</span></h1>
+          <h1 className="text-3xl md:text-6xl font-bold text-white mb-6 tracking-tight">Terms of <span className="text-blue-400 text-shadow-glow uppercase">Service</span></h1>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
             Establishing the legal framework for a professional, secure, and successful collaborative ecosystem on Foundu.
           </p>
@@ -25,7 +25,7 @@ export default function TermsOfService() {
 
         {/* Content Container - 85% Width */}
         <div 
-          className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-20 shadow-2xl relative overflow-hidden group"
+          className="w-full md:w-[85%] bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl md:rounded-[3rem] p-6 md:p-20 shadow-2xl relative overflow-hidden group"
         >
           {/* Ambient Glows */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none group-hover:bg-blue-600/10 transition-colors duration-1000"></div>
@@ -34,11 +34,11 @@ export default function TermsOfService() {
             
             {/* 1. Acceptance of Terms */}
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                 <BookOpen className="w-8 h-8 text-blue-400" />
                 1. Acceptance of Agreement
               </h2>
-              <div className="space-y-4 text-lg leading-relaxed">
+              <div className="space-y-4 text-base md:text-lg leading-relaxed">
                 <p>
                   By accessing, browsing, or using the Foundu platform, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you are entering into this agreement on behalf of a company or other legal entity, you represent that you have the authority to bind such entity to these terms.
                 </p>
@@ -49,8 +49,8 @@ export default function TermsOfService() {
             </section>
 
             {/* 2. User Accounts & Security */}
-            <section className="p-10 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner">
-              <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+            <section className="p-6 md:p-10 bg-white/5 rounded-3xl md:rounded-[2.5rem] border border-white/5 shadow-inner">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-8 flex items-center gap-4">
                 <Fingerprint className="w-8 h-8 text-blue-400" />
                 2. Account Identity & Security
               </h2>

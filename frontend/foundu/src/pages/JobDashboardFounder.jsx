@@ -154,29 +154,29 @@ export default function JobDashboardFounder() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <div className="pt-24 pb-20 px-6 max-w-6xl mx-auto space-y-8">
+            <div className="pt-24 pb-20 px-4 md:px-6 max-w-6xl mx-auto space-y-8 overflow-x-hidden">
 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900/50 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900/50 border border-white/10 rounded-3xl p-5 md:p-8 backdrop-blur-xl shadow-2xl">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <span className="bg-blue-500 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Active Project</span>
                             <span className="text-gray-500 font-mono text-xs">#{jobId}-{freelancerId}</span>
                         </div>
-                        <h1 className="text-4xl font-black">{job?.job_title}</h1>
-                        <p className="text-gray-400 font-medium">Working with <span className="text-blue-400">@{freelancer?.full_name}</span></p>
+                        <h1 className="text-2xl md:text-4xl font-black">{job?.job_title}</h1>
+                        <p className="text-gray-400 font-medium text-sm md:text-base">Working with <span className="text-blue-400">@{freelancer?.full_name}</span></p>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
-                        <div className="text-right">
+                    <div className="flex flex-col md:items-end gap-2">
+                        <div className="text-left md:text-right">
                             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Escrow Balance</p>
-                            <p className="text-3xl font-black text-green-400">{job?.budget_range || '₹10,000'}</p>
+                            <p className="text-2xl md:text-3xl font-black text-green-400">{job?.budget_range || '₹10,000'}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             {submission?.deadline && (status !== 'completed') && (
                                 <CountdownTimer deadline={submission.deadline} />
                             )}
-                            <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${status === 'completed' ? 'bg-green-500/10 border-green-500 text-green-500' :
+                            <div className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border ${status === 'completed' ? 'bg-green-500/10 border-green-500 text-green-500' :
                                 status === 'submitted' ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500' :
                                     'bg-blue-500/10 border-blue-500 text-blue-500'
                                 }`}>
@@ -210,7 +210,7 @@ export default function JobDashboardFounder() {
 
                     {/* Setup Panel (Left) */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-8 space-y-6">
+                        <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-5 md:p-8 space-y-6">
                             <div className="flex items-center gap-3 border-b border-white/5 pb-4">
                                 <FileText className="text-blue-500" />
                                 <h2 className="text-xl font-black uppercase tracking-tight">Instructions & Setup</h2>
@@ -268,7 +268,7 @@ export default function JobDashboardFounder() {
 
                         {/* Freelancer Submission View */}
                         {status === 'submitted' || status === 'completed' ? (
-                            <div className="bg-gradient-to-br from-green-500/10 to-blue-500/5 border border-green-500/20 rounded-3xl p-8 space-y-6">
+                            <div className="bg-gradient-to-br from-green-500/10 to-blue-500/5 border border-green-500/20 rounded-3xl p-5 md:p-8 space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <CheckCircle className="text-green-500" />

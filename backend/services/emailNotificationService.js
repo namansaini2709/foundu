@@ -27,7 +27,7 @@ const generateTemplate = (title, message, actionText = null, actionLink = null) 
     <body>
       <div class="container">
         <div class="header">
-          <h1>F<span>OUNDU</span></h1>
+          <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
         </div>
         <div class="content">
           <h2>${title}</h2>

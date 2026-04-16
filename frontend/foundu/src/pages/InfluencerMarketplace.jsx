@@ -4,7 +4,7 @@ import {
     Instagram,
     Eye,
     Mail,
-    DollarSign,
+    IndianRupee,
     TrendingUp,
     Search,
     Filter,
@@ -93,10 +93,10 @@ const InfluencerMarketplace = () => {
                         <Zap className="w-4 h-4" />
                         Platform Exclusive
                     </div> */}
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                    <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 px-4">
                         Influencer Marketplace
                     </h1>
-                    <p className="text-gray-400 text-xl max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed px-4">
                         Connect with top-tier creators to skyrocket your brand's visibility and reach the right audience instantly.
                     </p>
                 </div>
@@ -104,8 +104,8 @@ const InfluencerMarketplace = () => {
 
             {/* Filters Section */}
             <div className="px-6 mb-12">
-                <div className="max-w-7xl mx-auto py-6 px-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl flex flex-wrap gap-6 items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+                <div className="max-w-7xl mx-auto py-5 px-6 md:px-8 rounded-2xl md:rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center justify-between">
+                    <div className="flex items-center gap-4 w-full md:flex-1">
                         <div className="relative flex-1">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
                             <input
@@ -115,13 +115,13 @@ const InfluencerMarketplace = () => {
                             />
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <button className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all font-bold text-sm">
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all font-bold text-sm">
                             <Filter className="w-4 h-4" />
                             Filters
                         </button>
-                        <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl transition-all font-bold text-sm shadow-lg shadow-blue-600/20">
-                            Apply for Listing
+                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl transition-all font-bold text-sm shadow-lg shadow-blue-600/20">
+                            Apply
                         </button>
                     </div>
                 </div>
@@ -144,7 +144,7 @@ const InfluencerMarketplace = () => {
                     ) : influencers.map((inf) => (
                         <div
                             key={inf.id}
-                            className="group relative rounded-[2.5rem] bg-gray-900/40 border border-white/5 overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:border-blue-500/30 backdrop-blur-sm"
+                            className="group relative rounded-3xl md:rounded-[2.5rem] bg-gray-900/40 border border-white/5 overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:border-blue-500/30 backdrop-blur-sm"
                         >
                             {/* Card Header Banner/Gradient */}
                             <div className="h-32 relative overflow-hidden">
@@ -160,7 +160,7 @@ const InfluencerMarketplace = () => {
                             </div>
 
                             {/* Avatar & Info */}
-                            <div className="px-8 pb-8 -mt-12 relative z-10">
+                            <div className="px-6 md:px-8 pb-6 md:pb-8 -mt-10 md:mt-12 relative z-10">
                                 <div className="flex justify-between items-end mb-6">
                                     <div className="w-24 h-24 rounded-3xl bg-gray-800 border-4 border-[#020024] p-1 overflow-hidden shadow-2xl">
                                         {inf.photo_url ? (
@@ -221,7 +221,8 @@ const InfluencerMarketplace = () => {
                                     </div>
                                     <div className="flex items-center justify-between text-sm pt-3 border-t border-white/5">
                                         <span className="text-gray-500 font-medium">Est. Budget</span>
-                                        <span className="text-blue-400 font-black text-lg">
+                                        <span className="text-blue-400 font-black text-lg flex items-center gap-1">
+                                            <IndianRupee className="w-4 h-4" />
                                             {inf.budget_range}
                                         </span>
                                     </div>

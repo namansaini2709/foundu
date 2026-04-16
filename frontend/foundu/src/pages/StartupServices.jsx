@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-import { 
-  Rocket, 
-  ShoppingCart, 
-  FileEdit, 
-  Bot, 
-  BarChart3, 
-  CheckCircle2, 
+import {
+  Rocket,
+  ShoppingCart,
+  FileEdit,
+  Bot,
+  BarChart3,
+  CheckCircle2,
   ArrowRight,
   ShieldCheck,
   Zap,
@@ -15,9 +15,9 @@ import {
   LineChart,
   Users,
   Lightbulb,
-  LayoutDashboard
+  LayoutDashboard,
 } from "lucide-react";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function StartupServices() {
   const navigate = useNavigate();
@@ -27,11 +27,11 @@ export default function StartupServices() {
     <section className="relative pt-32 pb-24 px-6 overflow-hidden">
       {/* Background Ambient Effects */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-10"></div>
-      
+
       <div className="max-w-7xl mx-auto">
         <div className="relative z-10 flex flex-col md:flex-row gap-16 items-center justify-center">
           <div className="w-64 h-64 md:w-[500px] md:h-[500px] flex-shrink-0">
-              <DotLottieReact
+            <DotLottieReact
               src="https://lottie.host/7bbfa179-0d03-432c-b7fb-a3c77fc36581/JE6p5TAlXV.lottie"
               loop
               autoplay
@@ -43,7 +43,8 @@ export default function StartupServices() {
               Foundu Intelligence
             </div>
             <h1 className="text-5xl md:text-8xl font-black mb-8 leading-[0.9] tracking-tighter text-white uppercase italic">
-              Startup <span className="text-blue-500 not-italic">Dashboard.</span>
+              Startup{" "}
+              <span className="text-blue-500 not-italic">Dashboard.</span>
             </h1>
             <p className="text-gray-400 text-lg mb-6 font-medium leading-relaxed">
               Your AI-powered command center for startup intelligence. Get
@@ -75,45 +76,75 @@ export default function StartupServices() {
         icon: <ShoppingCart className="w-8 h-8 text-yellow-500" />,
         title: "Buy Portals",
         tag: "PREMIUM",
-        description: "Instantly launch with ready-to-use business portals including Hiring & Talent, CRM, Helpdesk, Vendor Management, and more.",
-        features: ["Hiring & Talent Portal", "CRM System", "Helpdesk Support", "Vendor Management", "Project Tracking"],
+        description:
+          "Instantly launch with ready-to-use business portals including Hiring & Talent, CRM, Helpdesk, Vendor Management, and more.",
+        features: [
+          "Hiring & Talent Portal",
+          "CRM System",
+          "Helpdesk Support",
+          "Vendor Management",
+          "Project Tracking",
+        ],
         color: "yellow",
-        btn: "View Portals"
+        btn: "View Portals",
       },
       {
         icon: <FileEdit className="w-8 h-8 text-blue-500" />,
         title: "Manual Jobs",
-        description: "Create and manage job posts manually without AI assistance. Full control over your hiring process.",
-        features: ["Custom Job Templates", "Applicant Screening", "Interview Scheduling", "Offer Management", "Onboarding Tools"],
+        description:
+          "Create and manage job posts manually without AI assistance. Full control over your hiring process.",
+        features: [
+          "Custom Job Templates",
+          "Applicant Screening",
+          "Interview Scheduling",
+          "Offer Management",
+          "Onboarding Tools",
+        ],
         color: "blue",
-        btn: "Post a Job"
+        btn: "Post a Job",
       },
       {
         icon: <Bot className="w-8 h-8 text-green-500" />,
         title: "AI Insights",
-        description: "Advanced AI-powered analytics and recommendations to guide your startup decisions.",
-        features: ["Founder-Founder Compatibility Score", "Founder Readiness Score", "Startup DNA Analysis", "Burn Reality Checker", "AI Founder Simulator"],
+        description:
+          "Advanced AI-powered analytics and recommendations to guide your startup decisions.",
+        features: [
+          "Founder-Founder Compatibility Score",
+          "Founder Readiness Score",
+          "Startup DNA Analysis",
+          "Burn Reality Checker",
+          "AI Founder Simulator",
+        ],
         color: "green",
-        btn: "Explore AI"
+        btn: "Explore AI",
       },
       {
         icon: <BarChart3 className="w-8 h-8 text-purple-500" />,
         title: "Pitch Decks",
-        description: "Create professional pitch decks using AI-recommended templates tailored to your startup stage and business model.",
-        features: ["AI Template Selection", "Content Auto-Generation", "Visual Design Optimization", "Investor Insights", "Export & Sharing"],
+        description:
+          "Create professional pitch decks using AI-recommended templates tailored to your startup stage and business model.",
+        features: [
+          "AI Template Selection",
+          "Content Auto-Generation",
+          "Visual Design Optimization",
+          "Investor Insights",
+          "Export & Sharing",
+        ],
         color: "purple",
-        btn: "Generate Deck"
-      }
+        btn: "Generate Deck",
+      },
     ];
 
     return (
       <section className="py-24 px-6 relative">
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-600/5 rounded-full blur-[100px] -z-10"></div>
-        
+
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8 text-center md:text-left">
             <div>
-              <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">Operational Assets</div>
+              <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">
+                Operational Assets
+              </div>
               <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic">
                 Our <span className="text-blue-500 not-italic">MVPs.</span>
               </h2>
@@ -125,12 +156,14 @@ export default function StartupServices() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {categories.map((cat, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className={`group bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 hover:border-${cat.color}-500/50 transition-all duration-500`}
               >
                 <div className="flex items-start justify-between mb-8">
-                  <div className={`p-5 rounded-3xl bg-${cat.color}-500/10 border border-${cat.color}-500/20 group-hover:scale-110 transition-transform duration-500`}>
+                  <div
+                    className={`p-5 rounded-3xl bg-${cat.color}-500/10 border border-${cat.color}-500/20 group-hover:scale-110 transition-transform duration-500`}
+                  >
                     {cat.icon}
                   </div>
                   {cat.tag && (
@@ -139,22 +172,30 @@ export default function StartupServices() {
                     </span>
                   )}
                 </div>
-                
-                <h3 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">{cat.title}</h3>
+
+                <h3 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">
+                  {cat.title}
+                </h3>
                 <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8">
                   {cat.description}
                 </p>
-                
+
                 <div className="grid grid-cols-1 gap-4 mb-10">
                   {cat.features.map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-3">
-                      <div className={`w-1.5 h-1.5 rounded-full bg-${cat.color}-500`}></div>
-                      <span className="text-gray-300 text-xs font-bold uppercase tracking-wider">{feature}</span>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full bg-${cat.color}-500`}
+                      ></div>
+                      <span className="text-gray-300 text-xs font-bold uppercase tracking-wider">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
 
-                <button className={`w-full py-5 rounded-2xl bg-${cat.color}-500/10 hover:bg-${cat.color}-500 border border-${cat.color}-500/20 hover:border-${cat.color}-500 text-${cat.color}-500 hover:text-white font-black text-[10px] tracking-widest uppercase transition-all duration-300`}>
+                <button
+                  className={`w-full py-5 rounded-2xl bg-${cat.color}-500/10 hover:bg-${cat.color}-500 border border-${cat.color}-500/20 hover:border-${cat.color}-500 text-${cat.color}-500 hover:text-white font-black text-[10px] tracking-widest uppercase transition-all duration-300`}
+                >
                   {cat.btn}
                 </button>
               </div>
@@ -173,25 +214,26 @@ export default function StartupServices() {
         number: "01",
         title: "Create Profile",
         description: "Build your startup profile with vision, needs, and goals",
-        icon: <Users className="w-5 h-5" />
+        icon: <Users className="w-5 h-5" />,
       },
       {
         number: "02",
         title: "AI Analysis",
         description: "Get AI-powered compatibility and readiness scores",
-        icon: <Zap className="w-5 h-5" />
+        icon: <Zap className="w-5 h-5" />,
       },
       {
         number: "03",
         title: "Get Matches",
-        description: "Receive curated recommendations for freelancers and co-founders",
-        icon: <CheckCircle2 className="w-5 h-5" />
+        description:
+          "Receive curated recommendations for freelancers and co-founders",
+        icon: <CheckCircle2 className="w-5 h-5" />,
       },
       {
         number: "04",
         title: "Connect & Execute",
         description: "Connect with matches and start building your dream team",
-        icon: <Rocket className="w-5 h-5" />
+        icon: <Rocket className="w-5 h-5" />,
       },
     ];
 
@@ -205,30 +247,37 @@ export default function StartupServices() {
     return (
       <section className="py-24 px-6 relative bg-white/2 overflow-hidden">
         <div className="absolute inset-0 bg-blue-600/5 -skew-y-3 transform origin-right"></div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-20">
-            <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">Success Protocol</div>
+            <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">
+              Success Protocol
+            </div>
             <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic mb-8">
-              4 Steps of <span className="text-blue-500 not-italic">Matching.</span>
+              4 Steps of{" "}
+              <span className="text-blue-500 not-italic">Matching.</span>
             </h2>
-            
+
             {/* Progression Line */}
             <div className="hidden lg:block relative max-w-4xl mx-auto mt-16 mb-24">
               <div className="absolute top-1/2 left-0 w-full h-[2px] bg-white/5 -translate-y-1/2"></div>
-              <div 
+              <div
                 className="absolute top-1/2 left-0 h-[2px] bg-gradient-to-r from-blue-600 to-indigo-600 -translate-y-1/2 transition-all duration-1000 shadow-[0_0_15px_rgba(37,99,235,0.5)]"
                 style={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
               ></div>
               <div className="flex justify-between items-center relative">
                 {steps.map((_, i) => (
-                  <div 
+                  <div
                     key={i}
                     className={`w-12 h-12 rounded-full border-2 transition-all duration-500 flex items-center justify-center ${
-                      i <= activeStep ? "bg-blue-600 border-blue-500 scale-125 shadow-lg shadow-blue-500/20" : "bg-gray-900 border-white/10"
+                      i <= activeStep
+                        ? "bg-blue-600 border-blue-500 scale-125 shadow-lg shadow-blue-500/20"
+                        : "bg-gray-900 border-white/10"
                     }`}
                   >
-                    <div className="text-[10px] font-black">{steps[i].number}</div>
+                    <div className="text-[10px] font-black">
+                      {steps[i].number}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -240,19 +289,27 @@ export default function StartupServices() {
               <div
                 key={index}
                 className={`group relative p-8 rounded-[2.5rem] border transition-all duration-500 ${
-                  index === activeStep 
-                    ? "bg-white/10 border-blue-500/50 scale-105 shadow-2xl shadow-blue-500/10" 
+                  index === activeStep
+                    ? "bg-white/10 border-blue-500/50 scale-105 shadow-2xl shadow-blue-500/10"
                     : "bg-white/5 border-white/5 opacity-50 grayscale"
                 }`}
                 onMouseEnter={() => setActiveStep(index)}
               >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 ${
-                  index === activeStep ? "bg-blue-600 text-white" : "bg-white/10 text-gray-500"
-                }`}>
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 ${
+                    index === activeStep
+                      ? "bg-blue-600 text-white"
+                      : "bg-white/10 text-gray-500"
+                  }`}
+                >
                   {step.icon}
                 </div>
-                <h3 className="text-xl font-black text-white mb-3 tracking-tighter uppercase">{step.title}</h3>
-                <p className="text-gray-400 text-xs font-bold leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-black text-white mb-3 tracking-tighter uppercase">
+                  {step.title}
+                </h3>
+                <p className="text-gray-400 text-xs font-bold leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             ))}
           </div>
@@ -267,17 +324,20 @@ export default function StartupServices() {
       {
         icon: <Zap className="w-8 h-8 text-blue-500" />,
         title: "AI-Powered Matching",
-        description: "Advanced algorithms ensure compatibility and success rates",
+        description:
+          "Advanced algorithms ensure compatibility and success rates",
       },
       {
         icon: <ShieldCheck className="w-8 h-8 text-indigo-500" />,
         title: "Secure & Trusted",
-        description: "Verified profiles and secure transactions for peace of mind",
+        description:
+          "Verified profiles and secure transactions for peace of mind",
       },
       {
         icon: <Star className="w-8 h-8 text-blue-400" />,
         title: "Fast Execution",
-        description: "Get matched and start collaborating within days, not months",
+        description:
+          "Get matched and start collaborating within days, not months",
       },
       {
         icon: <LineChart className="w-8 h-8 text-indigo-400" />,
@@ -300,9 +360,12 @@ export default function StartupServices() {
       <section className="py-24 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">Verification & Reliability</div>
+            <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">
+              Verification & Reliability
+            </div>
             <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic mb-6">
-              Why Trust <span className="text-blue-500 not-italic">Foundu.</span>
+              Why Trust{" "}
+              <span className="text-blue-500 not-italic">Foundu.</span>
             </h2>
             <p className="text-gray-400 text-lg font-medium max-w-2xl mx-auto">
               Join thousands of startups that rely on Foundu for intelligent
@@ -316,7 +379,9 @@ export default function StartupServices() {
                 key={index}
                 className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 hover:border-blue-500/50 hover:bg-white/10 transition-all duration-300 group"
               >
-                <div className="mb-6 group-hover:scale-110 transition-transform duration-500">{point.icon}</div>
+                <div className="mb-6 group-hover:scale-110 transition-transform duration-500">
+                  {point.icon}
+                </div>
                 <h3 className="text-xl font-black text-white mb-3 tracking-tighter uppercase">
                   {point.title}
                 </h3>

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getUserId } from '../utils/authUtils';
 import Footer from '../components/Footer';
 import { X, Loader2, Building2, Star, CheckCircle } from 'lucide-react';
-import blueBadge from '../assets/blue-badge.jpg';
-import greenBadge from '../assets/green-badge.jpg';
+import blueBadge from '../assets/bluebadge.png';
+import greenBadge from '../assets/greenbadge.png';
 import api from '../utils/axiosConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -35,6 +35,7 @@ const FounderBadges = () => {
     const [blueTickStatus, setBlueTickStatus] = useState(null);
     const [blueTickVerified, setBlueTickVerified] = useState(false);
     const [greenTickVerified, setGreenTickVerified] = useState(false);
+    const [jobCount, setJobCount] = useState(0);
     // Founder-specific fields
     const [formData, setFormData] = useState({
         companyLinkedin: '',
@@ -59,6 +60,17 @@ const FounderBadges = () => {
                     setBlueTickStatus(d.blue_tick_status);
                     setBlueTickVerified(!!d.blue_tick_verified);
                     setGreenTickVerified(!!d.green_tick_verified);
+                }
+            })
+            .catch(() => {});
+        // Fetch job count for Green Badge logic
+        api.get(`${API}/jobs/user/${userId}`)
+            .then(res => {
+                const jobs = res.data;
+                setJobCount(jobs.length);
+                // If jobs >= 3 and not verified yet, we can locally award it for UI
+                if (jobs.length >= 3) {
+                    setGreenTickVerified(true);
                 }
             })
             .catch(() => {});
@@ -133,7 +145,7 @@ const FounderBadges = () => {
                         </div>
                         <div className="flex-shrink-0">
                             {blueTickVerified ? (
-                                <button disabled className="bg-blue-500/30 border border-blue-400/30 text-blue-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">✅ Verified</button>
+                                <button disabled className="bg-blue-500/30 border border-blue-400/30 text-blue-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">Verified</button>
                             ) : blueTickStatus === 'pending' ? (
                                 <button disabled className="bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2">
                                     <Loader2 size={16} className="animate-spin" /> Pending
@@ -155,21 +167,37 @@ const FounderBadges = () => {
                         <div className="flex-grow text-center md:text-left">
                             <h3 className="text-xl font-bold text-green-300 mb-2">Active Recruiter Badge</h3>
                             <p className="text-gray-300">Automatically awarded when you have posted 3 or more jobs on the platform. Shows reliability to candidates.</p>
+                            {/* Progress bar for green badge */}
+                            {!greenTickVerified && (
+                                <div className="mt-4 max-w-xs">
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="text-gray-400 uppercase tracking-widest font-bold">Progress</span>
+                                        <span className="text-green-400 font-bold">{jobCount} / 3 Jobs</span>
+                                    </div>
+                                    <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                                        <div 
+                                            className="bg-green-500 h-full transition-all duration-500" 
+                                            style={{ width: `${Math.min((jobCount / 3) * 100, 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="flex-shrink-0">
                             {greenTickVerified ? (
                                 <button disabled className="bg-green-500/30 border border-green-400/30 text-green-300 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">
-                                    ✅ Awarded
+                                    Awarded
                                 </button>
                             ) : (
-                                <button disabled className="bg-green-500/20 border border-green-500/30 text-green-400 px-8 py-3 rounded-lg font-semibold cursor-not-allowed text-sm">
-                                    🤖 Auto-Awarded
+                                <button disabled className="bg-green-500/20 border border-green-500/30 text-green-400 px-8 py-3 rounded-lg font-semibold cursor-not-allowed text-xs uppercase tracking-widest">
+                                    In Progress
                                 </button>
                             )}
                         </div>
                     </div>
                 </div>
-                {/* Credibility Score */}
+                {/* Credibility Score - Commented Out */}
+                {/* 
                 <div className="mb-12">
                     <h2 className="text-3xl font-bold text-center mb-12">
                         <span className="text-white">CREDIBILITY </span><span className="text-blue-300">SCORE</span>
@@ -205,6 +233,7 @@ const FounderBadges = () => {
                         ))}
                     </div>
                 </div>
+                */}
             </div>
             <Footer />
             {/* Modal — Founder specific fields */}

@@ -55,12 +55,12 @@ const CoFounderJobs = () => {
     navigate(`/cofounder-jobs/${id}`);
   };
   return (
-    <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden" style={gradientBlackToBlue}>
       <div className="pt-24 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Filter Section */}
           <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-6 border border-blue-700/30 mb-12">
-            <div className="flex flex-col md:flex-row gap-6 items-end">
+            <div className="flex flex-col md:flex-row gap-6 md:items-end">
               {/* Industry Filter */}
               <div className="flex-1">
                 <label className="block text-white text-sm font-medium mb-2">

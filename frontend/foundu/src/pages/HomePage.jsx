@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Lightbulb,
   CheckCircle,
+  MessageSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import AOS from "aos";
@@ -21,6 +22,7 @@ import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
 import { API_BASE } from "../utils/axiosConfig";
+import whatsappPlaceholder from "../assets/whatsapp_placeholder.png";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -103,6 +105,7 @@ function HomePage() {
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
       <FoundUAIs />
+      <WhatsAppService />
       <UsersWeCater navigate={navigate} />
       <InfluencersSection navigate={navigate} />
       <CategorySteps />
@@ -238,7 +241,7 @@ const TrustedBy = ({ startups }) => {
         borderTop: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
-      <h2 className="text-center text-4xl md:text-5xl font-bold mb-12 relative z-10">
+      <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold mb-12 relative z-10 px-4">
         <span className="text-white">Trusted by </span>
         <span className="text-blue-300">{logos.length}+ Startups</span>
       </h2>
@@ -453,8 +456,8 @@ const UsersWeCater = ({ navigate }) => {
       }}
     >
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="flex flex-col items-center mb-12 md:mb-20">
-          <h2 className="text-center text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6">
+        <div className="flex flex-col items-center mb-10 md:mb-20">
+          <h2 className="text-center text-3xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6 px-4">
             <span className="text-white">TYPES OF USERS </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
               WE CATER
@@ -546,17 +549,17 @@ const CategorySteps = () => {
       }}
     >
       <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-28">
+        <div className="text-center mb-16 md:mb-28">
           <h2 className="text-4xl md:text-7xl font-black text-white mb-6 uppercase tracking-tight">
             THE ROADMAP
           </h2>
           <div className="h-1.5 w-24 bg-blue-500 mx-auto rounded-full mb-6"></div>
-          <p className="text-blue-400 font-bold uppercase tracking-[0.4em] text-xs">
+          <p className="text-blue-400 font-bold uppercase tracking-[0.4em] text-[10px] md:text-xs px-4">
             Clear steps for every role
           </p>
         </div>
 
-        <div className="space-y-40 md:space-y-60">
+        <div className="space-y-24 md:space-y-60">
           {categories.map((cat, idx) => (
             <div
               key={idx}
@@ -578,7 +581,7 @@ const CategorySteps = () => {
                 <h4 className="text-3xl md:text-5xl font-black text-white mb-8 relative z-10">
                   {cat.type} Journey
                 </h4>
-                <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed">
+                <p className="text-gray-400 text-lg md:text-2xl font-light max-w-xl italic leading-relaxed px-4">
                   "{cat.description}"
                 </p>
               </div>
@@ -623,7 +626,7 @@ const CategorySteps = () => {
 const FoundUAIs = () => {
   const aiModels = [
     {
-      title: "FoundU Genie",
+      title: "G.E.N.I.E AI",
       subtitle: "The Master Matcher",
       description:
         "Our core AI engine that powers the ecosystem. It analyzes credibility scores and badge verifications to find the perfect match for Founders, Co-founders, and Freelancers alike.",
@@ -635,7 +638,7 @@ const FoundUAIs = () => {
       tags: ["Matching", "Verification", "Insights"],
     },
     {
-      title: "Idea Lab",
+      title: "F.R.I.D.A.Y AI",
       subtitle: "Incubation on Autopilot",
       description:
         "Pitch your raw startup concepts and watch our AI polish them into viable business models. Generates detailed roadmaps and milestones for Founders and Co-founders.",
@@ -647,7 +650,7 @@ const FoundUAIs = () => {
       tags: ["Strategy", "Incubation", "Roadmaps"],
     },
     {
-      title: "Quick Job Posting",
+      title: "J.D AI",
       subtitle: "Hire in 60 Seconds",
       description:
         "Just provide a budget and a one-liner about your needs. Our AI instantly drafts a professional JD and publishes it across the network. Built for rapid scaling.",
@@ -672,8 +675,8 @@ const FoundUAIs = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 blur-[150px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-8xl font-black mb-6 uppercase tracking-tighter">
+        <div className="text-center mb-12 md:mb-20">
+          <h2 className="text-3xl sm:text-5xl md:text-8xl font-black mb-6 uppercase tracking-tighter px-4">
             <span className="text-white">POWERED BY </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-lime-400 animate-gradient">
               FOUNDU AI
@@ -698,7 +701,7 @@ const FoundUAIs = () => {
               <div
                 className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}
               ></div>
-              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
                 <div
                   className={`w-24 h-24 rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
                 >
@@ -736,6 +739,127 @@ const FoundUAIs = () => {
   );
 };
 
+// WhatsApp Notification Service Section
+const WhatsAppService = () => {
+  const [selectedPlan, setSelectedPlan] = useState("monthly");
+
+  const plans = {
+    monthly: { name: "Monthly", price: 49, duration: "month", savings: null },
+    quarterly: { name: "Quarterly", price: 139, duration: "3 months", savings: "5%" },
+    sixMonth: { name: "6 Months", price: 249, duration: "6 months", savings: "15%" },
+    yearly: { name: "Yearly", price: 449, duration: "1 year", savings: "24%" },
+  };
+
+  return (
+    <section
+      className="py-24 md:py-32 px-4 relative overflow-hidden"
+      style={{
+        background: "#000000",
+        borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+      }}
+    >
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-green-500/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left Side: Illustration */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="order-2 lg:order-1"
+          >
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-green-500/20 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+              <div className="relative bg-gray-900/50 backdrop-blur-2xl border border-green-500/20 rounded-[3rem] p-4 overflow-hidden shadow-2xl">
+                <img
+                  src={whatsappPlaceholder}
+                  alt="WhatsApp Chat Interface Mockup"
+                  className="w-full h-auto rounded-[2.5rem] transform group-hover:scale-[1.02] transition-transform duration-700"
+                />
+                
+                {/* Floating Elements */}
+                <div className="absolute top-10 right-10 bg-green-500 text-black px-4 py-2 rounded-full text-xs font-black tracking-widest shadow-lg animate-bounce">
+                  9:00 PM ALERT
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Side: Features & Pricing */}
+          <div className="order-1 lg:order-2 space-y-10">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold uppercase tracking-widest mb-6">
+                <MessageSquare className="w-4 h-4" />
+                Premium Feature
+              </div>
+              <h2 className="text-4xl sm:text-6xl font-black text-white mb-6 uppercase tracking-tight leading-tight">
+                NEVER MISS THE <span className="text-green-500">BEST MATCH.</span>
+              </h2>
+              <p className="text-gray-400 text-lg md:text-xl font-light italic border-l-2 border-green-500/50 pl-6 mb-8">
+                "AI-curated opportunities delivered straight to your WhatsApp, every single day."
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {[
+                "Automatic Best Match Alerts sent daily at 9:00 PM IST.",
+                "Personalized for Founders, Co-founders, and Freelancers.",
+                "Curated by FoundU AI based on your profile & requirements.",
+                "Zero clutter—just high-impact opportunities on the go.",
+              ].map((feature, i) => (
+                <div key={i} className="flex items-start gap-4">
+                  <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] text-green-500">✓</div>
+                  <p className="text-gray-300 text-base md:text-lg font-medium">{feature}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Pricing Tiers */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 space-y-8">
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(plans).map(([key, plan]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedPlan(key)}
+                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedPlan === key
+                        ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
+                        : "bg-white/5 text-gray-400 hover:bg-white/10"
+                    }`}
+                  >
+                    {plan.name}
+                    {plan.savings && (
+                      <span className="block text-[8px] text-green-200 mt-0.5 opacity-80">
+                        SAVE {plan.savings}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-end justify-between border-t border-white/5 pt-8">
+                <div>
+                  <span className="text-gray-500 text-sm font-black uppercase tracking-widest block mb-2">Total Amount</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-white">₹{plans[selectedPlan].price}</span>
+                    <span className="text-gray-500 font-bold uppercase text-xs tracking-widest">/ {plans[selectedPlan].duration}</span>
+                  </div>
+                </div>
+                <button className="px-10 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-xs flex items-center gap-3">
+                  BUY SUBSCRIPTION
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // What is Foundu Section
 const WhatIsFoundu = ({ navigate }) => (
   <section
@@ -763,7 +887,7 @@ const WhatIsFoundu = ({ navigate }) => (
           {/* </div> */}
         </div>
         <div className="relative">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 md:mb-10 leading-tight text-center lg:text-left">
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 md:mb-10 leading-tight text-center lg:text-left px-4">
             <span className="text-white">WHAT IS </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
               FOUNDU
@@ -814,7 +938,7 @@ const NumbersSection = ({ publicStats }) => {
         borderTop: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
-      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
+      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10 px-4">
         <span className="text-white">OUR </span>
         <span className="text-blue-300">ACHIEVEMENT</span>
       </h2>
@@ -823,7 +947,7 @@ const NumbersSection = ({ publicStats }) => {
         — here's what we've achieved so far.
       </p>
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-8 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -892,7 +1016,7 @@ const Testimonials = ({ testimonialsList }) => {
       }}
     >
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10">
+        <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10 px-4">
           <span className="text-white">What our </span>
           <span className="text-blue-300">users are saying</span>
         </h2>
@@ -997,7 +1121,7 @@ const InfluencersSection = ({ navigate }) => {
             <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
               New Community
             </div>
-            <h2 className="text-4xl md:text-7xl font-black text-white mb-8 leading-tight">
+            <h2 className="text-4xl md:text-7xl font-black text-white mb-8 leading-tight px-4 md:px-0">
               FOR THE <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 INFLUENCERS

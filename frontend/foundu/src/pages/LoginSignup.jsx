@@ -279,7 +279,7 @@ function LoginSignup() {
             <AnimatedCardVisual />
           </div>
           {/* Right Column - Login Form */}
-          <div className="w-full md:w-1/2 bg-transparent flex flex-col justify-center p-8 md:p-12 lg:p-16 relative">
+          <div className="w-full md:w-1/2 bg-transparent flex flex-col justify-center p-6 md:p-12 lg:p-16 relative">
             <div className="max-w-md w-full mx-auto">
               {/* Forgot Password View */}
               {isForgotPassword ? (

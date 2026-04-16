@@ -300,7 +300,7 @@ const FreelancerProfile = () => {
       {/* Main Content */}
       <div className="pt-24 pb-8 flex flex-col items-center">
         {/* View/Edit Toggle Bar */}
-        <div className="w-[85%] max-w-7xl mb-8">
+        <div className="w-full md:w-[85%] max-w-7xl mb-8 px-4">
           <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
             <button
               onClick={() => setViewMode("edit")}
@@ -330,7 +330,7 @@ const FreelancerProfile = () => {
             type="freelancer"
           />
         ) : (
-          <div className="max-w-6xl w-[75%] px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl w-full md:w-[75%] px-4 sm:px-6 lg:px-8">
             {/* Step Indicator */}
             <div className="mb-6">
               <div className="flex items-center justify-center space-x-2 mb-4 flex-wrap">
@@ -365,7 +365,7 @@ const FreelancerProfile = () => {
               {/* Step 1: Personal Details */}
               {currentStep === 1 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -453,7 +453,7 @@ const FreelancerProfile = () => {
               {/* Step 2: Education Details */}
               {currentStep === 2 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -562,7 +562,7 @@ const FreelancerProfile = () => {
               {/* Step 3: Type of Freelancer */}
               {currentStep === 3 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -623,7 +623,7 @@ const FreelancerProfile = () => {
               {/* Step 4: Skills */}
               {currentStep === 4 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -684,7 +684,7 @@ const FreelancerProfile = () => {
               {/* Step 5: Experience */}
               {currentStep === 5 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -718,7 +718,7 @@ const FreelancerProfile = () => {
               {/* Step 6: Role */}
               {currentStep === 6 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}
@@ -815,7 +815,7 @@ const FreelancerProfile = () => {
               {/* Step 7: Important Links */}
               {currentStep === 7 && (
                 <div className="flex justify-center">
-                  <div className="w-[85%]">
+                  <div className="w-full md:w-[85%]">
                     <div
                       className="rounded-lg p-[2px] transition-all duration-300"
                       style={gradientBlue}

@@ -33,7 +33,8 @@ exports.createProfile = (req, res) => {
     growthBlocker,
     magicFix,
     dashboards,
-    currentTools
+    currentTools,
+    owner_phone
   } = req.body;
 
   if (!user_id) {
@@ -89,7 +90,8 @@ exports.createProfile = (req, res) => {
         growthBlocker || null,
         magicFix || null,
         JSON.stringify(dashboards || []),
-        currentTools || null
+        currentTools || null,
+        owner_phone || null
       ];
 
       db.query(
@@ -104,7 +106,7 @@ exports.createProfile = (req, res) => {
           current_need, outcome_30_days, execution_failures, trust_factors,
           use_vendors, vendor_categories, vendor_preference,
           current_stage, growth_blocker, magic_fix,
-          dashboards, current_tools
+          dashboards, current_tools, owner_phone
         ) VALUES (${values.map(() => "?").join(",")})`,
         values,
         (err) => {

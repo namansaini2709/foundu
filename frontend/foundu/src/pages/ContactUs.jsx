@@ -82,10 +82,10 @@ const ContactUs = () => {
                     <div className="bg-gray-800/20 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
                         <div className="grid grid-cols-1 lg:grid-cols-2">
                             {/* Left Column: Form */}
-                            <div className="p-8 md:p-12 lg:p-16">
+                            <div className="p-6 md:p-12 lg:p-16">
                                 <div className="mb-8">
-                                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Contact Us</h1>
-                                    <p className="text-blue-300 text-lg">We are keen to hear from you :)</p>
+                                    <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">Contact Us</h1>
+                                    <p className="text-blue-300 text-base md:text-lg">We are keen to hear from you :)</p>
                                 </div>
 
                                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -184,6 +184,28 @@ const ContactUs = () => {
                                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                                     </button>
                                 </form>
+
+                                {/* Mobile Contact Info - Visible only on mobile/tablet */}
+                                <div className="mt-12 space-y-4 lg:hidden">
+                                    <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-2xl border border-white/5">
+                                        <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
+                                            <Mail className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold">Email Us</p>
+                                            <p className="text-white text-sm font-medium">info@foundu.in</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-2xl border border-white/5">
+                                        <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400">
+                                            <Phone className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold">Call Us</p>
+                                            <p className="text-white text-sm font-medium">+91 9773575434</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Right Column: Visual/Illustration */}

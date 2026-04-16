@@ -12,7 +12,7 @@ import logo from "../assets/whitelogo.png";
 const defaultNavLinks = [
   { label: "Hire Freelancer", to: "/freelancer-jobs" },
   { label: "Onboard Influencer", to: "/onboard-influencer" },
-  { label: "Find Best Match", to: "/signup" },
+  { label: "Find Best Match", to: "/login-signup" },
   { label: "For Startups", to: "/startup-services" },
   { label: "About Us", to: "/about-details" },
 ];
@@ -22,6 +22,7 @@ const userTypeLinks = {
   founder: [
     { label: "Our Services", to: "/startup-services" },
     { label: "Dashboard", to: "/startup-dashboard" },
+    { label: "Influencers", to: "/influencer-marketplace" },
     { label: "Add a New Job", to: "/add-job" },
     { label: "Live User Feed", to: "/live-feed" },
     { label: "Badges", to: "/founder-badges" },
@@ -151,7 +152,7 @@ function Navbar() {
 
     // Also listen for new messages via socket to update global count
     const handleNewMessage = () => {
-      setUnreadMessagesCount(prev => prev + 1);
+      setUnreadMessagesCount((prev) => prev + 1);
     };
     socket.on("new_message_global", handleNewMessage);
 
@@ -274,7 +275,6 @@ function Navbar() {
     return user.full_name || user.name || user.email || "User";
   };
 
-
   const isLoggedIn = () => !!getUserId();
 
   const handleProfileNavigation = () => {
@@ -283,7 +283,9 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
+        : userType
+          ? userType.charAt(0).toUpperCase() + userType.slice(1)
+          : "Guest";
 
     toast.info(`Redirecting to ${userTypeDisplay} Profile...`, {
       theme: "dark",
@@ -301,7 +303,9 @@ function Navbar() {
     const userTypeDisplay =
       userType === "founder"
         ? "Startup"
-        : (userType ? userType.charAt(0).toUpperCase() + userType.slice(1) : "Guest");
+        : userType
+          ? userType.charAt(0).toUpperCase() + userType.slice(1)
+          : "Guest";
 
     toast.info(`Redirecting to ${userTypeDisplay} Dashboard...`, {
       theme: "dark",
@@ -362,10 +366,11 @@ function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-medium transition-colors ${location.pathname === link.to
-                  ? "text-blue-300"
-                  : "text-white hover:text-blue-300"
-                  }`}
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === link.to
+                    ? "text-blue-300"
+                    : "text-white hover:text-blue-300"
+                }`}
               >
                 {link.label}
               </Link>
@@ -406,25 +411,38 @@ function Navbar() {
                   onClick={() => setIsProfileOpen((prev) => !prev)}
                   className="flex items-center gap-2 bg-blue-500/20 border border-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-500/30 transition-all duration-300"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  {user && user.blue_tick_verified && user.profile_picture_url ? (
+                    <img
+                      src={user.profile_picture_url.startsWith('http') 
+                        ? user.profile_picture_url 
+                        : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.profile_picture_url}`}
+                      alt="profile"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                     />
-                  </svg>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-400/50 flex items-center justify-center overflow-hidden">
+                      <svg
+                        className="w-5 h-5 text-blue-300 opacity-70"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                  )}
                   <span className="hidden sm:inline max-w-[150px] truncate">
                     {getUserDisplayName()}
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${isProfileOpen ? "rotate-180" : ""
-                      }`}
+                    className={`w-4 h-4 transition-transform ${
+                      isProfileOpen ? "rotate-180" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -605,10 +623,11 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-sm font-medium ${location.pathname === link.to
-                    ? "text-blue-300"
-                    : "text-white"
-                    }`}
+                  className={`text-sm font-medium ${
+                    location.pathname === link.to
+                      ? "text-blue-300"
+                      : "text-white"
+                  }`}
                 >
                   {link.label}
                 </Link>
