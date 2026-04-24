@@ -38,10 +38,13 @@ router.get('/google/callback', (req, res, next) => {
       return res.redirect(`${frontendUrl}/login-signup?auth=error`);
     }
 
-    // Handle "No account found" strict mode failure
+    // Handle specific failure modes
     if (!user) {
       if (info && info.message === 'no_account') {
         return res.redirect(`${frontendUrl}/login-signup?auth=no_account`);
+      }
+      if (info && info.message === 'no_category') {
+        return res.redirect(`${frontendUrl}/login-signup?auth=no_category`);
       }
       return res.redirect(`${frontendUrl}/login-signup?auth=error`);
     }
@@ -57,6 +60,7 @@ router.get('/google/callback', (req, res, next) => {
         if (type === 'freelancer') onboardingPath = "/freelancer-profile";
         else if (type === 'founder') onboardingPath = "/startup-profile";
         else if (type === 'cofounder') onboardingPath = "/cofounder-profile";
+        else if (type === 'influencer') onboardingPath = "/influencer-marketplace";
         
         return res.redirect(`${frontendUrl}${onboardingPath}?auth=success&new=true`);
       }
@@ -67,6 +71,77 @@ router.get('/google/callback', (req, res, next) => {
       if (type === 'freelancer') dashboardPath = "/freelancer-dashboard";
       else if (type === 'founder') dashboardPath = "/startup-dashboard";
       else if (type === 'cofounder') dashboardPath = "/cofounder-dashboard";
+      else if (type === 'influencer') dashboardPath = "/influencer-marketplace";
+
+      res.redirect(`${frontendUrl}${dashboardPath}?auth=success`);
+    } catch (error) {
+      console.error("Auth Callback Error:", error);
+      res.redirect(`${frontendUrl}/login-signup?auth=error`);
+    }
+  })(req, res, next);
+});
+
+// @route   GET /api/auth/github
+// @desc    Authenticate with GitHub
+router.get('/github', (req, res, next) => {
+  const { type, mode } = req.query;
+  const state = (type || mode) ? Buffer.from(JSON.stringify({ type, mode })).toString('base64') : undefined;
+  passport.authenticate('github', { 
+    scope: ['user:email'], 
+    session: false,
+    state: state
+  })(req, res, next);
+});
+
+// @route   GET /api/auth/github/callback
+// @desc    GitHub OAuth callback
+router.get('/github/callback', (req, res, next) => {
+  console.log("[Auth] GitHub Callback reached");
+  passport.authenticate('github', { session: false }, (err, user, info) => {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+    if (err) {
+      console.error("[Auth] Passport Error (GitHub):", err);
+      return res.redirect(`${frontendUrl}/login-signup?auth=error`);
+    }
+
+    if (!user) {
+      console.warn("[Auth] No user found in GitHub OAuth info:", info);
+      if (info && info.message === 'no_account') {
+        return res.redirect(`${frontendUrl}/login-signup?auth=no_account`);
+      }
+      if (info && info.message === 'no_category') {
+        return res.redirect(`${frontendUrl}/login-signup?auth=no_category`);
+      }
+      if (info && info.message === 'no_email') {
+        return res.redirect(`${frontendUrl}/login-signup?auth=error&reason=no_email`);
+      }
+      return res.redirect(`${frontendUrl}/login-signup?auth=error`);
+    }
+
+    try {
+      const token = generateJWT(user);
+      res.cookie("jwt", token, getCookieOptions());
+
+      // If profile is incomplete, redirect to onboarding
+      if (user.is_profile_complete === 0) {
+        const type = String(user.user_type || 'freelancer').trim();
+        let onboardingPath = "/profile";
+        if (type === 'freelancer') onboardingPath = "/freelancer-profile";
+        else if (type === 'founder') onboardingPath = "/startup-profile";
+        else if (type === 'cofounder') onboardingPath = "/cofounder-profile";
+        else if (type === 'influencer') onboardingPath = "/influencer-marketplace";
+        
+        return res.redirect(`${frontendUrl}${onboardingPath}?auth=success&new=true`);
+      }
+
+      // Normal dashboard redirect
+      const type = String(user.user_type || 'freelancer').trim();
+      let dashboardPath = "/";
+      if (type === 'freelancer') dashboardPath = "/freelancer-dashboard";
+      else if (type === 'founder') dashboardPath = "/startup-dashboard";
+      else if (type === 'cofounder') dashboardPath = "/cofounder-dashboard";
+      else if (type === 'influencer') dashboardPath = "/influencer-marketplace";
 
       res.redirect(`${frontendUrl}${dashboardPath}?auth=success`);
     } catch (error) {

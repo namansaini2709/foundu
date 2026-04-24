@@ -1,68 +1,72 @@
-const twilio = require('twilio');
-
-let client = null;
-
-const initTwilio = () => {
-    // We will initialize this once the env keys are ready
-    if (!client && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-        client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    }
-    return client;
-};
+const axios = require("axios");
 
 /**
- * Formats AI matches and sends them to the user's WhatsApp
- * @param {string} toPhoneNumber - The recipient's number
- * @param {string} userName - The recipient's name
- * @param {Array} matches - The matches found by Gemini
- * @param {string} customMessage - (Optional) Fully formatted message string
+ * Send WhatsApp Match Alerts or Broadcasts via Meta WhatsApp Cloud API
+ * @param {string} to - Recipient phone number (with country code)
+ * @param {string} userName - Name of the recipient
+ * @param {Array} matches - Array of job match objects
+ * @param {string} customMessage - (Optional) Pre-formatted message (e.g., from AI or Admin)
  */
-const sendWhatsAppMatchAlert = async (toPhoneNumber, userName, matches, customMessage = null) => {
+const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "") => {
     try {
-        const twilioClient = initTwilio();
-        if (!twilioClient) {
-            console.error("❌ Twilio is not configured. Missing credentials in .env");
-            return false;
+        const accessToken = process.env.META_ACCESS_TOKEN;
+        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+
+        if (!accessToken || !phoneNumberId) {
+            console.error("❌ Meta WhatsApp API credentials missing in .env");
+            return;
         }
 
-        // Format phone number string (Twilio requires the country code + prefix)
-        const formattedPhone = toPhoneNumber.startsWith('+') ? toPhoneNumber : `+${toPhoneNumber}`;
+        // 1. Format the phone number (strip spaces/dashes, ensure country code)
+        let formattedTo = to.replace(/\D/g, "");
+        if (!formattedTo.startsWith("91") && formattedTo.length === 10) {
+            formattedTo = "91" + formattedTo;
+        }
 
-        // Prepare the text content
-        let textMessage = "";
-
+        // 2. Prepare the Message Body
+        let messageText = "";
         if (customMessage) {
-            // Use the pre-formatted message from the engine
-            textMessage = customMessage;
+            messageText = customMessage;
         } else {
-            // Fallback: Default Job Alert format
-            textMessage = `🎯 *FoundU Match Alert!*\nHi ${userName}, our AI found ${matches.length} new jobs that perfectly fit your skills:\n\n`;
-
             const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME);
             const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
 
+            messageText = `🎯 *FoundU Match Alert!*\nHi ${userName}, our AI found ${matches.length} new jobs that perfectly fit your skills:\n\n`;
             matches.forEach((m, index) => {
-                textMessage += `*${index + 1}. ${m.job_title} @ ${m.startup_name}*\n`;
-                textMessage += `💡 _${m.reason}_\n`;
-                textMessage += `🔗 Apply: ${baseUrl}/job/${m.job_id}\n\n`;
+                messageText += `*${index + 1}. ${m.job_title} @ ${m.startup_name}*\n`;
+                messageText += `💡 _${m.reason}_\n`;
+                messageText += `🔗 Apply: ${baseUrl}/job/${m.job_id}\n\n`;
             });
-
-            textMessage += `_Don't want these alerts? Update preferences in your dashboard._`;
+            messageText += `_Don't want these alerts? Update preferences in your dashboard._`;
         }
 
-        // 2. Trigger the Twilio Message API
-        const response = await twilioClient.messages.create({
-            body: textMessage,
-            from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`, 
-            to: `whatsapp:${formattedPhone}`
-        });
+        // 3. Send via Meta API
+        const response = await axios.post(
+            `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+            {
+                messaging_product: "whatsapp",
+                recipient_type: "individual",
+                to: formattedTo,
+                type: "text",
+                text: {
+                    preview_url: true,
+                    body: messageText,
+                },
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-        console.log(`✅ WhatsApp sent successfully to ${formattedPhone}! SID: ${response.sid}`);
-        return true;
+        console.log(`✅ WhatsApp sent via Meta to ${formattedTo}:`, response.data);
+        return { success: true, data: response.data };
 
     } catch (error) {
-        console.error("❌ WhatsApp Error:", error);
-        return false;
+        console.error("❌ WhatsApp Meta API Error:", error.response ? error.response.data : error.message);
+        return { success: false, error: error.message };
     }
 };
 

@@ -1,5 +1,7 @@
 const passport = require('passport');
+const axios = require('axios');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 const db = require('./db');
 
 passport.use(new GoogleStrategy({
@@ -16,7 +18,7 @@ passport.use(new GoogleStrategy({
       const fullName = profile.displayName;
 
       // Extract type and mode from state if available
-      let userType = 'freelancer'; // Default fallback
+      let userType = null;        // Remove 'freelancer' default to force explicit selection
       let mode = 'signup';        // Default fallback
       if (req.query.state) {
         try {
@@ -52,6 +54,13 @@ passport.use(new GoogleStrategy({
       // If mode is 'login' and we didn't find a user, FAIL authentication
       if (mode === 'login') {
         return done(null, false, { message: 'no_account' });
+      }
+
+      // --- CATEGORY ENFORCEMENT ---
+      // If signing up, we MUST have a valid category
+      const validTypes = ['freelancer', 'founder', 'cofounder', 'influencer'];
+      if (!userType || !validTypes.includes(userType)) {
+        return done(null, false, { message: 'no_category' });
       }
 
       // 3. Create new user with the passed userType
@@ -91,6 +100,127 @@ passport.use(new GoogleStrategy({
       return done(null, newUser);
     } catch (error) {
       console.error("Passport Google Strategy Error:", error);
+      return done(error, null);
+    }
+  }
+));
+
+// --- GITHUB STRATEGY ---
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: process.env.GITHUB_CALLBACK_URL || "http://localhost:4000/api/auth/github/callback",
+    passReqToCallback: true
+  },
+  async (req, accessToken, refreshToken, profile, done) => {
+    try {
+      console.log("[GitHub] Step 1: Profile received. Username:", profile.username, "| ID:", profile.id);
+
+      // --- Step 2: Resolve Email (including private emails) ---
+      let email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+      if (!email && accessToken) {
+        console.log("[GitHub] Step 2: No public email, fetching private emails via API...");
+        try {
+          const emailResponse = await axios.get('https://api.github.com/user/emails', {
+            headers: { 
+              'Authorization': `Bearer ${accessToken}`, 
+              'User-Agent': 'FoundU-App',
+              'Accept': 'application/vnd.github+json'
+            }
+          });
+          const emails = emailResponse.data;
+          if (Array.isArray(emails)) {
+            const primaryEmail = emails.find(e => e.primary && e.verified) || emails.find(e => e.verified) || emails[0];
+            if (primaryEmail) email = primaryEmail.email;
+          }
+        } catch (emailErr) {
+          console.error("[GitHub] Step 2 ERROR - Could not fetch emails:", emailErr.message);
+        }
+      }
+      console.log("[GitHub] Step 2: Email resolved to:", email);
+
+      const githubId = String(profile.id);
+      const fullName = profile.displayName || profile.username;
+
+      // --- Step 3: Parse OAuth state (category + mode) ---
+      let userType = null;
+      let mode = 'signup';
+      if (req.query.state) {
+        try {
+          const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+          if (stateData.type) userType = String(stateData.type).trim();
+          if (stateData.mode) mode = String(stateData.mode).trim();
+        } catch (e) {
+          console.error("[GitHub] Step 3 ERROR - State parse failed:", e.message);
+        }
+      }
+      console.log("[GitHub] Step 3: mode =", mode, "| userType =", userType);
+
+      // --- Step 4: Lookup by github_id ---
+      const [rowsById] = await db.promise().query('SELECT * FROM users WHERE github_id = ?', [githubId]);
+      if (rowsById.length > 0) {
+        console.log("[GitHub] Step 4: Existing user found by github_id");
+        return done(null, rowsById[0]);
+      }
+
+      // --- Step 5: Guard against missing email ---
+      if (!email) {
+        console.warn("[GitHub] Step 5: No email available, rejecting.");
+        return done(null, false, { message: 'no_email' });
+      }
+
+      // --- Step 6: Lookup by email ---
+      const [rowsByEmail] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
+      if (rowsByEmail.length > 0) {
+        console.log("[GitHub] Step 6: Existing user found by email, linking github_id");
+        await db.promise().query('UPDATE users SET github_id = ? WHERE id = ?', [githubId, rowsByEmail[0].id]);
+        return done(null, { ...rowsByEmail[0], github_id: githubId });
+      }
+
+      // --- Step 7: Mode check ---
+      if (mode === 'login') {
+        console.warn("[GitHub] Step 7: Login mode, no user found. Rejecting.");
+        return done(null, false, { message: 'no_account' });
+      }
+
+      // --- Step 8: Category check ---
+      const validTypes = ['freelancer', 'founder', 'cofounder', 'influencer'];
+      if (!userType || !validTypes.includes(userType)) {
+        console.warn("[GitHub] Step 8: No valid category selected:", userType);
+        return done(null, false, { message: 'no_category' });
+      }
+
+      // --- Step 9: Create new user ---
+      console.log("[GitHub] Step 9: Creating new user as:", userType);
+      let freelancerId = null, founderId = null, cofounderId = null;
+      if (userType === 'freelancer') {
+        const [r] = await db.promise().query("SELECT COALESCE(MAX(freelancer_id),0)+1 AS next_id FROM users WHERE user_type='freelancer'");
+        freelancerId = r[0].next_id;
+      } else if (userType === 'founder') {
+        const [r] = await db.promise().query("SELECT COALESCE(MAX(founder_id),0)+1 AS next_id FROM users WHERE user_type='founder'");
+        founderId = r[0].next_id;
+      } else if (userType === 'cofounder') {
+        const [r] = await db.promise().query("SELECT COALESCE(MAX(cofounder_id),0)+1 AS next_id FROM users WHERE user_type='cofounder'");
+        cofounderId = r[0].next_id;
+      }
+
+      const [result] = await db.promise().query(
+        `INSERT INTO users (full_name, email, github_id, user_type, freelancer_id, founder_id, cofounder_id, is_profile_complete) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, false)`,
+        [fullName, email, githubId, userType, freelancerId, founderId, cofounderId]
+      );
+
+      console.log("[GitHub] Step 9: New user created with ID:", result.insertId);
+      return done(null, {
+        id: result.insertId,
+        full_name: fullName,
+        email: email,
+        github_id: githubId,
+        user_type: userType,
+        is_profile_complete: 0
+      });
+    } catch (error) {
+      console.error("[GitHub] FATAL ERROR in strategy:", error.message, error.stack);
       return done(error, null);
     }
   }
