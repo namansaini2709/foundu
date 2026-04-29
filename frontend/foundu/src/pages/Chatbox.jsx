@@ -10,10 +10,10 @@ import {
   FaCheckDouble,
 } from "react-icons/fa";
 const API_URL = `/api/chat`;
-const Chatbox = () => {
+const Chatbox = ({ targetUserId: propUserId }) => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const targetUserId = queryParams.get("userId");
+  const targetUserId = propUserId || queryParams.get("userId");
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);

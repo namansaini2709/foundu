@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
@@ -22,7 +22,7 @@ import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
 import { API_BASE } from "../utils/axiosConfig";
-import whatsappPlaceholder from "../assets/whatsapp_placeholder.png";
+import whatsappPlaceholder from "../assets/whatsapp.png";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -701,30 +701,30 @@ const FoundUAIs = () => {
               <div
                 className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}
               ></div>
-              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-5 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
                 <div
-                  className={`w-24 h-24 rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
+                  className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-4 md:mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
                 >
-                  {ai.icon}
+                  {React.cloneElement(ai.icon, { className: "w-8 h-8 md:w-10 md:h-10" })}
                 </div>
-                <div className="mb-6">
-                  <h3 className="text-3xl font-black text-white mb-2">
+                <div className="mb-4 md:mb-6">
+                  <h3 className="text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
                     {ai.title}
                   </h3>
                   <p
-                    className={`text-[11px] font-black uppercase tracking-[0.4em] ${ai.text}`}
+                    className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] ${ai.text}`}
                   >
                     {ai.subtitle}
                   </p>
                 </div>
-                <p className="text-gray-400 text-lg leading-relaxed mb-10 flex-grow font-medium">
+                <p className="text-gray-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-10 flex-grow font-medium line-clamp-3 md:line-clamp-none">
                   {ai.description}
                 </p>
-                <div className="flex flex-wrap gap-2 justify-center pt-6 border-t border-white/5 w-full">
+                <div className="flex flex-wrap gap-1.5 justify-center pt-4 md:pt-6 border-t border-white/5 w-full">
                   {ai.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-[10px] font-bold uppercase px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-500"
+                      className="text-[8px] md:text-[10px] font-bold uppercase px-2 md:px-4 py-1 rounded-full bg-white/5 border border-white/10 text-gray-500"
                     >
                       {tag}
                     </span>
@@ -768,22 +768,19 @@ const WhatsAppService = () => {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="order-2 lg:order-1"
+            className="order-2 lg:order-1 relative group"
           >
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-green-500/20 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
-              <div className="relative bg-gray-900/50 backdrop-blur-2xl border border-green-500/20 rounded-[3rem] p-4 overflow-hidden shadow-2xl">
-                <img
-                  src={whatsappPlaceholder}
-                  alt="WhatsApp Chat Interface Mockup"
-                  className="w-full h-auto rounded-[2.5rem] transform group-hover:scale-[1.02] transition-transform duration-700"
-                />
-                
-                {/* Floating Elements */}
-                <div className="absolute top-10 right-10 bg-green-500 text-black px-4 py-2 rounded-full text-xs font-black tracking-widest shadow-lg animate-bounce">
-                  9:00 PM ALERT
-                </div>
-              </div>
+            <div className="absolute -inset-4 bg-green-500/10 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+            <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-6 shadow-2xl overflow-hidden aspect-square flex items-center justify-center">
+              <img
+                src={whatsappPlaceholder}
+                alt="WhatsApp Mockup"
+                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-700"
+              />
+              
+              {/* Decorative elements */}
+              <div className="absolute top-10 right-10 w-20 h-20 bg-green-500/10 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-10 left-10 w-24 h-24 bg-green-500/5 rounded-full blur-xl animate-pulse"></div>
             </div>
           </motion.div>
 
@@ -817,13 +814,13 @@ const WhatsAppService = () => {
             </div>
 
             {/* Pricing Tiers */}
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 space-y-8">
-              <div className="flex flex-wrap gap-2">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 space-y-6 md:space-y-8">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                 {Object.entries(plans).map(([key, plan]) => (
                   <button
                     key={key}
                     onClick={() => setSelectedPlan(key)}
-                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
                       selectedPlan === key
                         ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
                         : "bg-white/5 text-gray-400 hover:bg-white/10"
@@ -831,7 +828,7 @@ const WhatsAppService = () => {
                   >
                     {plan.name}
                     {plan.savings && (
-                      <span className="block text-[8px] text-green-200 mt-0.5 opacity-80">
+                      <span className="block text-[7px] md:text-[8px] text-green-200 mt-0.5 opacity-80">
                         SAVE {plan.savings}
                       </span>
                     )}
@@ -839,15 +836,15 @@ const WhatsAppService = () => {
                 ))}
               </div>
 
-              <div className="flex items-end justify-between border-t border-white/5 pt-8">
-                <div>
-                  <span className="text-gray-500 text-sm font-black uppercase tracking-widest block mb-2">Total Amount</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-black text-white">₹{plans[selectedPlan].price}</span>
-                    <span className="text-gray-500 font-bold uppercase text-xs tracking-widest">/ {plans[selectedPlan].duration}</span>
+              <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between border-t border-white/5 pt-6 md:pt-8 gap-6">
+                <div className="text-center sm:text-left">
+                  <span className="text-gray-500 text-[10px] md:text-sm font-black uppercase tracking-widest block mb-1 md:mb-2">Total Amount</span>
+                  <div className="flex items-baseline justify-center sm:justify-start gap-2">
+                    <span className="text-4xl md:text-5xl font-black text-white">₹{plans[selectedPlan].price}</span>
+                    <span className="text-gray-500 font-bold uppercase text-[10px] md:text-xs tracking-widest">/ {plans[selectedPlan].duration}</span>
                   </div>
                 </div>
-                <button className="px-10 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-xs flex items-center gap-3">
+                <button className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl md:rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2 md:gap-3">
                   BUY SUBSCRIPTION
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -1163,30 +1160,36 @@ const InfluencersSection = ({ navigate }) => {
             </button>
           </div>
 
-          <div data-aos="fade-left" className="relative">
-            <div className="relative z-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-12 shadow-2xl overflow-hidden aspect-square flex flex-col items-center justify-center text-center">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mb-8 shadow-2xl shadow-blue-500/20 animate-pulse">
-                <Users className="w-16 h-16 text-white" />
+          <div data-aos="fade-left" className="relative group">
+            <div className="relative z-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-4 md:p-8 shadow-2xl overflow-hidden aspect-square flex flex-col items-center justify-center text-center">
+              <div className="w-full h-full transform group-hover:scale-105 transition-transform duration-700">
+                <DotLottieReact
+                  src="https://lottie.host/3b73db90-6fa0-4d39-831c-61a853f844da/vSyOB4ztS9.lottie"
+                  loop
+                  autoplay
+                />
               </div>
-              <h3 className="text-3xl font-black text-white mb-4">
-                JOIN THE NETWORK
-              </h3>
-              <p className="text-gray-400 font-medium italic">
-                "Empowering micro-influencers to fuel the startup revolution."
-              </p>
+              
+              {/* <div className="absolute bottom-10 left-0 right-0 px-8">
+                <h3 className="text-2xl md:text-3xl font-black text-white mb-2">
+                  JOIN THE NETWORK
+                </h3>
+                <p className="text-gray-400 font-medium italic text-sm md:text-base">
+                  "Empowering micro-influencers to fuel the startup revolution."
+                </p>
+              </div> */}
 
-              {/* Decorative elements */}
-              <div className="absolute top-10 right-10 w-20 h-20 bg-blue-500/10 rounded-full blur-xl"></div>
-              <div className="absolute bottom-10 left-10 w-24 h-24 bg-purple-500/10 rounded-full blur-xl"></div>
+              <div className="absolute top-10 right-10 w-20 h-20 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-10 left-10 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-pulse"></div>
             </div>
 
             {/* Floating tags */}
-            <div className="absolute -top-6 -right-6 bg-blue-600 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl z-20 animate-bounce">
+            {/* <div className="absolute -top-6 -right-6 bg-blue-600 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl z-20 animate-bounce">
               #MicroInfluencer
             </div>
             <div className="absolute -bottom-6 -left-6 bg-white/10 backdrop-blur-xl border border-white/20 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl z-20">
               0% Commission
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
