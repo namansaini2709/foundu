@@ -57,7 +57,7 @@ function LoginSignup() {
       newParams.delete('auth');
       setSearchParams(newParams);
     } else if (authStatus === 'no_category') {
-      toast.error('Please select a category (Freelancer, Founder, etc.) BEFORE signing up with Google.', {
+      toast.error('Please select a category (Freelancer, Founder, Co-Founder) BEFORE signing up  with Google.', {
         theme: 'dark'
       });
       setIsLogin(false);
@@ -576,4 +576,4 @@ function LoginSignup() {
     </div>
   )
 }
-export default LoginSignup
+export default LoginSignup
