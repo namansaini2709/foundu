@@ -513,12 +513,12 @@ const FreelancerBadges = () => {
       <Footer />
       {/* ── Modal ─────────────────────────────────────────────── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => !submitting && setIsModalOpen(false)}
           />
-          <div className="bg-gray-900 border border-blue-500/50 rounded-2xl p-8 w-full max-w-md relative z-10 shadow-2xl shadow-blue-900/50">
+          <div className="bg-gray-900 border border-blue-500/50 rounded-2xl p-6 md:p-8 w-full max-w-md relative z-10 shadow-2xl shadow-blue-900/50 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => !submitting && setIsModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
