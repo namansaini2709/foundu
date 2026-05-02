@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getUserId, getUserType } from "../utils/authUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import {
   IndianRupee,
@@ -95,6 +96,19 @@ function FreelancerJobDetail() {
       toast.warning("You have already applied for this job");
       return;
     }
+
+    try {
+      const userRes = await api.get(`/api/users/${userData.user_id}`);
+      const userObj = userRes.data.success ? userRes.data.data : userRes.data;
+      if (!userObj.is_profile_complete || String(userObj.is_profile_complete) === "0" || userObj.is_profile_complete === false) {
+        toast.error("Please complete your profile to apply for jobs");
+        setTimeout(() => navigate(userData.user_type === 'cofounder' ? "/cofounder-profile" : "/freelancer-profile"), 1500);
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     setApplying(true);
     try {
       console.log("Sending application request with:", {
@@ -339,7 +353,7 @@ function FreelancerJobDetail() {
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-500 uppercase font-black">Stipend Range</p>
-                      <p className="text-white font-bold">{jobData?.budget_range || "Contact Founder"}</p>
+                      <p className="text-white font-bold">{typeof jobData?.budget_range === 'string' ? jobData.budget_range.replace(/₹/g, '').trim() : (jobData?.budget_range || "Contact Founder")}</p>
                     </div>
                   </div>
                   {/* Urgency */}

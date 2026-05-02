@@ -35,7 +35,7 @@ exports.createProfile = (req, res) => {
 
   // 1️⃣ Validate role and get freelancer_id
   db.query(
-    "SELECT freelancer_id FROM users WHERE id = ?",
+    "SELECT freelancer_id, user_type FROM users WHERE id = ?",
     [user_id],
     (err, rows) => {
       if (err) {
@@ -47,59 +47,83 @@ exports.createProfile = (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      if (!rows[0].freelancer_id) {
+      if (rows[0].user_type !== 'freelancer') {
         return res.status(400).json({ message: "User is not a freelancer" });
       }
 
-      const freelancer_id = rows[0].freelancer_id;
+      let freelancer_id = rows[0].freelancer_id;
 
-      // 2️⃣ Insert profile
-      db.query(
-        `INSERT INTO freelancer_profiles (
-          user_id, freelancer_id,
-          first_name, last_name, email, phone_number,
-          degree_type, education_level, graduation_year, college, university,
-          freelancer_type, freelancer_type_other,
-          skills_description, describe_best, experience,
-          job_profile, working_environment,
-          stipend_expectations, stipend_other,
-          linkedin, github, other_links
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [
-          user_id, freelancer_id,
-          first_name, last_name, email, phone_number,
-          degree_type, education_level, graduation_year, college, university,
-          freelancer_type, freelancer_type_other,
-          skills_description, describe_best, experience,
-          job_profile, working_environment,
-          stipend_expectations, stipend_other,
-          linkedin, github, other_links
-        ],
-        (err, result) => {
-          if (err) {
-            console.error("Profile creation error:", err);
-            return res.status(500).json({ error: err.message });
-          }
-
-          // 3️⃣ Mark profile complete
-          db.query(
-            "UPDATE users SET is_profile_complete = true WHERE id = ?",
-            [user_id],
-            (updateErr) => {
-              if (updateErr) {
-                console.error("Update user error:", updateErr);
-              }
-
-              res.json({ 
-                success: true, 
-                message: "Freelancer profile created successfully",
-                profile_id: result.insertId,
-                freelancer_id: freelancer_id
-              });
+      const proceedToInsert = (fid) => {
+        // 2️⃣ Insert profile
+        db.query(
+          `INSERT INTO freelancer_profiles (
+            user_id, freelancer_id,
+            first_name, last_name, email, phone_number,
+            degree_type, education_level, graduation_year, college, university,
+            freelancer_type, freelancer_type_other,
+            skills_description, describe_best, experience,
+            job_profile, working_environment,
+            stipend_expectations, stipend_other,
+            linkedin, github, other_links
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          ON DUPLICATE KEY UPDATE 
+            first_name=VALUES(first_name), last_name=VALUES(last_name), phone_number=VALUES(phone_number),
+            degree_type=VALUES(degree_type), education_level=VALUES(education_level), graduation_year=VALUES(graduation_year),
+            college=VALUES(college), university=VALUES(university),
+            freelancer_type=VALUES(freelancer_type), freelancer_type_other=VALUES(freelancer_type_other),
+            skills_description=VALUES(skills_description), describe_best=VALUES(describe_best), experience=VALUES(experience),
+            job_profile=VALUES(job_profile), working_environment=VALUES(working_environment),
+            stipend_expectations=VALUES(stipend_expectations), stipend_other=VALUES(stipend_other),
+            linkedin=VALUES(linkedin), github=VALUES(github), other_links=VALUES(other_links)`,
+          [
+            user_id, fid,
+            first_name, last_name, email, phone_number,
+            degree_type, education_level, graduation_year, college, university,
+            freelancer_type, freelancer_type_other,
+            skills_description, describe_best, experience,
+            job_profile, working_environment,
+            stipend_expectations, stipend_other,
+            linkedin, github, other_links
+          ],
+          (err, result) => {
+            if (err) {
+              console.error("Profile creation error:", err);
+              return res.status(500).json({ error: err.message });
             }
-          );
-        }
-      );
+
+            // 3️⃣ Mark profile complete
+            db.query(
+              "UPDATE users SET is_profile_complete = true WHERE id = ?",
+              [user_id],
+              (updateErr) => {
+                if (updateErr) {
+                  console.error("Update user error:", updateErr);
+                }
+
+                res.json({ 
+                  success: true, 
+                  message: "Freelancer profile created successfully",
+                  profile_id: result.insertId || result.insertId,
+                  freelancer_id: fid
+                });
+              }
+            );
+          }
+        );
+      };
+
+      if (!freelancer_id) {
+        db.query("SELECT COALESCE(MAX(freelancer_id),0)+1 AS next_id FROM users WHERE user_type='freelancer'", (err, frows) => {
+          if (err) return res.status(500).json({ error: err.message });
+          freelancer_id = frows[0].next_id;
+          db.query("UPDATE users SET freelancer_id = ? WHERE id = ?", [freelancer_id, user_id], (err) => {
+             if (err) return res.status(500).json({ error: err.message });
+             proceedToInsert(freelancer_id);
+          });
+        });
+      } else {
+        proceedToInsert(freelancer_id);
+      }
     }
   );
 };

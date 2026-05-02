@@ -11,5 +11,6 @@ router.get("/reviews/credibility/:user_id", controller.getCredibility);
 router.post("/reviews/recalculate-credibility", controller.recalculateCredibility);
 router.get("/reviews/:id", controller.getReviewById);
 router.delete("/reviews/:id", isAuthenticated, controller.deleteReview);
+router.post("/reviews/:id/reply", controller.replyToReview);
 
 module.exports = router;

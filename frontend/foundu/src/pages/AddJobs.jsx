@@ -11,7 +11,7 @@ import {
   UserPlus,
   Layers,
   Briefcase,
-  DollarSign,
+  IndianRupee,
   Zap,
   ArrowRight,
   ArrowLeft,
@@ -514,10 +514,10 @@ export default function AddJobs() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-black tracking-widest text-gray-500 uppercase mb-4">
-                      Budget <span className="text-red-500">*</span>
+                      Budget (Enter amount only, without ₹) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 w-4 h-4" />
+                      <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 w-4 h-4" />
                       <input
                         type="text"
                         value={formData.freelancer.budget}

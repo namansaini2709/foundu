@@ -864,16 +864,16 @@ const FreelancerProfile = () => {
                               htmlFor="otherLinks"
                               className="block text-sm font-medium text-white mb-1"
                             >
-                              Any Other Important Links <span className="text-red-500">*</span>
+                              Any Other Important Links <span className="text-gray-400 text-xs">(write null if you don't have any)</span> <span className="text-red-500">*</span>
                             </label>
                             <input
-                              type="url"
+                              type="text"
                               id="otherLinks"
                               name="otherLinks"
                               value={formData.otherLinks}
                               onChange={handleChange}
                               className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                              placeholder="https://yourportfolio.com"
+                              placeholder="https://yourportfolio.com or null"
                             />
                           </div>
                         </div>

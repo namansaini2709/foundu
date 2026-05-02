@@ -81,7 +81,7 @@ exports.updateStatus = async (req, res) => {
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
                     <div style="background: #020024; padding: 20px; text-align: center;">
-                        <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+                        <img src="https://foundu.in/foundu-logo.png" alt="FoundU Logo" style="width: 150px; height: auto; background-color: #ffffff; padding: 10px; border-radius: 8px;" />
                     </div>
                     <div style="padding: 20px;">
                         <h2 style="color: #333;">Influencer Application Update</h2>
@@ -133,7 +133,7 @@ exports.updateStatus = async (req, res) => {
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
                     <div style="background: #020024; padding: 20px; text-align: center;">
-                        <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+                        <img src="https://foundu.in/foundu-logo.png" alt="FoundU Logo" style="width: 150px; height: auto; background-color: #ffffff; padding: 10px; border-radius: 8px;" />
                     </div>
                     <div style="padding: 20px;">
                         <h2 style="color: #3b82f6;">Welcome to FoundU Influencer Marketplace! 🚀</h2>

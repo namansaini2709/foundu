@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getUserId } from '../utils/authUtils';
 import api from '../utils/axiosConfig';
 import Footer from '../components/Footer';
+import { toast } from 'react-toastify';
 const API_URL = `/api`;
 const FreelancerReviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -15,6 +16,9 @@ const FreelancerReviews = () => {
     });
     const [loading, setLoading] = useState(true);
     const [recalculating, setRecalculating] = useState(false);
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [replyText, setReplyText] = useState("");
+    const [submittingReply, setSubmittingReply] = useState(false);
     const userId = getUserId();
     const gradientBlackToBlue = {
         background: 'linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)'
@@ -53,6 +57,33 @@ const FreelancerReviews = () => {
         setRecalculating(true);
         await fetchCredibility(true); // Explicitly trigger recalculation and notification
         setTimeout(() => setRecalculating(false), 800);
+    };
+
+    const handleReplySubmit = async (reviewId) => {
+        if (!replyText.trim()) return;
+        setSubmittingReply(true);
+        try {
+            await api.post(`${API_URL}/reviews/${reviewId}/reply`, { user_id: userId, reply_text: replyText });
+            toast.success("Reply added!");
+            setReviews(prev => prev.map(r => String(r.review_id) === String(reviewId) ? { ...r, reply_text: replyText } : r));
+            setReplyingTo(null);
+            setReplyText("");
+        } catch (e) {
+            toast.error(e.response?.data?.message || "Failed to add reply");
+        } finally {
+            setSubmittingReply(false);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+        try {
+            await api.delete(`${API_URL}/reviews/${reviewId}`);
+            toast.success("Review deleted!");
+            setReviews(prev => prev.filter(r => String(r.review_id) !== String(reviewId)));
+        } catch (e) {
+            toast.error("Failed to delete review");
+        }
     };
     // Group reviews by month
     const groupedReviews = reviews.reduce((acc, review) => {
@@ -302,6 +333,59 @@ const FreelancerReviews = () => {
                                                         <p className="text-gray-300 text-sm leading-relaxed mt-3">
                                                             "{review.review_text}"
                                                         </p>
+
+                                                        {/* Reply from user */}
+                                                        {review.reply_text && (
+                                                            <div className="mt-4 p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                                                                <span className="text-xs text-blue-400 font-bold uppercase tracking-wider block mb-1">Your Reply</span>
+                                                                <p className="text-gray-300 text-sm italic">"{review.reply_text}"</p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Actions */}
+                                                        <div className="mt-4 flex items-center gap-4">
+                                                            {!review.reply_text && (
+                                                                <button 
+                                                                    onClick={() => setReplyingTo(review.review_id)}
+                                                                    className="text-xs text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest transition-colors"
+                                                                >
+                                                                    Reply
+                                                                </button>
+                                                            )}
+                                                            <button 
+                                                                onClick={() => handleDeleteReview(review.review_id)}
+                                                                className="text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-widest transition-colors"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Reply Form */}
+                                                        {replyingTo === review.review_id && (
+                                                            <div className="mt-4">
+                                                                <textarea
+                                                                    value={replyText}
+                                                                    onChange={e => setReplyText(e.target.value)}
+                                                                    placeholder="Write your reply..."
+                                                                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none h-24 mb-3"
+                                                                />
+                                                                <div className="flex gap-3">
+                                                                    <button 
+                                                                        onClick={() => handleReplySubmit(review.review_id)}
+                                                                        disabled={submittingReply}
+                                                                        className="px-5 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-xs font-bold uppercase tracking-widest transition-colors"
+                                                                    >
+                                                                        {submittingReply ? "Saving..." : "Submit Reply"}
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                                                                        className="px-5 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white text-xs font-bold uppercase tracking-widest transition-colors"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

@@ -22,7 +22,7 @@ router.get("/test-email", async (req, res) => {
       "If you are reading this, your FoundU email system is FINALLY working on Railway via the Resend API! 🚀",
       `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
         <div style="background: #020024; padding: 20px; text-align: center;">
-          <img src="https://foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+          <img src="https://foundu.in/foundu-logo.png" alt="FoundU Logo" style="width: 150px; height: auto; background-color: #ffffff; padding: 10px; border-radius: 8px;" />
         </div>
         <div style="padding: 20px;">
           <h1 style="color: #3b82f6;">Success! 🚀</h1>
