@@ -301,3 +301,24 @@ exports.deleteReview = (req, res) => {
     },
   );
 };
+
+/* REPLY TO REVIEW */
+exports.replyToReview = (req, res) => {
+  const { id } = req.params;
+  const { user_id, reply_text } = req.body;
+  if (!user_id || !reply_text) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+
+  db.query(
+    "UPDATE reviews SET reply_text = ? WHERE review_id = ? AND user_id = ?",
+    [reply_text, id, user_id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) {
+        return res.status(403).json({ message: "Unauthorized or review not found" });
+      }
+      res.json({ success: true, message: "Reply added successfully" });
+    }
+  );
+};

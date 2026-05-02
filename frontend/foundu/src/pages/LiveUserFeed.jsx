@@ -34,6 +34,9 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
   const [newReviewStars, setNewReviewStars] = useState(5);
   const [submitting, setSubmitting] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +59,33 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
     fetchData();
     return () => { cancelled = true; };
   }, [post.user_id]);
+
+  const handleReplySubmit = async (reviewId) => {
+    if (!replyText.trim()) return;
+    setSubmittingReply(true);
+    try {
+      await api.post(`/api/reviews/${reviewId}/reply`, { user_id: currentUserId, reply_text: replyText });
+      toast.success("Reply added!");
+      setReviews(prev => prev.map(r => String(r.review_id) === String(reviewId) ? { ...r, reply_text: replyText } : r));
+      setReplyingTo(null);
+      setReplyText("");
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to add reply");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      await api.delete(`/api/reviews/${reviewId}`);
+      toast.success("Review deleted!");
+      setReviews(prev => prev.filter(r => String(r.review_id) !== String(reviewId)));
+    } catch (e) {
+      toast.error("Failed to delete review");
+    }
+  };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -271,6 +301,57 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
                   </div>
                 </div>
                 <p className="text-gray-400 text-[12px] leading-relaxed italic">"{review.review_text}"</p>
+                {review.reply_text && (
+                  <div className="mt-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider block mb-1">Reply from {userDetails?.full_name || "You"}</span>
+                    <p className="text-gray-300 text-xs italic">"{review.reply_text}"</p>
+                  </div>
+                )}
+                {/* Delete and Reply Buttons */}
+                {post.user_id?.toString() === currentUserId?.toString() && (
+                  <div className="mt-3 flex items-center gap-3">
+                    {!review.reply_text && (
+                      <button 
+                        onClick={() => setReplyingTo(review.review_id)}
+                        className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest"
+                      >
+                        Reply
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleDeleteReview(review.review_id)}
+                      className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-widest"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+                {/* Reply Form */}
+                {replyingTo === review.review_id && (
+                  <div className="mt-3">
+                    <textarea
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      placeholder="Write your reply..."
+                      className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500/50 resize-none h-20 mb-2"
+                    />
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleReplySubmit(review.review_id)}
+                        disabled={submittingReply}
+                        className="px-4 py-2 bg-blue-600 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest"
+                      >
+                        {submittingReply ? "Saving..." : "Submit Reply"}
+                      </button>
+                      <button 
+                        onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                        className="px-4 py-2 bg-white/10 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -323,6 +404,8 @@ const LiveUserFeed = () => {
   const currentUserId = getUserId();
   const [showMobileProfile, setShowMobileProfile] = useState(false);
   const reelContainerRef = useRef(null);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [deletingPost, setDeletingPost] = useState(false);
 
   const navigate = useNavigate();
 
@@ -414,6 +497,22 @@ const LiveUserFeed = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!postToDelete) return;
+    setDeletingPost(true);
+    try {
+      const res = await api.delete(`/api/posts/${postToDelete.id}`, { data: { user_id: currentUserId } });
+      if (res.data.success) {
+        setPosts(prev => prev.filter(p => p.id !== postToDelete.id));
+        setPostToDelete(null);
+      }
+    } catch (err) {
+      console.error("Delete post error:", err);
+    } finally {
+      setDeletingPost(false);
+    }
+  };
+
   const openReel = (post) => {
     const idx = posts.findIndex(p => p.id === post.id);
     setReelStartIndex(idx >= 0 ? idx : 0);
@@ -460,14 +559,27 @@ const LiveUserFeed = () => {
           </div>
         </div>
         <div className="px-1 mt-1.5 flex items-center justify-between">
-          <button
-            onClick={(e) => handleLike(e, post.id)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-200 ${isLiked ? "bg-red-500/20 border border-red-500/40 text-red-400" : "bg-white/5 border border-white/5 text-gray-500 hover:text-red-400 hover:border-red-500/20"
-              }`}
-          >
-            <Heart className={`w-3 h-3 ${isLiked ? "fill-red-400 scale-125" : ""}`} />
-            {likesCount > 0 && <span>{likesCount}</span>}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => handleLike(e, post.id)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-200 ${isLiked ? "bg-red-500/20 border border-red-500/40 text-red-400" : "bg-white/5 border border-white/5 text-gray-500 hover:text-red-400 hover:border-red-500/20"
+                }`}
+            >
+              <Heart className={`w-3 h-3 ${isLiked ? "fill-red-400 scale-125" : ""}`} />
+              {likesCount > 0 && <span>{likesCount}</span>}
+            </button>
+            {currentUserId && post.user_id.toString() === currentUserId.toString() && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPostToDelete(post);
+                }}
+                className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all"
+              >
+                Delete
+              </button>
+            )}
+          </div>
           <span className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">{post.user_type}</span>
         </div>
       </div>
@@ -628,19 +740,29 @@ const LiveUserFeed = () => {
 
       {/* ─── MASONRY GRID ────────────────────────────────────────────────── */}
       <main className="pt-36 pb-20 px-4 md:px-10 max-w-[1600px] mx-auto">
-        <header className="mb-14 text-center relative">
+        <header className="mb-14 relative flex flex-col md:flex-row items-center justify-between">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-500/10 blur-[120px] -z-10" />
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-5">
-            <Zap className="w-3.5 h-3.5" /> Live Ecosystem Feed
+          <div className="flex-1 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-5">
+              <Zap className="w-3.5 h-3.5" /> Live Ecosystem Feed
+            </div>
+            <h1 className="text-4xl md:text-7xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/30 px-4">
+              {viewMode === "my-posts" ? "My Collection" : "The Live Feed"}
+            </h1>
+            <p className="text-gray-500 text-lg max-w-xl md:mx-0 mx-auto font-medium">
+              {viewMode === "my-posts"
+                ? "Your history of shared insights and visual highlights."
+                : "A real-time visual stream of what's happening in the FoundU community."}
+            </p>
           </div>
-          <h1 className="text-4xl md:text-7xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/30 px-4">
-            {viewMode === "my-posts" ? "My Collection" : "The Live Feed"}
-          </h1>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto font-medium">
-            {viewMode === "my-posts"
-              ? "Your history of shared insights and visual highlights."
-              : "A real-time visual stream of what's happening in the FoundU community."}
-          </p>
+          <div className="mt-8 md:mt-0 px-4 shrink-0">
+            <button
+              onClick={() => navigate("/create-post")}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95"
+            >
+              Add New Post
+            </button>
+          </div>
         </header>
 
         {loading ? (
@@ -668,6 +790,35 @@ const LiveUserFeed = () => {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {postToDelete && (
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 max-w-sm w-full text-center">
+            <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-white mb-2">Delete Post?</h3>
+            <p className="text-gray-400 text-sm mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPostToDelete(null)}
+                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePost}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-bold transition-all flex justify-center items-center gap-2"
+                disabled={deletingPost}
+              >
+                {deletingPost ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
 
       <style dangerouslySetInnerHTML={{

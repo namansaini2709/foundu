@@ -121,7 +121,7 @@ function FreelancerJobs() {
       {/* Stipend (Optional - can be removed if not needed) */}
       <div className="flex items-center gap-2 mb-4 text-blue-300 relative z-10">
         <IndianRupee className="w-3.5 h-3.5" />
-        <span className="font-semibold text-xs">{job.stipend}</span>
+        <span className="font-semibold text-xs">{typeof job.stipend === 'string' ? job.stipend.replace(/₹/g, '').trim() : job.stipend}</span>
       </div>
       {/* Apply Now Button */}
       <button

@@ -335,7 +335,7 @@ exports.forgotPassword = async (req, res) => {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
         <div style="background: #000000; padding: 20px; text-align: center;">
-          <img src="https://www.foundu.in/whitelogo.png" alt="FoundU Logo" style="width: 150px; height: auto;" />
+          <img src="https://www.foundu.in/foundu-logo.png" alt="FoundU Logo" style="width: 150px; height: auto; background-color: #ffffff; padding: 10px; border-radius: 8px;" />
         </div>
         <div style="padding: 20px;">
           <h2 style="color: #333;">Password Reset Request</h2>
@@ -422,7 +422,7 @@ exports.getAllUsers = async (_, res) => {
 exports.getUserById = (req, res) => {
   const query = `
     SELECT 
-      u.id, u.full_name, u.email, u.user_type, u.credibility_score,
+      u.id, u.full_name, u.email, u.user_type, u.credibility_score, u.is_profile_complete,
       u.blue_tick_verified, u.golden_tick_verified, u.green_tick_verified,
       us.profile_picture_url,
       COALESCE(fp.describe_best, cp.quantifiable_impact, sp.why_building) AS professional_bio,

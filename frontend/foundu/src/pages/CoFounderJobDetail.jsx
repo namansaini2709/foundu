@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getUserId, getUserType } from "../utils/authUtils";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import {
   IndianRupee,
@@ -125,6 +126,19 @@ function CoFounderJobDetail() {
       toast.warning("You have already shown interest in this job");
       return;
     }
+
+    try {
+      const userRes = await api.get(`/api/users/${userData.user_id}`);
+      const userObj = userRes.data.success ? userRes.data.data : userRes.data;
+      if (!userObj.is_profile_complete || String(userObj.is_profile_complete) === "0" || userObj.is_profile_complete === false) {
+        toast.error("Please complete your profile to apply for jobs");
+        setTimeout(() => navigate(userData.user_type === 'cofounder' ? "/cofounder-profile" : "/freelancer-profile"), 1500);
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     setApplying(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs/apply`, {
@@ -230,7 +244,11 @@ function CoFounderJobDetail() {
                     <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
                         <IndianRupee className="w-5 h-5" />
                     </div>
-                    <span className="font-semibold text-lg">{job.budget_range || job.compensation || "Not specified"}</span>
+                    <span className="font-semibold text-lg">{
+                      (typeof job.budget_range === 'string' ? job.budget_range.replace(/₹/g, '').trim() : job.budget_range) || 
+                      (typeof job.compensation === 'string' ? job.compensation.replace(/₹/g, '').trim() : job.compensation) || 
+                      "Not specified"
+                    }</span>
                   </div>
                   <div className="flex items-center gap-2 text-blue-300">
                     <Briefcase className="w-5 h-5" />

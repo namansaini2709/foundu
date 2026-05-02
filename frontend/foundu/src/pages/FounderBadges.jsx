@@ -127,7 +127,7 @@ const FounderBadges = () => {
                     {/* Blue Tick Badge */}
                     <div className="bg-gray-800/40 backdrop-blur-md border border-blue-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-blue-400 transition-all">
                         <div className="flex-shrink-0">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${blueTickVerified ? 'bg-blue-500 shadow-blue-500/50 border-blue-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${blueTickVerified ? 'bg-white shadow-blue-500/50 border-blue-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
                                 <img src={blueBadge} alt="Blue Badge" className={`w-full h-full object-cover ${!blueTickVerified && 'opacity-40 grayscale'}`} />
                             </div>
                         </div>
@@ -160,7 +160,7 @@ const FounderBadges = () => {
                     {/* Green Tick Badge */}
                     <div className="bg-gray-800/40 backdrop-blur-md border border-green-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-green-400 transition-all">
                         <div className="flex-shrink-0">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${greenTickVerified ? 'bg-green-500 shadow-green-500/50 border-green-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-2 ${greenTickVerified ? 'bg-white shadow-green-500/50 border-green-400' : 'bg-gray-700 shadow-gray-700/30 border-gray-600'}`}>
                                 <img src={greenBadge} alt="Green Badge" className={`w-full h-full object-cover ${!greenTickVerified && 'opacity-40 grayscale'}`} />
                             </div>
                         </div>

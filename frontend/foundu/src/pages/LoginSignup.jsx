@@ -49,7 +49,8 @@ function LoginSignup() {
   useEffect(() => {
     if (authStatus === 'no_account') {
       toast.error('No account found for this Google email. Please Sign Up first!', {
-        theme: 'dark'
+        theme: 'dark',
+        autoClose: 5000
       });
       setIsLogin(false);
       // Clean URL params
@@ -57,8 +58,9 @@ function LoginSignup() {
       newParams.delete('auth');
       setSearchParams(newParams);
     } else if (authStatus === 'no_category') {
-      toast.error('Please select a category (Freelancer, Founder, etc.) BEFORE signing up with Google.', {
-        theme: 'dark'
+      toast.error('Please select a category (Freelancer, Co-Founder, Founder, etc.) BEFORE signing up with Google.', {
+        theme: 'dark',
+        autoClose: 5000
       });
       setIsLogin(false);
       // Clean URL params
@@ -576,4 +578,4 @@ function LoginSignup() {
     </div>
   )
 }
-export default LoginSignup
+export default LoginSignup

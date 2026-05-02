@@ -15,7 +15,7 @@ exports.applyToJob = (req, res) => {
 
   // 1️⃣ Get user type & role IDs
   db.query(
-    `SELECT user_type, freelancer_id, cofounder_id 
+    `SELECT user_type, freelancer_id, cofounder_id, is_profile_complete 
      FROM users WHERE id = ?`,
     [user_id],
     (err, rows) => {
@@ -30,6 +30,12 @@ exports.applyToJob = (req, res) => {
         return res
           .status(400)
           .json({ message: "Only freelancers or cofounders can apply" });
+      }
+
+      if (!user.is_profile_complete) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Profile incomplete. Please complete your profile to apply." });
       }
 
       // 2️⃣ Insert application
