@@ -160,12 +160,17 @@ function Navbar() {
     const handleRead = () => {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     };
+    const handleAllRead = () => {
+      setUnreadCount(0);
+    };
     window.addEventListener("notification_read", handleRead);
+    window.addEventListener("notifications_all_read", handleAllRead);
 
     return () => {
       socket.off("new_notification", handleNewNotification);
       socket.off("new_message_global", handleNewMessage);
       window.removeEventListener("notification_read", handleRead);
+      window.removeEventListener("notifications_all_read", handleAllRead);
     };
   }, []);
 

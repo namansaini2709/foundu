@@ -8,6 +8,6 @@ router.get("/:chatId/messages", isAuthenticated, chatController.getMessages);
 router.post("/message", isAuthenticated, chatController.sendMessage);
 router.get("/total-unread", isAuthenticated, chatController.getTotalUnreadCount);
 router.patch("/:chatId/seen", isAuthenticated, chatController.markAsSeen);
-router.post("/create", chatController.createChat);
+router.post("/create", isAuthenticated, chatController.createChat);
 
 module.exports = router;

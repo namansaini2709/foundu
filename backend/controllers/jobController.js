@@ -205,6 +205,10 @@ exports.createCofounderJob = (req, res) => {
               const cofounder_job_id = idRows[0].next_id;
 
               // 4️⃣ Insert job
+              const combinedDescription = responsibilities && Array.isArray(responsibilities) && responsibilities.length > 0
+                ? `${full_job_description || ""}\n\nKey Responsibilities:\n- ${responsibilities.join("\n- ")}`
+                : (full_job_description || "");
+
               db.query(
                 `INSERT INTO foundu_jobs (
                   user_id,
@@ -221,11 +225,10 @@ exports.createCofounderJob = (req, res) => {
                   job_level,
                   job_location_type,
                   job_requirements,
-                  responsibilities,
 
                   job_title,
                   full_job_description
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                   user_id,
                   founder_id,
@@ -241,10 +244,9 @@ exports.createCofounderJob = (req, res) => {
                   job_level || null,
                   job_location_type || null,
                   job_requirements ? JSON.stringify(job_requirements) : null,
-                  responsibilities ? JSON.stringify(responsibilities) : null,
 
                   job_title || null,
-                  full_job_description || null
+                  combinedDescription
                 ],
                 (err) => {
                   if (err) {
@@ -336,4 +338,82 @@ exports.getJobsByUserId = (req, res) => {
       res.json(rows);
     }
   );
+};
+
+/* ===============================
+   GET DASHBOARD STATS
+================================ */
+exports.getDashboardStats = (req, res) => {
+  const { userId } = req.params;
+
+  // 1. Total Jobs Posted by this founder
+  const q1 = "SELECT COUNT(*) as total FROM foundu_jobs WHERE user_id = ?";
+  
+  // 2. Active Freelancers (total in platform)
+  const q2 = "SELECT COUNT(*) as total FROM users WHERE user_type = 'freelancer'";
+  
+  // 3. Capital Invested (Sum of job posting fees + applicant payments)
+  const q3 = `
+    SELECT 
+      (SELECT COALESCE(SUM(total_amount), 0) FROM foundu_jobs WHERE user_id = ? AND payment_status = 'paid') +
+      (SELECT COALESCE(SUM(a.amount_paid), 0) 
+       FROM job_applicants a 
+       JOIN foundu_jobs j ON a.job_id = j.job_id 
+       WHERE j.user_id = ? AND a.payment_status = 'paid') as total
+  `;
+  
+  // 4. Active Proposals (Total applicants for founder's jobs)
+  const q4 = `
+    SELECT COUNT(*) as total 
+    FROM job_applicants a
+    JOIN foundu_jobs j ON a.job_id = j.job_id
+    WHERE j.user_id = ?
+  `;
+
+  // 5. Live Jobs (Paid and not completed)
+  const q5 = "SELECT COUNT(*) as total FROM foundu_jobs WHERE user_id = ? AND payment_status = 'paid' AND is_completed = 0";
+
+  // 6. Selected Jobs (Accepted applicants)
+  const q6 = `
+    SELECT COUNT(*) as total 
+    FROM job_applicants a
+    JOIN foundu_jobs j ON a.job_id = j.job_id
+    WHERE j.user_id = ? AND a.status = 'accepted'
+  `;
+
+  db.query(q1, [userId], (err, r1) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    db.query(q2, (err, r2) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      db.query(q3, [userId, userId], (err, r3) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        db.query(q4, [userId], (err, r4) => {
+          if (err) return res.status(500).json({ error: err.message });
+          
+          db.query(q5, [userId], (err, r5) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            db.query(q6, [userId], (err, r6) => {
+              if (err) return res.status(500).json({ error: err.message });
+
+              res.json({
+                success: true,
+                stats: {
+                  totalJobsPosted: r1[0].total || 0,
+                  activeFreelancers: r2[0].total || 0,
+                  capitalInvested: r3[0].total || 0,
+                  activeProposals: r4[0].total || 0,
+                  liveJobs: r5[0].total || 0,
+                  selectedJobs: r6[0].total || 0
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+  });
 };

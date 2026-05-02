@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Rocket, Target, Users, Zap, Shield, Sparkles, Globe, ArrowLeft, MousePointer2 } from 'lucide-react';
+import { Rocket, Target, Users, Zap, Shield, Sparkles, Globe, ArrowLeft, MousePointer2, Flame, GitBranch } from 'lucide-react';
 import Footer from "../components/Footer";
 const AboutDetails = () => {
   const navigate = useNavigate();
@@ -41,79 +41,127 @@ const AboutDetails = () => {
           Back to Home
         </button>
         {/* Hero Section */}
-        <div className="text-center mb-16 md:mb-24 relative">
-          <div className="inline-block px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs md:text-sm font-bold tracking-widest uppercase mb-6 animate-bounce">
-            DISCOVER THE FUTURE
-          </div>
-          <h1 className="text-4xl md:text-9xl font-black mb-8 tracking-tighter leading-none">
+        <div className="text-center mb-20 md:mb-32 relative">
+          <h1 className="text-5xl md:text-8xl lg:text-9xl font-black mb-8 tracking-tighter leading-[0.9]">
             WHAT IS <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x bg-[length:200%_200%] uppercase">FOUNDU?</span>
           </h1>
-          <p className="text-lg md:text-3xl text-gray-400 max-w-4xl mx-auto leading-relaxed font-light px-2">
+          <p className="text-lg md:text-2xl lg:text-3xl text-gray-400 max-w-4xl mx-auto leading-relaxed font-light px-4">
             Founded on the principle that the right connection can change the world, Foundu is the AI-powered nervous system of the global startup ecosystem.
           </p>
         </div>
-        {/* The Problem & The Solution */}
-        <div className="grid md:grid-cols-2 gap-12 mb-32 items-center">
-          <div className="space-y-8">
-            <h2 className="text-4xl md:text-5xl font-bold">The Great <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-8">Challenge</span></h2>
-            <p className="text-gray-400 text-lg leading-relaxed">
+        {/* The Problem & The Solution - Redesigned */}
+        <div className="mb-32">
+          <div className="text-center max-w-4xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-7xl font-black mb-8 tracking-tighter">
+              The Great <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-[12px]">Challenge</span>
+            </h2>
+            <p className="text-gray-400 text-lg md:text-xl leading-relaxed mb-10">
               In 2026, finding talent isn't hard—finding the <span className="text-white font-medium">right</span> talent is. Startups spend 40% of their early runway just trying to assemble a team that works together.
             </p>
-            <div className="bg-gray-800/20 backdrop-blur-xl border border-white/5 p-6 md:p-8 rounded-3xl relative overflow-hidden group">
+            <div className="inline-block bg-white/5 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-[2.5rem] relative overflow-hidden group max-w-2xl">
               <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors"></div>
-              <p className="relative z-10 text-blue-200 italic font-light text-lg md:text-xl">
+              <p className="relative z-10 text-blue-200 italic font-light text-lg">
                 "We realized that resumes don't build unicorns. Synergistic minds do. That's why we built Foundu."
               </p>
             </div>
           </div>
+
           <div className="relative">
-            <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-            <div className="relative bg-gradient-to-b from-blue-500/10 to-transparent border border-white/10 rounded-3xl md:rounded-[3rem] p-8 md:p-12 backdrop-blur-md shadow-2xl md:rotate-2 md:hover:rotate-0 transition-all duration-700">
-              <div className="grid grid-cols-2 gap-4">
-                 {[1,2,3,4].map(i => (
-                   <div key={i} className={`h-32 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl animate-pulse`} style={{ animationDelay: `${i*0.2}s` }}>
-                     {i === 1 ? '🧠' : i === 2 ? '⚙️' : i === 3 ? '🤝' : '🚀'}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[400px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
+               {[
+                 { 
+                   label: "The Talent Gap", 
+                   detail: "The elite 1% of builders are often hidden behind traditional noise.", 
+                   icon: <Target className="w-8 h-8 text-blue-400" />,
+                 },
+                 { 
+                   label: "Burn Velocity", 
+                   detail: "Inefficient hiring consumes up to 40% of early-stage capital runway.", 
+                   icon: <Flame className="w-8 h-8 text-orange-400" />,
+                 },
+                 { 
+                   label: "Neural Sync", 
+                   detail: "Mismatched culture is the #1 killer of co-founder partnerships.", 
+                   icon: <GitBranch className="w-8 h-8 text-purple-400" />,
+                 },
+                 { 
+                   label: "Market Inertia", 
+                   detail: "Slow team assembly delays product-market fit by months.", 
+                   icon: <Zap className="w-8 h-8 text-emerald-400" />,
+                 }
+               ].map((item, i) => (
+                 <div 
+                   key={i} 
+                   className="group/item flex flex-col items-center text-center space-y-6 transition-all duration-500 hover:-translate-y-2"
+                 >
+                   <div className="relative">
+                     <div className="absolute inset-0 bg-white/10 blur-xl rounded-full scale-0 group-hover/item:scale-150 transition-transform duration-700"></div>
+                     <div className="relative z-10 p-4 rounded-full bg-white/5 border border-white/10 group-hover/item:border-white/30 transition-all duration-500">
+                       {item.icon}
+                     </div>
                    </div>
-                 ))}
-              </div>
+                   <div className="space-y-3">
+                     <h4 className="text-white font-bold text-2xl tracking-tight">{item.label}</h4>
+                     <p className="text-gray-400 text-base leading-relaxed font-light max-w-[250px] mx-auto group-hover:text-gray-300 transition-colors">{item.detail}</p>
+                   </div>
+                 </div>
+               ))}
             </div>
           </div>
         </div>
-        {/* Our Pillars */}
+
+        {/* Our Pillars - Redesigned without boxes */}
         <div className="mb-32">
-          <div className="flex items-center gap-4 mb-16">
-            <div className="h-1 w-12 bg-blue-500 rounded-full"></div>
-            <h2 className="text-3xl font-bold uppercase tracking-widest text-blue-400">Our Core Pillars</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16 px-4">
+            <div className="flex items-center gap-4">
+              <div className="h-1 w-12 bg-blue-500 rounded-full"></div>
+              <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-widest text-blue-400">Our Core Pillars</h2>
+            </div>
+            <p className="text-gray-500 text-sm md:text-base font-medium max-w-md">The foundation upon which every successful startup team is built.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 px-4">
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="group relative h-full"
+                className="group relative"
               >
-                <div className={`absolute inset-0 bg-${feature.color}-500/5 blur-2xl group-hover:bg-${feature.color}-500/20 transition-all duration-500 rounded-3xl`}></div>
-                <div className="relative h-full bg-gray-900/40 backdrop-blur-2xl border border-white/5 rounded-3xl p-6 md:p-10 hover:-translate-y-4 transition-all duration-500 group-hover:border-white/20 shadow-xl overflow-hidden">
-                  {/* Hover Light Reflection */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  <div className={`mb-8 p-4 rounded-2xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 text-${feature.color}-400 inline-block transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500`}>
+                <div className="space-y-6 relative z-10">
+                  <div className={`p-4 rounded-2xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 text-${feature.color}-400 inline-block transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold mb-4 group-hover:text-blue-300 transition-colors">{feature.title}</h3>
-                  <p className="text-gray-400 text-sm md:text-base leading-relaxed font-light">{feature.description}</p>
+                  <div className="space-y-4">
+                    <h3 className="text-2xl md:text-3xl font-bold group-hover:text-blue-300 transition-colors tracking-tight">
+                      {feature.title}
+                    </h3>
+                    <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent"></div>
+                    <p className="text-gray-400 text-base md:text-lg leading-relaxed font-light">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        {/* Animation Strip/Callout */}
-        <div className="relative h-[400px] md:h-[600px] mb-32 rounded-[4rem] overflow-hidden border border-white/5 group bg-blue-900/10">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-purple-600/30 animate-pulse"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 md:p-8 z-10 backdrop-blur-sm">
-             <div className="w-16 h-16 md:w-24 md:h-24 bg-white rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce hover:scale-125 transition-transform cursor-pointer">
-                <Zap className="w-8 h-8 md:w-12 md:h-12 text-[#020024] fill-current" />
-             </div>
-             <h2 className="text-2xl md:text-7xl font-bold max-w-3xl leading-tight px-2">THE ONLY PLATFORM THAT UNDERSTANDS <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">VISION.</span></h2>
+
+        {/* Vision Callout - Redesigned without boxes */}
+        <div className="relative py-32 mb-32 flex flex-col items-center justify-center text-center px-4">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl h-full bg-blue-600/5 blur-[150px] rounded-full pointer-events-none"></div>
+          
+          <div className="relative z-10 space-y-10">
+            <div className="w-20 h-20 md:w-32 md:h-32 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-full flex items-center justify-center mx-auto shadow-[0_0_80px_rgba(59,130,246,0.1)] group transition-all duration-700 hover:scale-110 hover:border-white/30">
+               <Zap className="w-10 h-10 md:w-16 md:h-16 text-blue-400 fill-current animate-pulse group-hover:scale-125 transition-transform duration-700" />
+            </div>
+            
+            <h2 className="text-4xl md:text-6xl lg:text-8xl font-black max-w-5xl leading-[1.1] tracking-tighter">
+              THE ONLY PLATFORM <br className="hidden md:block" />
+              THAT UNDERSTANDS <br className="hidden md:block" />
+              <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x bg-[length:200%_200%] uppercase">VISION.</span>
+            </h2>
+            
+            <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
           </div>
         </div>
         {/* Why Foundu Section */}
@@ -129,21 +177,46 @@ const AboutDetails = () => {
                 Most platforms use simple keyword tags. Foundu uses deep-learning neural networks to understand the "soul" of your startup. Whether you need a co-founder who complements your technical debt or a freelancer who has scaled similar MVPs, we know exactly who you need before you even ask.
               </p>
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-4">
-              <div className="bg-blue-600/20 p-8 rounded-3xl h-64 flex flex-col justify-end group hover:bg-blue-600/40 transition-colors">
-                <span className="text-5xl mb-4 transform group-hover:scale-125 transition-transform">📊</span>
-                <span className="font-bold text-2xl">98% Match Rate</span>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="relative group h-72">
+                <div className="absolute inset-0 bg-blue-500/10 blur-xl group-hover:bg-blue-500/20 transition-all"></div>
+                <div className="relative h-full space-y-8 p-6 md:p-10 flex flex-col justify-between group-hover:-translate-y-2 transition-all duration-500">
+                  <div className="flex justify-between items-start">
+                    <div className="text-[10px] font-mono text-blue-400 tracking-[0.3em] uppercase">Neural-Engine v4.0</div>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-4 bg-blue-500/30 rounded-full animate-pulse"></div>
+                      <div className="w-1 h-4 bg-blue-500/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-1 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="w-full h-px bg-gradient-to-r from-blue-500 to-transparent mb-6"></div>
+                    <h4 className="text-3xl font-black text-white mb-4 tracking-tighter">Vision Alignment Matrix</h4>
+                    <p className="text-blue-300/50 text-xs font-mono">STATUS: OPTIMIZING_MATCH_DNA</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-purple-600/20 p-8 rounded-3xl h-64 flex flex-col justify-end mt-12 group hover:bg-purple-600/40 transition-colors">
-                 <span className="text-5xl mb-4 transform group-hover:scale-125 transition-transform">⚡</span>
-                 <span className="font-bold text-2xl">3x Faster Hiring</span>
+
+              <div className="relative group h-72 sm:mt-16">
+                <div className="absolute inset-0 bg-purple-500/10 blur-xl group-hover:bg-purple-500/20 transition-all"></div>
+                <div className="relative h-full space-y-8 p-6 md:p-10 flex flex-col justify-between group-hover:-translate-y-2 transition-all duration-500">
+                  <div className="flex justify-between items-start">
+                    <div className="text-[10px] font-mono text-purple-400 tracking-[0.3em] uppercase">Synergy-OS Core</div>
+                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></div>
+                  </div>
+                  <div>
+                    <div className="w-full h-px bg-gradient-to-r from-purple-500 to-transparent mb-6"></div>
+                    <h4 className="text-3xl font-black text-white mb-4 tracking-tighter">Cognitive Overlap Analysis</h4>
+                    <p className="text-purple-300/50 text-xs font-mono">ENCRYPTED_SYNERGY_SYNC: 99.4%</p>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
           {/* Final CTA */}
           <section className="relative py-16 md:py-20 px-6 md:px-8 rounded-3xl md:rounded-[4rem] overflow-hidden text-center bg-gradient-to-b from-blue-600 to-transparent border border-blue-400/30">
              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-             <h2 className="text-3xl md:text-7xl font-bold mb-8 relative z-10">Ready to build your legacy?</h2>
+             <h2 className="text-4xl md:text-7xl font-bold mb-8 relative z-10">Ready to build your legacy?</h2>
              <p className="text-lg md:text-2xl text-blue-100/70 max-w-2xl mx-auto mb-10 md:mb-12 relative z-10 font-light">
                Join 2,000+ startups currently scaling with the Foundu ecosystem.
              </p>

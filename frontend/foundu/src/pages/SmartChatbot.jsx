@@ -415,11 +415,26 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
   const queryJobId = new URLSearchParams(location.search).get("job_id");
   const jobId = jobMatch?.[1] || queryJobId || null;
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(0);       // 0=greeting, 1-5=questions, 6=results
-  const [messages, setMessages] = useState([]);
+  const [step, setStep] = useState(() => {
+    try { const s = sessionStorage.getItem("ginnie_step"); return s ? JSON.parse(s) : 0; } catch(e){ return 0; }
+  });
+  const [messages, setMessages] = useState(() => {
+    try { const s = sessionStorage.getItem("ginnie_messages"); return s ? JSON.parse(s) : []; } catch(e){ return []; }
+  });
   const [isTyping, setIsTyping] = useState(false);
-  const [filters, setFilters] = useState({});
-  const [suggestions, setSuggestions] = useState([]);
+  const [filters, setFilters] = useState(() => {
+    try { const s = sessionStorage.getItem("ginnie_filters"); return s ? JSON.parse(s) : {}; } catch(e){ return {}; }
+  });
+  const [suggestions, setSuggestions] = useState(() => {
+    try { const s = sessionStorage.getItem("ginnie_suggestions"); return s ? JSON.parse(s) : []; } catch(e){ return []; }
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem("ginnie_step", JSON.stringify(step));
+    sessionStorage.setItem("ginnie_messages", JSON.stringify(messages));
+    sessionStorage.setItem("ginnie_filters", JSON.stringify(filters));
+    sessionStorage.setItem("ginnie_suggestions", JSON.stringify(suggestions));
+  }, [step, messages, filters, suggestions]);
   const [inviteTarget, setInviteTarget] = useState(null);
   const [hasNotif, setHasNotif] = useState(true);
   const messagesEndRef = useRef(null);
@@ -443,13 +458,17 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
       startGreeting();
     }
   }, [isOpen]);
-  /* ── Reset when role/location changes ───────────────────── */
+  /* ── Reset ONLY when role changes ───────────────────── */
   useEffect(() => {
-    setMessages([]);
-    setStep(0);
-    setFilters({});
-    setSuggestions([]);
-  }, [userRole, location.pathname]);
+    const savedRole = sessionStorage.getItem("ginnie_role");
+    if (savedRole && savedRole !== userRole) {
+      setMessages([]);
+      setStep(0);
+      setFilters({});
+      setSuggestions([]);
+    }
+    sessionStorage.setItem("ginnie_role", userRole);
+  }, [userRole]);
   /* ── Helpers ────────────────────────────────────────────── */
   const addBotMsg = (text, delay = 0) => {
     return new Promise((resolve) => {

@@ -66,3 +66,33 @@ exports.deleteNotification = (req, res) => {
     }
   );
 };
+
+// Mark all notifications as read
+exports.markAllAsRead = (req, res) => {
+  const userId = req.user?.id || req.session?.user?.id;
+  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+  db.query(
+    "UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0",
+    [userId],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, message: "All notifications marked as read" });
+    }
+  );
+};
+
+// Delete all read notifications
+exports.deleteAllRead = (req, res) => {
+  const userId = req.user?.id || req.session?.user?.id;
+  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+  db.query(
+    "DELETE FROM notifications WHERE user_id = ? AND is_read = 1",
+    [userId],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, message: "Read notifications deleted" });
+    }
+  );
+};

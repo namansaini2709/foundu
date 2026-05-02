@@ -106,7 +106,7 @@ const GlobalChatOverlay = ({ userId: propUserId }) => {
 
       {/* Sidebar Overlay (Slides from left) */}
       <div 
-        className={`fixed top-0 left-0 h-full w-full md:w-[450px] bg-black shadow-2xl transition-all duration-500 ease-in-out transform z-[999] ${
+        className={`fixed top-0 left-0 h-full w-full md:w-[45vw] bg-black shadow-2xl transition-all duration-500 ease-in-out transform z-[999] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } border-r border-white/10 flex flex-col`}
       >

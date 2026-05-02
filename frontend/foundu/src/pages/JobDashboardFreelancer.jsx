@@ -42,12 +42,14 @@ export default function JobDashboardFreelancer() {
     const [isDeadlineExceeded, setIsDeadlineExceeded] = useState(false);
 
     useEffect(() => {
-        fetchData();
+        fetchData(true);
+        const interval = setInterval(() => fetchData(false), 10000);
+        return () => clearInterval(interval);
     }, [jobId, userId]);
 
-    const fetchData = async () => {
+    const fetchData = async (showLoading = true) => {
         try {
-            setLoading(true);
+            if (showLoading) setLoading(true);
             // 1. Fetch Job
             const jobRes = await api.get(`/api/jobs/${jobId}`);
             setJob(jobRes.data);
@@ -70,7 +72,7 @@ export default function JobDashboardFreelancer() {
             console.error("Error fetching dashboard data:", err);
             toast.error("Founder hasn't set up the project details yet.");
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 

@@ -150,9 +150,17 @@ const StartupDashboard = () => {
 
   useEffect(() => {
     if (userId) {
-      fetchUserJobs();
+      fetchUserJobs(true);
       fetchDashboardStats();
       fetchBadges();
+
+      const intervalId = setInterval(() => {
+        fetchUserJobs(false);
+        fetchDashboardStats();
+        fetchBadges();
+      }, 10000);
+
+      return () => clearInterval(intervalId);
     }
   }, [userId]);
 
@@ -188,15 +196,15 @@ const StartupDashboard = () => {
     }
   };
 
-  const fetchUserJobs = async () => {
-    setLoadingJobs(true);
+  const fetchUserJobs = async (showLoading = true) => {
+    if (showLoading) setLoadingJobs(true);
     try {
       const res = await api.get(`/api/jobs/user/${userId}`);
       setUserJobs(res.data);
     } catch (err) {
       console.error("Error fetching user jobs:", err);
     }
-    setLoadingJobs(false);
+    if (showLoading) setLoadingJobs(false);
   };
 
   // Stats Data

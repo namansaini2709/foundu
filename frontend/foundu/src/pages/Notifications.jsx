@@ -55,31 +55,33 @@ const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSig
                         animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
                     }
                 }}
-                className={`relative z-10 p-5 bg-[#000000] border border-white/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center cursor-grab active:cursor-grabbing hover:bg-[#050505] transition-colors rounded-2xl ${n.is_read ? 'opacity-50 grayscale-[0.3]' : ''}`}
+                className="relative z-10 p-5 bg-[#000000] border border-white/5 cursor-grab active:cursor-grabbing hover:bg-[#050505] transition-colors rounded-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex-shrink-0 relative">
-                    {getIcon(n.type)}
-                    {!n.is_read && (
-                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                             <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                        </span>
-                    )}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                        <h3 className={`font-black text-base sm:text-lg tracking-tight truncate ${n.is_read ? 'text-gray-500' : 'text-white'}`}>
-                            {n.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-[10px] uppercase font-black text-gray-700 tracking-wider">
-                            <Clock className="w-3 h-3" />
-                            {new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </div>
+                <div className={`flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full transition-all duration-300 ${n.is_read ? 'opacity-40 grayscale-[0.5]' : ''}`}>
+                    <div className="flex-shrink-0 relative">
+                        {getIcon(n.type)}
+                        {!n.is_read && (
+                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                            </span>
+                        )}
                     </div>
-                    <p className={`text-[13px] sm:text-sm leading-relaxed line-clamp-2 ${n.is_read ? 'text-gray-600' : 'text-gray-400'}`}>
-                        {n.message}
-                    </p>
+                    <div className="flex-1 min-w-0 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                            <h3 className={`font-black text-base sm:text-lg tracking-tight truncate ${n.is_read ? 'text-gray-500' : 'text-white'}`}>
+                                {n.title}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-[10px] uppercase font-black text-gray-700 tracking-wider">
+                                <Clock className="w-3 h-3" />
+                                {new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                        </div>
+                        <p className={`text-[13px] sm:text-sm leading-relaxed line-clamp-2 ${n.is_read ? 'text-gray-600' : 'text-gray-400'}`}>
+                            {n.message}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Mobile/Small Device Swipe Hint */}
@@ -98,7 +100,7 @@ const Notifications = () => {
     const [resetSignal, setResetSignal] = useState(false);
 
     useEffect(() => {
-        const fetchNotifications = async () => {
+        const fetchNotifications = async (showLoading = true) => {
             try {
                 const res = await api.get(`/api/notifications`);
                 if (res.data.success) {
@@ -107,11 +109,12 @@ const Notifications = () => {
             } catch (err) {
                 console.error("Failed to fetch notifications", err);
             } finally {
-                setLoading(false);
+                if (showLoading) setLoading(false);
             }
         };
 
-        fetchNotifications();
+        fetchNotifications(true);
+        const interval = setInterval(() => fetchNotifications(false), 10000);
 
         const handleLiveNotif = (notif) => {
             setNotifications(prev => [notif, ...prev]);
@@ -121,7 +124,10 @@ const Notifications = () => {
         const userId = getUserId();
         if (userId) socket.emit("register", userId);
         socket.on("new_notification", handleLiveNotif);
-        return () => socket.off("new_notification", handleLiveNotif);
+        return () => {
+            socket.off("new_notification", handleLiveNotif);
+            clearInterval(interval);
+        };
     }, []);
 
     const markAsRead = async (id) => {
@@ -147,6 +153,27 @@ const Notifications = () => {
             toast.info("Notification deleted", { theme: "dark", autoClose: 1000 });
         } catch (err) {
             toast.error("Failed to delete notification");
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            await api.patch(`/api/notifications/mark-all-read`);
+            setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
+            window.dispatchEvent(new Event("notifications_all_read"));
+            toast.success("All notifications marked as read", { theme: "dark", autoClose: 1000 });
+        } catch (err) {
+            toast.error("Failed to mark all as read");
+        }
+    };
+
+    const handleDeleteAllRead = async () => {
+        try {
+            await api.delete(`/api/notifications/delete-read`);
+            setNotifications(notifications.filter(n => !n.is_read));
+            toast.info("Read notifications deleted", { theme: "dark", autoClose: 1000 });
+        } catch (err) {
+            toast.error("Failed to delete read notifications");
         }
     };
 
@@ -195,6 +222,32 @@ const Notifications = () => {
                                 </h1>
                                 <p className="text-blue-400/50 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1 italic">Updates • Activity • Alerts</p>
                             </div>
+                        </div>
+                        
+                        <div className="flex items-center bg-white/[0.02] border border-white/5 rounded-2xl p-1 shadow-lg backdrop-blur-sm mt-4 md:mt-0">
+                            {notifications.some(n => !n.is_read) && (
+                                <button 
+                                    onClick={handleMarkAllAsRead} 
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300"
+                                >
+                                    <CheckCircle className="w-4 h-4 text-blue-400" /> 
+                                    <span>Mark all read</span>
+                                </button>
+                            )}
+                            
+                            {notifications.some(n => !n.is_read) && notifications.some(n => n.is_read) && (
+                                <div className="w-px h-5 bg-white/10 mx-1"></div>
+                            )}
+
+                            {notifications.some(n => n.is_read) && (
+                                <button 
+                                    onClick={handleDeleteAllRead} 
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300"
+                                >
+                                    <Trash2 className="w-4 h-4" /> 
+                                    <span>Clear read</span>
+                                </button>
+                            )}
                         </div>
                     </div>
 
