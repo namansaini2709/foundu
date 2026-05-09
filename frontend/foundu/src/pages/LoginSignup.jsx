@@ -112,6 +112,7 @@ function LoginSignup() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [resetEmail, setResetEmail] = useState('')
+  const [referralCode, setReferralCode] = useState('')
   const userTypeNames = {
     cofounder: 'Co-founder',
     freelancer: 'Freelancer',
@@ -217,7 +218,8 @@ function LoginSignup() {
           full_name: fullName,
           email,
           password,
-          user_type: validUserType
+          user_type: validUserType,
+          referral_code: referralCode
         })
 
         // Auto-login after signup
@@ -466,6 +468,22 @@ function LoginSignup() {
                             <option value="cofounder">Co-founder - Looking for a business partner</option>
                           </select>
                           <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none w-5 h-5 group-hover:text-blue-400 transition-colors" />
+                        </div>
+                      </div>
+                    )}
+                    {!isLogin && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-5">
+                        <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
+                          Referral / Coupon Code (Optional)
+                        </label>
+                        <div className="relative group">
+                          <input
+                            type="text"
+                            className="w-full px-4 py-3.5 rounded-xl bg-[#1A1F2C] border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+                            placeholder="Have a referral code?"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value)}
+                          />
                         </div>
                       </div>
                     )}

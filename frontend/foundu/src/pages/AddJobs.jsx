@@ -19,6 +19,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import QuickJobPopup from "./QuickJobPopup";
 
 const ROLE_CATEGORIES = [
   "Engineering / Development",
@@ -228,8 +229,22 @@ export default function AddJobs() {
       navigate("/login-signup");
       return;
     }
+
     setLoading(true);
     try {
+      // Check for founder profile completion during submission
+      const userType = localStorage.getItem("user_type");
+      if (userType === "founder") {
+        const res = await api.get(`/api/users/${userId}`);
+        const user = res.data.success ? res.data.data : res.data;
+
+        if (!user.is_profile_complete || String(user.is_profile_complete) === "0") {
+          toast.error("Complete your profile first!");
+          setTimeout(() => navigate("/startup-profile"), 1000);
+          setLoading(false);
+          return;
+        }
+      }
       const { hiringType, common, freelancer, cofounder } = formData;
       if (hiringType === "freelancer" || hiringType === "both") {
         await api.post(`/api/jobs/freelancer`, {
@@ -322,9 +337,12 @@ export default function AddJobs() {
       </div>
 
       <main className="relative z-10 pt-20 md:pt-32 px-4 md:px-6 pb-20 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-black mb-8 md:mb-10 tracking-tighter uppercase">
-          Create a new job<span className="text-blue-500">.</span>
-        </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 md:mb-10 gap-4">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase m-0">
+            Create a new job<span className="text-blue-500">.</span>
+          </h1>
+          <QuickJobPopup userId={getUserId()} renderAsButton={true} />
+        </div>
 
         {/* Step 1: Hiring Type */}
         <section className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 mb-6 transition-all duration-500">
@@ -1196,7 +1214,7 @@ export default function AddJobs() {
                       <span>₹{gst.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-black text-gray-500 uppercase">
-                      <span>FoundU Commission (3%)</span>
+                      <span>Platform Fees (3%)</span>
                       <span>₹{commission.toLocaleString()}</span>
                     </div>
                     <div className="border-t border-white/10 mt-6 pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">

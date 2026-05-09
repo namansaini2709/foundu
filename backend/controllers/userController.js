@@ -24,7 +24,7 @@ const getCookieOptions = () => ({
    SIGNUP
 ========================= */
 exports.signup = async (req, res) => {
-  const { full_name, email, password, user_type } = req.body;
+  const { full_name, email, password, user_type, referral_code } = req.body;
 
   try {
     if (!full_name || !email || !password || !user_type) {
@@ -43,6 +43,20 @@ exports.signup = async (req, res) => {
 
     if (existing.length) {
       return res.status(409).json({ message: "Email already registered" });
+    }
+
+    // 🔍 Validate referral code if provided
+    let valid_referral = null;
+    if (referral_code && referral_code.trim() !== "") {
+      const codeToVerify = referral_code.trim();
+      const [refResult] = await db.promise().query("SELECT id, is_active FROM referrals WHERE code = ?", [codeToVerify]);
+      if (!refResult.length) {
+        return res.status(400).json({ message: "Invalid referral code" });
+      }
+      if (!refResult[0].is_active) {
+        return res.status(400).json({ message: "Referral code has expired or is offline" });
+      }
+      valid_referral = codeToVerify;
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -89,8 +103,9 @@ exports.signup = async (req, res) => {
         freelancer_id,
         founder_id,
         cofounder_id,
-        is_profile_complete
-      ) VALUES (?,?,?,?,?,?,?,false)`,
+        is_profile_complete,
+        used_referral_code
+      ) VALUES (?,?,?,?,?,?,?,false,?)`,
       [
         full_name,
         email,
@@ -99,6 +114,7 @@ exports.signup = async (req, res) => {
         freelancer_id,
         founder_id,
         cofounder_id,
+        valid_referral,
       ],
     );
 

@@ -22,7 +22,7 @@ import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
 import { API_BASE } from "../utils/axiosConfig";
-import whatsappPlaceholder from "../assets/whatsapp.png";
+import whatsappPlaceholder from "../assets/whatsapp1.png";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -108,8 +108,8 @@ function HomePage() {
       <WhatsAppService />
       <UsersWeCater navigate={navigate} />
       <InfluencersSection navigate={navigate} />
-      <CategorySteps />
       <NumbersSection publicStats={publicStats} />
+      <CategorySteps />
       <TrustedBy startups={startups} />
       <Testimonials testimonialsList={testimonialsList} />
       <Footer />
@@ -187,7 +187,7 @@ const Hero = ({ navigate }) => (
         Effortlessly connect with top-notch talent and co-founders with our
         AI-powered matching platform.
       </p>
-      <p className="text-blue-100 text-base sm:text-lg md:text-xl mb-8 md:mb-12">
+      <p className="text-blue-100 text-base sm:text-lg md:text-xl mb-12 md:mb-20">
         Try for free, No credit card required & easy to use
       </p>
       <button
@@ -768,19 +768,14 @@ const WhatsAppService = () => {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="order-2 lg:order-1 relative group"
+            className="order-2 lg:order-1 relative"
           >
-            <div className="absolute -inset-4 bg-green-500/10 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
-            <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-6 shadow-2xl overflow-hidden aspect-square flex items-center justify-center">
+            <div className="relative flex items-center justify-center">
               <img
                 src={whatsappPlaceholder}
                 alt="WhatsApp Mockup"
-                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-auto max-w-[500px] object-contain"
               />
-              
-              {/* Decorative elements */}
-              <div className="absolute top-10 right-10 w-20 h-20 bg-green-500/10 rounded-full blur-xl animate-pulse"></div>
-              <div className="absolute bottom-10 left-10 w-24 h-24 bg-green-500/5 rounded-full blur-xl animate-pulse"></div>
             </div>
           </motion.div>
 
@@ -820,11 +815,10 @@ const WhatsAppService = () => {
                   <button
                     key={key}
                     onClick={() => setSelectedPlan(key)}
-                    className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
-                      selectedPlan === key
+                    className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${selectedPlan === key
                         ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
                         : "bg-white/5 text-gray-400 hover:bg-white/10"
-                    }`}
+                      }`}
                   >
                     {plan.name}
                     {plan.savings && (
@@ -860,60 +854,61 @@ const WhatsAppService = () => {
 // What is Foundu Section
 const WhatIsFoundu = ({ navigate }) => (
   <section
-    className="py-32 px-4 relative min-h-screen flex items-center overflow-hidden"
+    className="py-24 md:py-40 px-4 relative overflow-hidden"
     style={{
       background: "#000000",
-      borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+      borderTop: "1px solid rgba(255, 255, 255, 0.05)",
     }}
   >
-    <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-    <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-    <div className="max-w-7xl mx-auto w-full relative z-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div className="hidden lg:block">
-          {/* <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-blue-700/30 shadow-2xl relative overflow-hidden group"> */}
-          <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-hover:bg-blue-500/10 transition-all duration-700"></div>
-          <div className="w-full h-[450px] relative z-10 flex items-center justify-center">
-            <DotLottieReact
-              src="https://lottie.host/b770bd13-7b25-428c-ae62-4470485c1d11/NqVTgNMisf.lottie"
-              loop
-              autoplay
-              className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
-            />
-          </div>
-          {/* </div> */}
+    {/* Decorative Background Elements */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+      <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-500/20 to-transparent"></div>
+      <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-indigo-500/20 to-transparent"></div>
+    </div>
+
+    <div className="max-w-4xl mx-auto w-full relative z-10 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* <div className="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] mb-8">
+          The Ecosystem
+        </div> */}
+
+        <h2 className="text-4xl sm:text-6xl md:text-8xl font-black mb-10 leading-[0.9] tracking-tighter">
+          <span className="text-white">WHAT IS </span>
+          <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-400">
+            FOUNDU
+          </span>
+          <span className="text-white">?</span>
+        </h2>
+
+        <div className="space-y-8 mb-16 max-w-2xl mx-auto">
+          <p className="text-gray-200 text-xl md:text-3xl leading-snug font-medium tracking-tight">
+            Foundu is the premier AI-driven ecosystem where innovation meets execution.
+          </p>
+          <div className="w-12 h-0.5 bg-blue-500/30 mx-auto rounded-full"></div>
+          <p className="text-gray-400 text-base md:text-xl leading-relaxed font-light italic">
+            "We bridge the gap between ambitious startups and elite talent, using advanced matching technology to build teams that win."
+          </p>
         </div>
-        <div className="relative">
-          <h2 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 md:mb-10 leading-tight text-center lg:text-left px-4">
-            <span className="text-white">WHAT IS </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
-              FOUNDU
+
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/about-details")}
+            className="group relative px-10 py-5 bg-white text-black rounded-full font-black uppercase tracking-widest text-xs overflow-hidden transition-all duration-500 hover:scale-105 hover:bg-blue-600 hover:text-white shadow-[0_20px_40px_rgba(255,255,255,0.05)] active:scale-95"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              Learn More
+              <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1" />
             </span>
-            <span className="text-white">?</span>
-          </h2>
-          <div className="space-y-4 md:space-y-6 mb-8 md:mb-12 text-center lg:text-left">
-            <p className="text-gray-200 text-lg sm:text-xl md:text-2xl leading-relaxed font-light">
-              Foundu is the premier AI-driven ecosystem where innovation meets
-              execution.
-            </p>
-            <p className="text-gray-400 text-base sm:text-lg md:text-xl leading-relaxed font-light">
-              We bridge the gap between ambitious startups and elite talent,
-              using advanced matching technology to build teams that win.
-            </p>
-          </div>
-          <div className="flex justify-center lg:justify-start">
-            <button
-              onClick={() => navigate("/about-details")}
-              className="group relative px-8 py-4 md:px-10 md:py-5 bg-blue-600 rounded-2xl font-bold text-white overflow-hidden transition-all duration-500 hover:scale-105 hover:bg-blue-500 shadow-2xl shadow-blue-500/30 active:scale-95"
-            >
-              <span className="relative z-10 flex items-center gap-2 md:gap-3 text-base md:text-lg">
-                Learn More
-                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform duration-500" />
-              </span>
-            </button>
-          </div>
+          </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   </section>
 );
@@ -929,33 +924,22 @@ const NumbersSection = ({ publicStats }) => {
 
   return (
     <section
-      className="py-20 md:py-32 px-4 relative"
-      style={{
-        background: "#000000",
-        borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-      }}
+      className="py-12 md:py-16 relative"
+      style={{ background: "#000000" }}
     >
-      <h2 className="text-center text-3xl sm:text-4xl md:text-6xl font-bold mb-3 md:mb-4 relative z-10 px-4">
-        <span className="text-white">OUR </span>
-        <span className="text-blue-300">ACHIEVEMENT</span>
-      </h2>
-      <p className="text-center text-gray-300 text-base md:text-lg mb-10 md:mb-16 max-w-3xl mx-auto relative z-10">
-        From our first creator upload to thousands of successful collaborations
-        — here's what we've achieved so far.
-      </p>
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-8 md:p-12 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="w-full bg-blue-600 py-10 md:py-14 shadow-[0_0_40px_rgba(37,99,235,0.3)]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-5xl md:text-6xl font-bold mb-3 text-blue-300">
+              <div key={index} className="text-center group">
+                <div className="text-4xl md:text-6xl font-black mb-1 text-white tracking-tighter">
                   <CountUp
                     end={stat.number}
                     duration={2000}
                     suffix={stat.suffix}
                   />
                 </div>
-                <div className="text-blue-300 text-lg font-semibold">
+                <div className="text-blue-100 text-[10px] md:text-xs font-black uppercase tracking-[0.3em]">
                   {stat.label}
                 </div>
               </div>
@@ -1169,7 +1153,7 @@ const InfluencersSection = ({ navigate }) => {
                   autoplay
                 />
               </div>
-              
+
               {/* <div className="absolute bottom-10 left-0 right-0 px-8">
                 <h3 className="text-2xl md:text-3xl font-black text-white mb-2">
                   JOIN THE NETWORK

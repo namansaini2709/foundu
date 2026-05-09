@@ -24,6 +24,7 @@ const userTypeLinks = {
     { label: "Dashboard", to: "/startup-dashboard" },
     { label: "Influencers", to: "/influencer-marketplace" },
     { label: "Add a New Job", to: "/add-job" },
+    { label: "Idea Lab", to: "/idea-lab" },
     { label: "Live User Feed", to: "/live-feed" },
     { label: "Badges", to: "/founder-badges" },
   ],
@@ -37,6 +38,7 @@ const userTypeLinks = {
   cofounder: [
     { label: "Dashboard", to: "/cofounder-dashboard" },
     { label: "View Jobs", to: "/cofounder-jobs" },
+    { label: "Idea Lab", to: "/idea-lab" },
     { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/cofounder-badges" },
     { label: "Reviews & Ratings", to: "/reviews" },

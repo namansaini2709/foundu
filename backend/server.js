@@ -163,7 +163,9 @@ app.use("/api", paymentRoutes);
 app.use("/api/influencers", influencerRoutes);
 app.use("/api/queries", queryRoutes);
 const submissionRoutes = require("./routes/submissionRoutes");
+const referralRoutes = require("./routes/referralRoutes");
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/referrals", referralRoutes);
 
 /* =========================
    HEALTH CHECK

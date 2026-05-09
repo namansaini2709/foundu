@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
@@ -9,7 +10,8 @@ import {
 } from "lucide-react";
 import "./QuickJobPopup.css";
 
-const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
+const QuickJobPopup = ({ userId, activePopup, setActivePopup, renderAsButton }) => {
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [phase, setPhase] = useState("selection"); // selection, questions, loading, preview
     const [hiringType, setHiringType] = useState(null); // freelancer, cofounder
@@ -176,6 +178,19 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
+            // Check for founder profile completion during submission
+            const userType = localStorage.getItem("user_type");
+            if (userType === "founder") {
+                const res = await api.get(`/api/users/${userId}`);
+                const user = res.data.success ? res.data.data : res.data;
+
+                if (!user.is_profile_complete || String(user.is_profile_complete) === "0") {
+                    toast.error("Complete your profile first!");
+                    setTimeout(() => navigate("/startup-profile"), 1000);
+                    setLoading(false);
+                    return;
+                }
+            }
             const endpoint = hiringType === 'freelancer' ? '/jobs/freelancer' : '/jobs/cofounder';
             const payload = hiringType === 'freelancer' ? {
                 user_id: Number(userId),
@@ -229,10 +244,23 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
     };
 
     if (!isOpen) {
-        // Hide FAB when another popup is open
+        // Hide FAB/Button when another popup is open
         if (activePopup && activePopup !== "quickjob") return null;
+        
+        if (renderAsButton) {
+            return (
+                <button 
+                    onClick={() => { setIsOpen(true); setActivePopup && setActivePopup("quickjob"); }}
+                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 transform hover:scale-105 border border-white/20"
+                >
+                    <Zap size={18} className="text-yellow-400 fill-yellow-400" />
+                    Write JD using AI
+                </button>
+            );
+        }
+
         return (
-            <div className="fab-quickjob" onClick={() => { setIsOpen(true); setActivePopup("quickjob"); }}>
+            <div className="fab-quickjob" onClick={() => { setIsOpen(true); setActivePopup && setActivePopup("quickjob"); }}>
                 <DotLottieReact
                     src="https://lottie.host/7dce804e-19dd-4362-a69b-4e3121ccf219/6f9O7SB0Qq.lottie"
                     loop
@@ -251,7 +279,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup }) => {
                         <Zap size={18} className="text-yellow-400 fill-yellow-400" />
                         <span>QUICK HIRE <strong>AI</strong></span>
                     </div>
-                    <button className="qj-close" onClick={() => { setIsOpen(false); setActivePopup(null); }}>
+                    <button className="qj-close" onClick={() => { setIsOpen(false); setActivePopup && setActivePopup(null); }}>
                         <X size={18} />
                     </button>
                 </header>
