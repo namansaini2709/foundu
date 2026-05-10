@@ -23,6 +23,7 @@ import { API_BASE } from '../utils/axiosConfig';
 const InfluencerMarketplace = () => {
     const navigate = useNavigate();
     const [influencers, setInfluencers] = React.useState([]);
+    const [searchTerm, setSearchTerm] = React.useState("");
     const [loading, setLoading] = React.useState(true);
 
     const handleContact = async (influencerUserId) => {
@@ -82,6 +83,15 @@ const InfluencerMarketplace = () => {
         return "from-slate-500 to-gray-600";
     };
 
+    const filteredInfluencers = influencers.filter((inf) => {
+        const query = searchTerm.toLowerCase();
+        return (
+            inf.full_name?.toLowerCase().includes(query) ||
+            inf.category?.toLowerCase().includes(query) ||
+            inf.instagram_url?.toLowerCase().includes(query)
+        );
+    });
+
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col font-sans">
 
@@ -111,14 +121,19 @@ const InfluencerMarketplace = () => {
                             <input
                                 type="text"
                                 placeholder="Search by name, handle, or category..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
                             />
                         </div>
                     </div>
                     <div className="flex gap-3 w-full md:w-auto">
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all font-bold text-sm">
+                        <button 
+                            onClick={() => setSearchTerm("")}
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all font-bold text-sm"
+                        >
                             <Filter className="w-4 h-4" />
-                            Filters
+                            Reset
                         </button>
                         <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl transition-all font-bold text-sm shadow-lg shadow-blue-600/20">
                             Apply
@@ -135,13 +150,13 @@ const InfluencerMarketplace = () => {
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
                             <p className="text-gray-400 font-bold">Loading influencers...</p>
                         </div>
-                    ) : influencers.length === 0 ? (
+                    ) : filteredInfluencers.length === 0 ? (
                         <div className="col-span-full py-20 text-center bg-white/5 rounded-[2.5rem] border border-white/10">
                             <Users className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-white mb-2">No influencers yet</h3>
-                            <p className="text-gray-400">Accepted influencers will appear here.</p>
+                            <h3 className="text-2xl font-bold text-white mb-2">No influencers found</h3>
+                            <p className="text-gray-400">Try adjusting your search or filters.</p>
                         </div>
-                    ) : influencers.map((inf) => (
+                    ) : filteredInfluencers.map((inf) => (
                         <div
                             key={inf.id}
                             className="group relative rounded-3xl md:rounded-[2.5rem] bg-gray-900/40 border border-white/5 overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:border-blue-500/30 backdrop-blur-sm"

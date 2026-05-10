@@ -44,12 +44,12 @@ import AdminTestimonials from "./admin/pages/AdminTestimonials";
 import AdminNotifications from "./admin/pages/AdminNotifications";
 import AdminInfluencers from "./admin/pages/AdminInfluencers";
 import AdminQueries from "./admin/pages/AdminQueries";
+import AdminReferrals from "./admin/pages/AdminReferrals";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
 import IdeaLabPopup from "./pages/IdeaLabPopup";
-
-// import IdeaLab from "./pages/IdeaLab";
+import IdeaLab from "./pages/IdeaLab";
 import QuickJobPopup from "./pages/QuickJobPopup";
 import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
@@ -62,6 +62,7 @@ import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
+import StartupPortals from "./pages/StartupPortals";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -190,11 +191,13 @@ function App() {
         <Route path="/admin/influencers" element={<AdminInfluencers />} />
         <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/admin/queries" element={<AdminQueries />} />
-        {/* <Route path="/idea-lab"        element={<IdeaLab />} /> */}
+        <Route path="/admin/referrals" element={<AdminReferrals />} />
+        <Route path="/idea-lab" element={<IdeaLab />} />
 
         <Route path="/about-details" element={<AboutDetails />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/startup-portals" element={<StartupPortals />} />
         <Route
           path="/influencer-marketplace"
           element={<InfluencerMarketplace />}
@@ -211,8 +214,6 @@ function App() {
         <>
           <GlobalChatOverlay userId={userId} />
           <SmartChatbot userRole={userRole} userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />
-          {(userRole === "founder" || userRole === "cofounder") && <IdeaLabPopup userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />}
-          {userRole === "founder" && <QuickJobPopup userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />}
         </>
       )}
     </Router>

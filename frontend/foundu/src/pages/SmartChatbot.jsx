@@ -709,7 +709,7 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
                 <span className="sc-avatar-online" />
               </div>
               <div className="sc-header-info">
-                <h3>FoundU Ginnie</h3>
+                <h3>FoundU Genie</h3>
                 <p>
                   <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#22c55e", marginRight: 4 }} />
                   Online · AI-Powered

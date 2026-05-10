@@ -526,7 +526,10 @@ const StartupDashboard = () => {
                     </li>
                   ))}
                 </ul>
-                <button className="px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs">
+                <button 
+                  onClick={() => navigate('/startup-portals')}
+                  className="px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs"
+                >
                   VIEW ACTION PORTALS
                 </button>
               </div>
