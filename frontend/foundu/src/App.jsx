@@ -45,6 +45,7 @@ import AdminNotifications from "./admin/pages/AdminNotifications";
 import AdminInfluencers from "./admin/pages/AdminInfluencers";
 import AdminQueries from "./admin/pages/AdminQueries";
 import AdminReferrals from "./admin/pages/AdminReferrals";
+import AdminWhatsApp from "./admin/pages/AdminWhatsApp";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
 import LiveUserFeed from "./pages/LiveUserFeed";
@@ -63,6 +64,7 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import StartupPortals from "./pages/StartupPortals";
+import WhatsAppSubscription from "./pages/WhatsAppSubscription";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -191,6 +193,7 @@ function App() {
         <Route path="/admin/influencers" element={<AdminInfluencers />} />
         <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/admin/queries" element={<AdminQueries />} />
+        <Route path="/admin/whatsapp" element={<AdminWhatsApp />} />
         <Route path="/admin/referrals" element={<AdminReferrals />} />
         <Route path="/idea-lab" element={<IdeaLab />} />
 
@@ -206,6 +209,7 @@ function App() {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
+        <Route path="/whatsapp-alerts" element={<WhatsAppSubscription />} />
 
         {/* Catch-all 404 Route */}
         <Route path="*" element={<NotFound />} />

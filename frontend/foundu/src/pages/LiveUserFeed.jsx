@@ -8,6 +8,7 @@ import {
   ChevronDown, ChevronUp, Star, CheckCircle,
   Phone, Linkedin, Github, MessageCircle,
 } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -124,7 +125,7 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
       <div className="text-center">
         <div className="relative inline-block mb-6">
           {userDetails.profile_picture_url ? (
-            <img src={`${API_BASE}${userDetails.profile_picture_url}`} className="w-32 h-32 rounded-[2.5rem] border-4 border-blue-500/30 object-cover shadow-2xl mx-auto" alt={userDetails.full_name} />
+            <img src={getImageUrl(userDetails.profile_picture_url)} className="w-32 h-32 rounded-[2.5rem] border-4 border-blue-500/30 object-cover shadow-2xl mx-auto" alt={userDetails.full_name} />
           ) : (
             <div className="w-32 h-32 rounded-[2.5rem] bg-blue-500/10 border-4 border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto">
               <User className="w-12 h-12" />
@@ -536,7 +537,7 @@ const LiveUserFeed = () => {
           onClick={() => openReel(post)}
         >
           <img
-            src={`${API_BASE}${post.image_url}`}
+            src={getImageUrl(post.image_url)}
             alt={post.caption || "Post"}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
@@ -544,7 +545,7 @@ const LiveUserFeed = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
             <div className="flex items-center gap-2">
               {post.profile_picture_url ? (
-                <img src={`${API_BASE}${post.profile_picture_url}`} className="w-7 h-7 rounded-xl border border-white/30 object-cover" alt={post.full_name} />
+                <img src={getImageUrl(post.profile_picture_url)} className="w-7 h-7 rounded-xl border border-white/30 object-cover" alt={post.full_name} />
               ) : (
                 <div className="w-7 h-7 rounded-xl bg-blue-500/40 flex items-center justify-center"><User className="w-3.5 h-3.5 text-white" /></div>
               )}
@@ -634,7 +635,7 @@ const LiveUserFeed = () => {
                   {/* LEFT: Image — scroll bubbles to snap container */}
                   <div className="flex-1 bg-black flex items-center justify-center overflow-hidden">
                     <img
-                      src={`${API_BASE}${post.image_url}`}
+                      src={getImageUrl(post.image_url)}
                       alt={post.caption}
                       className="h-full w-full object-contain"
                       loading="lazy"
@@ -651,7 +652,7 @@ const LiveUserFeed = () => {
                     <div className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur-md border-b border-white/5 px-6 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {post.profile_picture_url ? (
-                          <img src={`${API_BASE}${post.profile_picture_url}`} className="w-8 h-8 rounded-xl border border-blue-500/30 object-cover" alt={post.full_name} />
+                          <img src={getImageUrl(post.profile_picture_url)} className="w-8 h-8 rounded-xl border border-blue-500/30 object-cover" alt={post.full_name} />
                         ) : (
                           <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center"><User className="w-4 h-4 text-blue-400" /></div>
                         )}
@@ -694,7 +695,7 @@ const LiveUserFeed = () => {
                       <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="flex items-center gap-2 mb-1">
                           {post.profile_picture_url ? (
-                            <img src={`${API_BASE}${post.profile_picture_url}`} className="w-8 h-8 rounded-xl border border-white/30 object-cover" alt={post.full_name} />
+                            <img src={getImageUrl(post.profile_picture_url)} className="w-8 h-8 rounded-xl border border-white/30 object-cover" alt={post.full_name} />
                           ) : (
                             <div className="w-8 h-8 rounded-xl bg-blue-500/30 flex items-center justify-center"><User className="w-4 h-4 text-white" /></div>
                           )}

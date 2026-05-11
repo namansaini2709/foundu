@@ -10,6 +10,7 @@ import {
   FaCheckDouble,
   FaArrowLeft,
 } from "react-icons/fa";
+import { getImageUrl } from "../utils/imageUtils";
 
 const API_URL = `/api/chat`;
 
@@ -200,8 +201,14 @@ const Chatbox = ({ targetUserId: propUserId }) => {
                     onClick={() => handleStartChat(user.id)}
                     className="flex items-center p-4 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0 transition-colors"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                      {user.full_name?.charAt(0).toUpperCase()}
+                    <div className="w-12 h-12 rounded-full overflow-hidden shadow-md">
+                      {user.profile_picture_url ? (
+                        <img src={getImageUrl(user.profile_picture_url)} alt={user.full_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                          {user.full_name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div className="ml-4 flex-1">
                       <p className="text-base font-semibold text-white">
@@ -230,9 +237,14 @@ const Chatbox = ({ targetUserId: propUserId }) => {
                 className={`flex items-center p-4 cursor-pointer transition-colors hover:bg-gray-800 ${activeChat?.chat_id === chat.chat_id ? "bg-gray-800 border-l-4 border-purple-500" : ""}`}
               >
                 <div className="relative">
-                  {/* Placeholder Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                    {chat.full_name?.charAt(0).toUpperCase()}
+                  <div className="w-12 h-12 rounded-full overflow-hidden shadow-md">
+                    {chat.profile_picture_url ? (
+                      <img src={getImageUrl(chat.profile_picture_url)} alt={chat.full_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                        {chat.full_name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
                   <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-gray-900"></div>
                 </div>
@@ -277,8 +289,14 @@ const Chatbox = ({ targetUserId: propUserId }) => {
               >
                 <FaArrowLeft className="w-5 h-5" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-md">
-                {activeChat.full_name?.charAt(0).toUpperCase()}
+              <div className="w-10 h-10 rounded-full overflow-hidden shadow-md">
+                {activeChat.profile_picture_url ? (
+                  <img src={getImageUrl(activeChat.profile_picture_url)} alt={activeChat.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                    {activeChat.full_name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
               <div className="ml-4">
                 <h2 className="font-bold text-lg leading-tight">{activeChat.full_name}</h2>

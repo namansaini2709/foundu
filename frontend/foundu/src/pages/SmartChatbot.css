@@ -593,12 +593,26 @@
   font-weight: 600;
 }
 
-.sc-cred {
+.sc-cred-badge-container {
   display: flex;
   align-items: center;
-  gap: 3px;
-  color: var(--fu-blue-300);
-  font-weight: 500;
+  gap: 5px;
+  background: rgba(29, 78, 216, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 0.5px solid rgba(59, 130, 246, 0.2);
+}
+
+.sc-cred-img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.sc-cred-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fu-text-muted);
 }
 
 .sc-badges-row {
@@ -607,9 +621,11 @@
   gap: 4px;
 }
 
-.sc-badge-tag {
-  font-size: 12px;
-  cursor: default;
+.sc-tick-img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 /* Skills */

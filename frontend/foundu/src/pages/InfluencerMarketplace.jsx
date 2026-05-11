@@ -18,7 +18,7 @@ import api from '../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getUserId } from '../utils/authUtils';
-import { API_BASE } from '../utils/axiosConfig';
+import { getImageUrl } from '../utils/imageUtils';
 
 const InfluencerMarketplace = () => {
     const navigate = useNavigate();
@@ -165,7 +165,7 @@ const InfluencerMarketplace = () => {
                             <div className="h-32 relative overflow-hidden">
                                 {inf.banner_url ? (
                                     <img
-                                        src={inf.banner_url.startsWith('http') ? inf.banner_url : `${API_BASE}${inf.banner_url.startsWith('/') ? '' : '/'}${inf.banner_url}`}
+                                        src={getImageUrl(inf.banner_url)}
                                         alt="Banner"
                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500"
                                     />
@@ -180,7 +180,7 @@ const InfluencerMarketplace = () => {
                                     <div className="w-24 h-24 rounded-3xl bg-gray-800 border-4 border-[#020024] p-1 overflow-hidden shadow-2xl">
                                         {inf.photo_url ? (
                                             <img
-                                                src={inf.photo_url.startsWith('http') ? inf.photo_url : `${API_BASE}${inf.photo_url.startsWith('/') ? '' : '/'}${inf.photo_url}`}
+                                                src={getImageUrl(inf.photo_url)}
                                                 alt={inf.full_name}
                                                 className="w-full h-full object-cover rounded-2xl"
                                             />

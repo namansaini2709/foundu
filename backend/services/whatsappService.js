@@ -13,7 +13,7 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
         const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
 
         if (!accessToken || !phoneNumberId) {
-            console.error("❌ Meta WhatsApp API credentials missing in .env");
+            console.error("❌ Meta WhatsApp API credentials (META_ACCESS_TOKEN / META_PHONE_NUMBER_ID) missing in .env");
             return;
         }
 

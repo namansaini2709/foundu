@@ -20,10 +20,10 @@ exports.addUserSocials = (req, res) => {
 
   if (req.files) {
     if (req.files.profile_picture && req.files.profile_picture[0]) {
-      updatedProfilePictureUrl = `/uploads/${req.files.profile_picture[0].filename}`;
+      updatedProfilePictureUrl = req.files.profile_picture[0].path; // Cloudinary URL
     }
     if (req.files.past_work_proof && req.files.past_work_proof[0]) {
-      updatedPastWorkProof = `/uploads/${req.files.past_work_proof[0].filename}`;
+      updatedPastWorkProof = req.files.past_work_proof[0].path; // Cloudinary URL
     }
   }
 

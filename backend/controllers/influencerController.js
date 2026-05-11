@@ -20,8 +20,8 @@ exports.apply = (req, res) => {
         is_barter
     } = req.body;
 
-    const photo_url = req.files && req.files['photo'] ? `/uploads/${req.files['photo'][0].filename}` : null;
-    const banner_url = req.files && req.files['banner'] ? `/uploads/${req.files['banner'][0].filename}` : null;
+    const photo_url = req.files && req.files['photo'] ? req.files['photo'][0].path : null; // Cloudinary URL
+    const banner_url = req.files && req.files['banner'] ? req.files['banner'][0].path : null; // Cloudinary URL
 
     if (!category || !full_name || !instagram_url || !followers_count || !last_month_reach || !email || !phone_number || !budget_range || !reel_url) {
         return res.status(400).json({ success: false, message: "All required fields must be filled." });

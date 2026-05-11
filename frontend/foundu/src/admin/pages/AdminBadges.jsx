@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getUserId } from "../../utils/authUtils";
 import api from "../../utils/axiosConfig";
 import AdminLayout from "../AdminLayout";
+import { getImageUrl } from "../../utils/imageUtils";
 
 const API = `/api`;
 
@@ -158,7 +159,7 @@ export default function AdminBadges() {
                     <td className="px-4 py-3">
                       {req.profile_picture_url ? (
                         <img
-                          src={req.profile_picture_url.startsWith('http') ? req.profile_picture_url : `${API.replace('/api', '')}${req.profile_picture_url}`}
+                          src={getImageUrl(req.profile_picture_url)}
                           alt={req.full_name}
                           className="w-8 h-8 rounded-full border border-blue-700/40 object-cover"
                           onError={(e) => { e.target.style.display = "none"; }}

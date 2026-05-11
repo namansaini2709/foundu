@@ -22,7 +22,8 @@ import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
 import { API_BASE } from "../utils/axiosConfig";
-import whatsappPlaceholder from "../assets/whatsapp1.png";
+import whatsappPlaceholder from "../assets/whatsapp2.png";
+import { getImageUrl } from "../utils/imageUtils";
 
 // Primary black background for all sections
 const solidBlack = {
@@ -105,7 +106,7 @@ function HomePage() {
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
       <FoundUAIs />
-      <WhatsAppService />
+      <WhatsAppService navigate={navigate} />
       <UsersWeCater navigate={navigate} />
       <InfluencersSection navigate={navigate} />
       <NumbersSection publicStats={publicStats} />
@@ -223,11 +224,7 @@ const TrustedBy = ({ startups }) => {
   const apiBase = API_BASE;
   const logos = startups.map((s) => ({
     name: s.startup_name || "Startup",
-    logo: s.startup_logo_url
-      ? s.startup_logo_url.startsWith("http")
-        ? s.startup_logo_url
-        : `${apiBase}${s.startup_logo_url.startsWith("/") ? "" : "/"}${s.startup_logo_url}`
-      : null,
+    logo: getImageUrl(s.startup_logo_url),
     initial: (s.startup_name || "S").charAt(0).toUpperCase(),
   }));
 
@@ -264,7 +261,8 @@ const TrustedBy = ({ startups }) => {
                       onError={(e) => {
                         console.error("Logo failed to load:", company.logo);
                         e.target.style.display = "none";
-                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                        if (e.target.nextSibling)
+                          e.target.nextSibling.style.display = "block";
                       }}
                     />
                   ) : null}
@@ -297,7 +295,8 @@ const TrustedBy = ({ startups }) => {
                       onError={(e) => {
                         console.error("Logo failed to load:", company.logo);
                         e.target.style.display = "none";
-                        if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                        if (e.target.nextSibling)
+                          e.target.nextSibling.style.display = "block";
                       }}
                     />
                   ) : null}
@@ -336,7 +335,8 @@ const TrustedBy = ({ startups }) => {
                         onError={(e) => {
                           console.error("Logo failed to load:", company.logo);
                           e.target.style.display = "none";
-                          if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+                          if (e.target.nextSibling)
+                            e.target.nextSibling.style.display = "block";
                         }}
                       />
                     ) : null}
@@ -705,7 +705,9 @@ const FoundUAIs = () => {
                 <div
                   className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-4 md:mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
                 >
-                  {React.cloneElement(ai.icon, { className: "w-8 h-8 md:w-10 md:h-10" })}
+                  {React.cloneElement(ai.icon, {
+                    className: "w-8 h-8 md:w-10 md:h-10",
+                  })}
                 </div>
                 <div className="mb-4 md:mb-6">
                   <h3 className="text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
@@ -740,13 +742,23 @@ const FoundUAIs = () => {
 };
 
 // WhatsApp Notification Service Section
-const WhatsAppService = () => {
+const WhatsAppService = ({ navigate }) => {
   const [selectedPlan, setSelectedPlan] = useState("monthly");
 
   const plans = {
     monthly: { name: "Monthly", price: 49, duration: "month", savings: null },
-    quarterly: { name: "Quarterly", price: 139, duration: "3 months", savings: "5%" },
-    sixMonth: { name: "6 Months", price: 249, duration: "6 months", savings: "15%" },
+    quarterly: {
+      name: "Quarterly",
+      price: 139,
+      duration: "3 months",
+      savings: "5%",
+    },
+    sixMonth: {
+      name: "6 Months",
+      price: 249,
+      duration: "6 months",
+      savings: "15%",
+    },
     yearly: { name: "Yearly", price: 449, duration: "1 year", savings: "24%" },
   };
 
@@ -787,23 +799,29 @@ const WhatsAppService = () => {
                 Premium Feature
               </div>
               <h2 className="text-4xl sm:text-6xl font-black text-white mb-6 uppercase tracking-tight leading-tight">
-                NEVER MISS THE <span className="text-green-500">BEST MATCH.</span>
+                NEVER MISS THE{" "}
+                <span className="text-green-500">BEST MATCH.</span>
               </h2>
               <p className="text-gray-400 text-lg md:text-xl font-light italic border-l-2 border-green-500/50 pl-6 mb-8">
-                "AI-curated opportunities delivered straight to your WhatsApp, every single day."
+                "AI-curated opportunities delivered straight to your WhatsApp,
+                every single day."
               </p>
             </div>
 
             <div className="space-y-6">
               {[
-                "Automatic Best Match Alerts sent daily at 9:00 PM IST.",
+                "Automatic Best Match Alerts sent to you daily.",
                 "Personalized for Founders, Co-founders, and Freelancers.",
                 "Curated by FoundU AI based on your profile & requirements.",
                 "Zero clutter—just high-impact opportunities on the go.",
               ].map((feature, i) => (
                 <div key={i} className="flex items-start gap-4">
-                  <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] text-green-500">✓</div>
-                  <p className="text-gray-300 text-base md:text-lg font-medium">{feature}</p>
+                  <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] text-green-500">
+                    ✓
+                  </div>
+                  <p className="text-gray-300 text-base md:text-lg font-medium">
+                    {feature}
+                  </p>
                 </div>
               ))}
             </div>
@@ -815,10 +833,11 @@ const WhatsAppService = () => {
                   <button
                     key={key}
                     onClick={() => setSelectedPlan(key)}
-                    className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${selectedPlan === key
+                    className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedPlan === key
                         ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
                         : "bg-white/5 text-gray-400 hover:bg-white/10"
-                      }`}
+                    }`}
                   >
                     {plan.name}
                     {plan.savings && (
@@ -832,13 +851,22 @@ const WhatsAppService = () => {
 
               <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between border-t border-white/5 pt-6 md:pt-8 gap-6">
                 <div className="text-center sm:text-left">
-                  <span className="text-gray-500 text-[10px] md:text-sm font-black uppercase tracking-widest block mb-1 md:mb-2">Total Amount</span>
+                  <span className="text-gray-500 text-[10px] md:text-sm font-black uppercase tracking-widest block mb-1 md:mb-2">
+                    Total Amount
+                  </span>
                   <div className="flex items-baseline justify-center sm:justify-start gap-2">
-                    <span className="text-4xl md:text-5xl font-black text-white">₹{plans[selectedPlan].price}</span>
-                    <span className="text-gray-500 font-bold uppercase text-[10px] md:text-xs tracking-widest">/ {plans[selectedPlan].duration}</span>
+                    <span className="text-4xl md:text-5xl font-black text-white">
+                      ₹{plans[selectedPlan].price}
+                    </span>
+                    <span className="text-gray-500 font-bold uppercase text-[10px] md:text-xs tracking-widest">
+                      / {plans[selectedPlan].duration}
+                    </span>
                   </div>
                 </div>
-                <button className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl md:rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2 md:gap-3">
+                <button
+                  onClick={() => navigate("/whatsapp-alerts")}
+                  className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl md:rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2 md:gap-3"
+                >
                   BUY SUBSCRIPTION
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -889,11 +917,13 @@ const WhatIsFoundu = ({ navigate }) => (
 
         <div className="space-y-8 mb-16 max-w-2xl mx-auto">
           <p className="text-gray-200 text-xl md:text-3xl leading-snug font-medium tracking-tight">
-            Foundu is the premier AI-driven ecosystem where innovation meets execution.
+            Foundu is the premier AI-driven ecosystem where innovation meets
+            execution.
           </p>
           <div className="w-12 h-0.5 bg-blue-500/30 mx-auto rounded-full"></div>
           <p className="text-gray-400 text-base md:text-xl leading-relaxed font-light italic">
-            "We bridge the gap between ambitious startups and elite talent, using advanced matching technology to build teams that win."
+            "We bridge the gap between ambitious startups and elite talent,
+            using advanced matching technology to build teams that win."
           </p>
         </div>
 
@@ -1182,4 +1212,3 @@ const InfluencersSection = ({ navigate }) => {
 };
 
 export default HomePage;
-

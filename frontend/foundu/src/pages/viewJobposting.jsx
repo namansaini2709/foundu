@@ -23,6 +23,8 @@ import {
   Send,
 } from "lucide-react";
 import Footer from "../components/Footer";
+import { getImageUrl } from "../utils/imageUtils";
+
 export default function JobApplicationsDashboard() {
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState(null);
@@ -166,11 +168,7 @@ export default function JobApplicationsDashboard() {
             match: null,
             status: app.status || "pending",
             rawStatus: app.status || "pending",
-            image: app.profile_picture_url
-              ? app.profile_picture_url.startsWith("http")
-                ? app.profile_picture_url
-                : `${API_BASE}${app.profile_picture_url}`
-              : "👤",
+            image: getImageUrl(app.profile_picture_url) || "👤",
             badges: ["verified"],
             details: {
               experience: app.experience || (isFreelancer ? "N/A" : "Expert"),
@@ -212,11 +210,7 @@ export default function JobApplicationsDashboard() {
             ai_reason: a.ai_reason,
             status: a.status || "pending",
             rawStatus: a.status || "pending",
-            image: a.profile_picture_url
-              ? a.profile_picture_url.startsWith("http")
-                ? a.profile_picture_url
-                : `${API_BASE}${a.profile_picture_url}`
-              : "👤",
+            image: getImageUrl(a.profile_picture_url) || "👤",
             badges: [],
             details: {
               experience: a.experience || "N/A",
@@ -750,11 +744,7 @@ export default function JobApplicationsDashboard() {
                     >
                       {post.image_url ? (
                         <img
-                          src={
-                            post.image_url && post.image_url.startsWith("http")
-                              ? post.image_url
-                              : `${API_BASE}${post.image_url ? (post.image_url.startsWith("/") ? "" : "/") + post.image_url : ""}`
-                          }
+                          src={getImageUrl(post.image_url)}
                           alt={post.caption || "Post"}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />

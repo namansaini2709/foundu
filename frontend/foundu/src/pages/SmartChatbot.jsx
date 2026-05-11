@@ -5,6 +5,13 @@ import { toast } from "react-toastify";
 import api from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
 import "./SmartChatbot.css";
+import blueBadge from "../assets/bluebadge.png";
+import greenBadge from "../assets/greenbadge.png";
+import goldenBadge from "../assets/goldenbadge.png";
+import badge9095 from "../assets/9095.png";
+import badge8590 from "../assets/8590.png";
+import badge8085 from "../assets/8085.png";
+import badgeBelow80 from "../assets/below80.png";
 /* ================================================================
    CONVERSATION FLOWS — per role, 5 questions each
    ================================================================ */
@@ -115,17 +122,16 @@ const MOCK_SUGGESTIONS = {
       avatarColor: "linear-gradient(135deg,#7c3aed,#06b6d4)",
       initials: "RS",
       matchScore: 94,
-      avgRating: 4.8,
       credibility: "88-92",
-      blueTick: true,
-      greenTick: true,
-      goldenTick: true,
+      blue_tick_verified: true,
+      green_tick_verified: true,
+      golden_tick_verified: true,
       skills: ["React", "Node.js", "MongoDB"],
       isApplicant: true,
       explainPoints: [
         "Domain match: Tech/SaaS — exact match to your job",
-        "4.8★ rating across 6 completed projects",
-        "🏅 Credibility 88-92 | ✅ Blue + 🟢 Green + 🏆 Golden tick verified",
+        "88-92 Credibility Score based on history",
+        "✅ Blue + 🟢 Green + 🏆 Golden tick verified",
       ],
     },
     {
@@ -135,37 +141,16 @@ const MOCK_SUGGESTIONS = {
       avatarColor: "linear-gradient(135deg,#ec4899,#8b5cf6)",
       initials: "SP",
       matchScore: 88,
-      avgRating: 4.6,
       credibility: "82-88",
-      blueTick: true,
-      greenTick: true,
-      goldenTick: false,
+      blue_tick_verified: true,
+      green_tick_verified: true,
+      golden_tick_verified: false,
       skills: ["React Native", "Firebase", "UI/UX"],
       isApplicant: false,
       explainPoints: [
         "Hidden talent — hasn't applied yet but profile matches 88%",
         "Strong mobile dev background aligns with your requirements",
-        "🏅 Credibility 82-88 | ✅ Blue + 🟢 Green tick verified",
-      ],
-    },
-    {
-      id: 3,
-      name: "Arjun Mehta",
-      role: "Backend Engineer",
-      avatarColor: "linear-gradient(135deg,#f59e0b,#ef4444)",
-      initials: "AM",
-      matchScore: 81,
-      avgRating: 4.4,
-      credibility: "75-82",
-      blueTick: true,
-      greenTick: false,
-      goldenTick: false,
-      skills: ["Node.js", "PostgreSQL", "Docker"],
-      isApplicant: true,
-      explainPoints: [
-        "Backend expertise directly matches your job requirements",
-        "4.4★ rating with 3 completed projects in similar domain",
-        "🏅 Credibility 75-82 | ✅ Blue tick verified",
+        "✅ Blue + 🟢 Green tick verified",
       ],
     },
   ],
@@ -177,37 +162,16 @@ const MOCK_SUGGESTIONS = {
       avatarColor: "linear-gradient(135deg,#0ea5e9,#6366f1)",
       initials: "TV",
       matchScore: 91,
-      avgRating: 4.9,
       credibility: "90-95",
-      blueTick: true,
-      greenTick: true,
-      goldenTick: true,
+      blue_tick_verified: true,
+      green_tick_verified: true,
+      golden_tick_verified: true,
       skills: ["React", "Node.js", "AWS"],
       isApplicant: false,
       explainPoints: [
         "Your Tech/React skills match this job's requirements 91%",
         "Remote role — matches your work preference",
         "Budget ₹40K–₹60K — aligns with your expectations",
-      ],
-    },
-    {
-      id: 5,
-      name: "FinEdge Solutions",
-      role: "Hiring: Frontend Developer",
-      avatarColor: "linear-gradient(135deg,#22c55e,#0ea5e9)",
-      initials: "FE",
-      matchScore: 85,
-      avgRating: 4.5,
-      credibility: "80-87",
-      blueTick: true,
-      greenTick: true,
-      goldenTick: false,
-      skills: ["React", "TypeScript", "FinTech"],
-      isApplicant: false,
-      explainPoints: [
-        "Domain match: FinTech — aligns with your past projects",
-        "Hybrid work option available",
-        "Reputable founder with ✅ Blue tick + 🟢 Green tick",
       ],
     },
   ],
@@ -219,37 +183,16 @@ const MOCK_SUGGESTIONS = {
       avatarColor: "linear-gradient(135deg,#a855f7,#ec4899)",
       initials: "ES",
       matchScore: 93,
-      avgRating: 4.8,
       credibility: "87-93",
-      blueTick: true,
-      greenTick: true,
-      goldenTick: true,
+      blue_tick_verified: true,
+      green_tick_verified: true,
+      golden_tick_verified: true,
       skills: ["EdTech", "MVP Stage", "Equity: 15%"],
       isApplicant: false,
       explainPoints: [
         "Startup stage (MVP) matches your preference",
         "15% equity — within your preferred range",
         "Founder has ✅ Blue + 🟢 Green + 🏆 Golden tick verified",
-      ],
-    },
-    {
-      id: 7,
-      name: "GreenPath Ventures",
-      role: "Co-Founder: Product Strategist",
-      avatarColor: "linear-gradient(135deg,#22c55e,#06b6d4)",
-      initials: "GP",
-      matchScore: 86,
-      avgRating: 4.6,
-      credibility: "79-85",
-      blueTick: true,
-      greenTick: false,
-      goldenTick: false,
-      skills: ["GreenTech", "Early Revenue", "Equity: 10%"],
-      isApplicant: false,
-      explainPoints: [
-        "Domain match: GreenTech product aligns with your expertise",
-        "Early revenue stage — lower risk, good traction",
-        "10% equity — within preferred range",
       ],
     },
   ],
@@ -266,6 +209,20 @@ const getScoreLabel = (score) => {
   if (score >= 90) return `${score}% Top Pick`;
   if (score >= 80) return `${score}% Strong`;
   return `${score}% Good Fit`;
+};
+const getCredibilityBadgeImg = (scoreStr) => {
+  // scoreStr might be "88-92" (mock) or 88 (real)
+  let score = 0;
+  if (typeof scoreStr === "string" && scoreStr.includes("-")) {
+    score = parseInt(scoreStr.split("-")[0]);
+  } else {
+    score = parseInt(scoreStr) || 0;
+  }
+
+  if (score >= 90) return badge9095;
+  if (score >= 85) return badge8590;
+  if (score >= 80) return badge8085;
+  return badgeBelow80;
 };
 const avatarGradients = [
   "linear-gradient(135deg,#1d4ed8,#0284c7)",
@@ -313,13 +270,21 @@ function SuggestionCard({ candidate, onInvite, userRole }) {
       </div>
       {/* Stats row */}
       <div className="sc-card-stats">
-        <span className="sc-rating">⭐ {candidate.avgRating}</span>
-        <span className="sc-cred">🏅 {candidate.credibility}</span>
-        <span className="sc-badges-row">
-          {candidate.blueTick && <span className="sc-badge-tag" title="Blue Tick — Identity Verified">✅</span>}
-          {candidate.greenTick && <span className="sc-badge-tag" title="Green Tick — 3+ Projects Done">🟢</span>}
-          {candidate.goldenTick && <span className="sc-badge-tag" title="Golden Tick — Highly Active">🏆</span>}
-        </span>
+        <div className="sc-cred-badge-container">
+          <img src={getCredibilityBadgeImg(candidate.credibility)} alt="Credibility" className="sc-cred-img" />
+          <span className="sc-cred-text">{candidate.credibility}</span>
+        </div>
+        <div className="sc-badges-row">
+          {candidate.blue_tick_verified ? (
+            <img src={blueBadge} alt="Blue Tick" className="sc-tick-img" title="Blue Tick — Identity Verified" />
+          ) : null}
+          {candidate.green_tick_verified ? (
+            <img src={greenBadge} alt="Green Tick" className="sc-tick-img" title="Green Tick — 3+ Projects Done" />
+          ) : null}
+          {candidate.golden_tick_verified ? (
+            <img src={goldenBadge} alt="Golden Tick" className="sc-tick-img" title="Golden Tick — Highly Active" />
+          ) : null}
+        </div>
       </div>
       {/* Skill tags */}
       <div className="sc-skills">
@@ -527,9 +492,7 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
             name: s.full_name || s.job_title,
             role: s.user_type || s.domain,
             initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
-            // Map credibility if available
-            credibility: s.credibility_score ? `${s.credibility_score - 5}-${s.credibility_score + 5}` : "70-75",
-            blueTick: true, // Mocking ticks for now based on score
+            credibility: s.credibility_score ? s.credibility_score : "70-75",
             skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Tech", "FoundU Verified"]
           }));
 

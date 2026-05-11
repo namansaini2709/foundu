@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
+import { getImageUrl } from "../utils/imageUtils";
 /**
  * Startup Profile Page Component
  * Multi-step profile completion page for startups
@@ -487,9 +488,7 @@ const StartupProfile = () => {
                                 src={
                                   formData.startupLogo instanceof File
                                     ? URL.createObjectURL(formData.startupLogo)
-                                    : formData.startupLogo?.startsWith("http")
-                                      ? formData.startupLogo
-                                      : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${formData.startupLogo}`
+                                    : getImageUrl(formData.startupLogo)
                                 }
                                 alt="Logo Preview"
                                 className="max-w-full max-h-full object-contain"

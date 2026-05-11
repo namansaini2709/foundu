@@ -3,6 +3,7 @@ import api from "../../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { Check, X, Camera, Instagram, Mail, Phone, ExternalLink, User, Zap, Users } from "lucide-react";
 import AdminLayout from "../AdminLayout";
+import { getImageUrl } from "../../utils/imageUtils";
 
 const AdminInfluencers = () => {
     const [applications, setApplications] = useState([]);
@@ -71,7 +72,7 @@ const AdminInfluencers = () => {
                                     <div className="lg:col-span-3 h-64 lg:h-full relative overflow-hidden bg-gray-900 flex items-center justify-center">
                                         {app.photo_url ? (
                                             <img
-                                                src={`${import.meta.env.VITE_API_URL}${app.photo_url}`}
+                                                src={getImageUrl(app.photo_url)}
                                                 alt={app.full_name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                                 onError={(e) => {
@@ -104,7 +105,7 @@ const AdminInfluencers = () => {
                                         {app.banner_url && (
                                             <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
                                                 <div className="w-20 h-10 rounded-lg overflow-hidden border border-white/10">
-                                                    <img src={`${import.meta.env.VITE_API_URL}${app.banner_url}`} className="w-full h-full object-cover" alt="Banner" />
+                                                    <img src={getImageUrl(app.banner_url)} className="w-full h-full object-cover" alt="Banner" />
                                                 </div>
                                             </div>
                                         )}

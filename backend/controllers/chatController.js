@@ -18,6 +18,7 @@ exports.getMyChats = (req, res) => {
       u.id AS other_user_id,
       u.full_name,
       u.user_type,
+      u.profile_picture_url,
       (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
       (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_time,
       (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = 0 AND sender_id != ?) AS unread_count

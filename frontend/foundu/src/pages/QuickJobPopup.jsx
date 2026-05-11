@@ -28,6 +28,7 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup, renderAsButton }) 
 
     const [previewData, setPreviewData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     const WORK_TYPES = ["Fixed task", "Ongoing part-time", "Full-time contract", "One-time consultation"];
     const COMMITMENTS = ["Full-time", "Part-time initially", "Flexible"];
@@ -437,65 +438,190 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup, renderAsButton }) 
                         <div className="qj-preview">
                             <div className="p-header-flex">
                                 <div>
-                                    <h2 className="qj-title">Review & Submit</h2>
-                                    <p className="qj-sub">AI has auto-filled all mandatory details for you.</p>
+                                    <h2 className="qj-title">{isEditing ? "Edit Job Details" : "Review & Submit"}</h2>
+                                    <p className="qj-sub">{isEditing ? "Modify the generated content as needed." : "AI has auto-filled all mandatory details for you."}</p>
                                 </div>
                             </div>
 
                             <div className="preview-scroll">
                                 <div className="p-section-main">
                                     <div className="ps-row"><strong>Hiring Type:</strong> <span className="cap">{previewData.hiringType}</span></div>
-                                    <div className="ps-row"><strong>Domain:</strong> <span>{previewData.common.domain}</span></div>
+                                    <div className="ps-row">
+                                        <strong>Domain:</strong> 
+                                        {isEditing ? (
+                                            <input 
+                                                className="edit-input-inline" 
+                                                value={previewData.common.domain} 
+                                                onChange={(e) => setPreviewData({...previewData, common: {...previewData.common, domain: e.target.value}})} 
+                                            />
+                                        ) : (
+                                            <span>{previewData.common.domain}</span>
+                                        )}
+                                    </div>
 
                                     {previewData.hiringType === 'freelancer' ? (
                                         <div className="ps-box">
-                                            <h4 className="ps-title"><Briefcase size={16} /> {previewData.freelancer.jobTitle}</h4>
+                                            <h4 className="ps-title">
+                                                <Briefcase size={16} /> 
+                                                {isEditing ? (
+                                                    <input 
+                                                        className="edit-input-inline title-edit" 
+                                                        value={previewData.freelancer.jobTitle} 
+                                                        onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, jobTitle: e.target.value}})} 
+                                                    />
+                                                ) : previewData.freelancer.jobTitle}
+                                            </h4>
                                             <div className="ps-grid">
-                                                <div><strong>Category:</strong> {previewData.common.roleCategories.join(", ")}</div>
-                                                <div><strong>Work Type:</strong> {previewData.freelancer.workType}</div>
-                                                <div><strong>Commitment:</strong> {previewData.freelancer.jobType || "Remote"}</div>
-                                                <div><strong>Budget:</strong> {previewData.freelancer.budget || "Negotiable"}</div>
-                                                <div><strong>Duration:</strong> {previewData.freelancer.duration || "1-3 Months"}</div>
-                                                <div><strong>Level:</strong> {previewData.freelancer.jobLevel || "Mid-Level"}</div>
+                                                <div>
+                                                    <strong>Category:</strong> 
+                                                    {isEditing ? (
+                                                        <input 
+                                                            value={previewData.common.roleCategories.join(", ")} 
+                                                            onChange={(e) => setPreviewData({...previewData, common: {...previewData.common, roleCategories: e.target.value.split(",").map(s => s.trim())}})} 
+                                                        />
+                                                    ) : previewData.common.roleCategories.join(", ")}
+                                                </div>
+                                                <div>
+                                                    <strong>Work Type:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.freelancer.workType} onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, workType: e.target.value}})} />
+                                                    ) : previewData.freelancer.workType}
+                                                </div>
+                                                <div>
+                                                    <strong>Commitment:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.freelancer.jobType} onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, jobType: e.target.value}})} />
+                                                    ) : previewData.freelancer.jobType}
+                                                </div>
+                                                <div>
+                                                    <strong>Budget:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.freelancer.budget} onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, budget: e.target.value}})} />
+                                                    ) : previewData.freelancer.budget}
+                                                </div>
+                                                <div>
+                                                    <strong>Duration:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.freelancer.duration} onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, duration: e.target.value}})} />
+                                                    ) : previewData.freelancer.duration}
+                                                </div>
+                                                <div>
+                                                    <strong>Level:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.freelancer.jobLevel} onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, jobLevel: e.target.value}})} />
+                                                    ) : previewData.freelancer.jobLevel}
+                                                </div>
                                             </div>
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">DESCRIPTION</p>
-                                                <p className="ps-txt">{previewData.freelancer.jobDescription}</p>
+                                                {isEditing ? (
+                                                    <textarea 
+                                                        className="edit-textarea-inline" 
+                                                        value={previewData.freelancer.jobDescription} 
+                                                        onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, jobDescription: e.target.value}})} 
+                                                    />
+                                                ) : (
+                                                    <p className="ps-txt">{previewData.freelancer.jobDescription}</p>
+                                                )}
                                             </div>
                                             <div className="ps-detail">
-                                                <p className="ps-lbl">REQUIREMENTS</p>
-                                                <ul className="ps-list">
-                                                    {previewData.freelancer.requirements.map((r, i) => <li key={i}>{r}</li>)}
-                                                </ul>
+                                                <p className="ps-lbl">REQUIREMENTS (comma separated)</p>
+                                                {isEditing ? (
+                                                    <textarea 
+                                                        className="edit-textarea-inline" 
+                                                        value={previewData.freelancer.requirements.join(", ")} 
+                                                        onChange={(e) => setPreviewData({...previewData, freelancer: {...previewData.freelancer, requirements: e.target.value.split(",").map(s => s.trim())}})} 
+                                                    />
+                                                ) : (
+                                                    <ul className="ps-list">
+                                                        {previewData.freelancer.requirements.map((r, i) => <li key={i}>{r}</li>)}
+                                                    </ul>
+                                                )}
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="ps-box alt">
-                                            <h4 className="ps-title"><UserPlus size={16} /> {previewData.cofounder.jobTitle}</h4>
+                                            <h4 className="ps-title">
+                                                <UserPlus size={16} /> 
+                                                {isEditing ? (
+                                                    <input 
+                                                        className="edit-input-inline title-edit" 
+                                                        value={previewData.cofounder.jobTitle} 
+                                                        onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, jobTitle: e.target.value}})} 
+                                                    />
+                                                ) : previewData.cofounder.jobTitle}
+                                            </h4>
                                             <div className="ps-grid">
-                                                <div><strong>Role Type:</strong> {previewData.cofounder.roleType}</div>
-                                                <div><strong>Compensation:</strong> {previewData.cofounder.compensation}</div>
-                                                <div><strong>Commitment:</strong> {previewData.cofounder.commitment}</div>
-                                                <div><strong>Job Type:</strong> {previewData.cofounder.jobType}</div>
-                                                <div><strong>Level:</strong> {previewData.cofounder.jobLevel}</div>
-                                                <div><strong>Sector:</strong> {previewData.common.domain}</div>
-                                                <div className="full-row"><strong>Priorities:</strong> {previewData.cofounder.priorities.join(", ")}</div>
+                                                <div>
+                                                    <strong>Role Type:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.cofounder.roleType} onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, roleType: e.target.value}})} />
+                                                    ) : previewData.cofounder.roleType}
+                                                </div>
+                                                <div>
+                                                    <strong>Compensation:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.cofounder.compensation} onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, compensation: e.target.value}})} />
+                                                    ) : previewData.cofounder.compensation}
+                                                </div>
+                                                <div>
+                                                    <strong>Commitment:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.cofounder.commitment} onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, commitment: e.target.value}})} />
+                                                    ) : previewData.cofounder.commitment}
+                                                </div>
+                                                <div>
+                                                    <strong>Job Type:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.cofounder.jobType} onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, jobType: e.target.value}})} />
+                                                    ) : previewData.cofounder.jobType}
+                                                </div>
+                                                <div>
+                                                    <strong>Level:</strong> 
+                                                    {isEditing ? (
+                                                        <input value={previewData.cofounder.jobLevel} onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, jobLevel: e.target.value}})} />
+                                                    ) : previewData.cofounder.jobLevel}
+                                                </div>
                                             </div>
                                             <div className="ps-detail">
                                                 <p className="ps-lbl">JOB DESCRIPTION</p>
-                                                <p className="ps-txt">{previewData.cofounder.jobDescription}</p>
+                                                {isEditing ? (
+                                                    <textarea 
+                                                        className="edit-textarea-inline" 
+                                                        value={previewData.cofounder.jobDescription} 
+                                                        onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, jobDescription: e.target.value}})} 
+                                                    />
+                                                ) : (
+                                                    <p className="ps-txt">{previewData.cofounder.jobDescription}</p>
+                                                )}
                                             </div>
                                             <div className="ps-detail">
-                                                <p className="ps-lbl">REQUIREMENTS</p>
-                                                <ul className="ps-list">
-                                                    {previewData.cofounder.requirements.map((r, i) => <li key={i}>{r}</li>)}
-                                                </ul>
+                                                <p className="ps-lbl">REQUIREMENTS (comma separated)</p>
+                                                {isEditing ? (
+                                                    <textarea 
+                                                        className="edit-textarea-inline" 
+                                                        value={previewData.cofounder.requirements.join(", ")} 
+                                                        onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, requirements: e.target.value.split(",").map(s => s.trim())}})} 
+                                                    />
+                                                ) : (
+                                                    <ul className="ps-list">
+                                                        {previewData.cofounder.requirements.map((r, i) => <li key={i}>{r}</li>)}
+                                                    </ul>
+                                                )}
                                             </div>
                                             <div className="ps-detail">
-                                                <p className="ps-lbl">RESPONSIBILITIES</p>
-                                                <ul className="ps-list">
-                                                    {previewData.cofounder.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
-                                                </ul>
+                                                <p className="ps-lbl">RESPONSIBILITIES (comma separated)</p>
+                                                {isEditing ? (
+                                                    <textarea 
+                                                        className="edit-textarea-inline" 
+                                                        value={previewData.cofounder.responsibilities.join(", ")} 
+                                                        onChange={(e) => setPreviewData({...previewData, cofounder: {...previewData.cofounder, responsibilities: e.target.value.split(",").map(s => s.trim())}})} 
+                                                    />
+                                                ) : (
+                                                    <ul className="ps-list">
+                                                        {previewData.cofounder.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                                                    </ul>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -503,10 +629,14 @@ const QuickJobPopup = ({ userId, activePopup, setActivePopup, renderAsButton }) 
                             </div>
 
                             <div className="qj-actions">
-                                <button className="qj-sec-btn" onClick={() => setPhase("questions")}><Edit3 size={16} /> Edit</button>
-                                <button className="qj-publish-btn" onClick={handleSubmit} disabled={loading}>
-                                    {loading ? "Publishing..." : <>Submit Job <Rocket size={18} /></>}
+                                <button className={`qj-sec-btn ${isEditing ? 'active' : ''}`} onClick={() => setIsEditing(!isEditing)}>
+                                    {isEditing ? <><CheckCircle2 size={16} /> Done Editing</> : <><Edit3 size={16} /> Edit Details</>}
                                 </button>
+                                {!isEditing && (
+                                    <button className="qj-publish-btn" onClick={handleSubmit} disabled={loading}>
+                                        {loading ? "Publishing..." : <>Submit Job <Rocket size={18} /></>}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}

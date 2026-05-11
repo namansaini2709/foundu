@@ -4,7 +4,7 @@ const notificationService = require("../services/notificationService");
 // Create a new post
 exports.createPost = (req, res) => {
   const { user_id, caption } = req.body;
-  const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+  const image_url = req.file ? req.file.path : null; // Cloudinary URL
 
   if (!user_id || !image_url) {
     return res.status(400).json({ success: false, message: "User ID and image are required" });

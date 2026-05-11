@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
 import { getUserId, getUserType, logout } from "../utils/authUtils";
 import logo from "../assets/whitelogo.png";
+import { getImageUrl } from "../utils/imageUtils";
 
 // Default links for non-logged-in users
 const defaultNavLinks = [
@@ -418,11 +419,9 @@ function Navbar() {
                   onClick={() => setIsProfileOpen((prev) => !prev)}
                   className="flex items-center gap-2 bg-blue-500/20 border border-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-500/30 transition-all duration-300"
                 >
-                  {user && user.blue_tick_verified && user.profile_picture_url ? (
+                  {user && user.profile_picture_url ? (
                     <img
-                      src={user.profile_picture_url.startsWith('http') 
-                        ? user.profile_picture_url 
-                        : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.profile_picture_url}`}
+                      src={getImageUrl(user.profile_picture_url)}
                       alt="profile"
                       className="w-8 h-8 rounded-full object-cover border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                     />

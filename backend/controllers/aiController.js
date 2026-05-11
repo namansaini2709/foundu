@@ -51,28 +51,75 @@ exports.chatSuggestions = async (req, res) => {
 
   try {
     let candidates = [];
+    let query = "";
+    let params = [];
+
     if (role === "founder") {
-      // Fetch Freelancers and Cofounders (Combined)
-      const [rows] = await db.promise().query(`
+      // Fetch Freelancers and Cofounders with filtering
+      let whereClauses = ["u.user_type IN ('freelancer', 'cofounder')"];
+      
+      if (filters.domain && filters.domain !== "Other") {
+        whereClauses.push("(fp.freelancer_type LIKE ? OR cp.primary_identity LIKE ?)");
+        params.push(`%${filters.domain}%`, `%${filters.domain}%`);
+      }
+      if (filters.experience && filters.experience !== "Any Level") {
+        whereClauses.push("(fp.experience LIKE ? OR cp.current_occupational_status LIKE ?)");
+        params.push(`%${filters.experience}%`, `%${filters.experience}%`);
+      }
+
+      query = `
         SELECT u.id, u.full_name, u.user_type, 
                COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
                COALESCE(fp.experience, cp.current_occupational_status) as experience,
-               u.credibility_score
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
         FROM users u
         LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
         LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
-        WHERE u.user_type IN ('freelancer', 'cofounder')
-        LIMIT 10
-      `);
-      candidates = rows;
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE ${whereClauses.join(" AND ")}
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      `;
     } else {
-      // Fetch Jobs (foundu_jobs)
-      const [rows] = await db.promise().query(`
+      // Fetch Jobs with filtering
+      let whereClauses = ["1=1"];
+      if (filters.domain && filters.domain !== "Other") {
+        whereClauses.push("domain LIKE ?");
+        params.push(`%${filters.domain}%`);
+      }
+      if (filters.workType && filters.workType !== "Any") {
+        whereClauses.push("job_location_type LIKE ?");
+        params.push(`%${filters.workType}%`);
+      }
+
+      query = `
         SELECT job_id as id, job_title, domain, full_job_description as job_description, budget_range, job_location_type as job_type
         FROM foundu_jobs
-        LIMIT 10
-      `);
-      candidates = rows;
+        WHERE ${whereClauses.join(" AND ")}
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+    }
+
+    const [rows] = await db.promise().query(query, params);
+    candidates = rows;
+
+    // If we have zero results with filters, fallback to general search
+    if (candidates.length === 0) {
+      console.log("[AI CHAT] No filtered results, falling back to general search.");
+      const fallbackQuery = role === "founder" 
+        ? "SELECT u.id, u.full_name, u.user_type, u.credibility_score, u.blue_tick_verified, u.green_tick_verified, u.golden_tick_verified FROM users u WHERE u.user_type IN ('freelancer', 'cofounder') ORDER BY u.credibility_score DESC LIMIT 20"
+        : "SELECT job_id as id, job_title, domain, budget_range FROM foundu_jobs ORDER BY created_at DESC LIMIT 20";
+      const [fallbackRows] = await db.promise().query(fallbackQuery);
+      candidates = fallbackRows;
     }
 
     const aiMatches = await geminiService.getChatSuggestions(role, filters, candidates);
@@ -80,12 +127,13 @@ exports.chatSuggestions = async (req, res) => {
     // Merge AI scores with real data
     const finalResults = aiMatches.map(match => {
       const realData = candidates.find(c => c.id === match.id);
+      if (!realData) return null;
       return {
         ...realData,
         matchScore: match.match_score,
         explainPoints: match.explain_points
       };
-    });
+    }).filter(Boolean);
 
     console.log(`[AI CHAT] Returning ${finalResults.length} suggestions.`);
     res.json({

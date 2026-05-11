@@ -9,6 +9,10 @@ const AdminReferrals = () => {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newCode, setNewCode] = useState("");
+  const [couponType, setCouponType] = useState("referral"); // 'referral' or 'whatsapp'
+  const [waPlan, setWaPlan] = useState("monthly");
+  const [waDuration, setWaDuration] = useState(30);
+  const [waMaxUses, setWaMaxUses] = useState(100);
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralUsers, setReferralUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -20,6 +24,8 @@ const AdminReferrals = () => {
   const fetchReferrals = async () => {
     try {
       const res = await api.get("/api/referrals");
+      // Also fetch WhatsApp coupons to show in the list if you want unified view
+      // For now, let's focus on creating them
       if (res.data.success) {
         setReferrals(res.data.data);
       }
@@ -33,17 +39,28 @@ const AdminReferrals = () => {
 
   const handleCreateReferral = async (e) => {
     e.preventDefault();
-    if (!newCode.trim()) return toast.warning("Referral code is required");
+    if (!newCode.trim()) return toast.warning("Code is required");
 
     try {
-      const res = await api.post("/api/referrals", { code: newCode.trim() });
+      let res;
+      if (couponType === "whatsapp") {
+        res = await api.post("/api/whatsapp/admin/create-coupon", {
+          code: newCode.trim().toUpperCase(),
+          plan: waPlan,
+          duration_days: Number(waDuration),
+          max_uses: Number(waMaxUses)
+        });
+      } else {
+        res = await api.post("/api/referrals", { code: newCode.trim() });
+      }
+
       if (res.data.success) {
-        toast.success("Referral code created!");
+        toast.success(res.data.message || "Code created successfully!");
         setNewCode("");
         fetchReferrals();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error creating referral code");
+      toast.error(error.response?.data?.message || "Error creating code");
     }
   };
 
@@ -51,7 +68,7 @@ const AdminReferrals = () => {
     try {
       const res = await api.put(`/api/referrals/${id}`, { is_active: !currentStatus });
       if (res.data.success) {
-        toast.success(`Referral code is now ${!currentStatus ? 'Live' : 'Offline'}`);
+        toast.success(`Code is now ${!currentStatus ? 'Live' : 'Offline'}`);
         setReferrals(referrals.map(r => r.id === id ? { ...r, is_active: !currentStatus } : r));
       }
     } catch (error) {
@@ -83,27 +100,87 @@ const AdminReferrals = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-black text-white">Referrals & Coupons</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Manage referral codes and view usage statistics
+          Manage referral codes and WhatsApp alert coupons
         </p>
       </div>
 
       <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-8 shadow-lg">
-        <h2 className="text-xl font-bold text-white mb-4">Generate New Referral Code</h2>
-        <form onSubmit={handleCreateReferral} className="flex flex-col sm:flex-row gap-4 items-center">
-          <input
-            type="text"
-            value={newCode}
-            onChange={(e) => setNewCode(e.target.value)}
-            placeholder="Enter referral code (e.g. FOUNDU100)"
-            className="bg-gray-900/50 border border-gray-600 text-white rounded-lg px-4 py-2.5 flex-1 outline-none focus:border-blue-500 transition-colors w-full"
-            maxLength={50}
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all w-full sm:w-auto active:scale-95 shadow-lg shadow-blue-500/20"
-          >
-            <Plus size={18} /> Generate Code
-          </button>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-white">Generate New Code</h2>
+          <div className="flex bg-gray-900/50 p-1 rounded-lg border border-gray-700">
+            <button 
+              onClick={() => setCouponType("referral")}
+              className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${couponType === 'referral' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              REFERRAL
+            </button>
+            <button 
+              onClick={() => setCouponType("whatsapp")}
+              className={`px-4 py-1.5 rounded-md text-xs font-black transition-all ${couponType === 'whatsapp' ? 'bg-green-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              WHATSAPP
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleCreateReferral} className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-1 w-full">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">
+                {couponType === 'whatsapp' ? 'WhatsApp Coupon Code' : 'Referral Code'}
+              </label>
+              <input
+                type="text"
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                placeholder={couponType === 'whatsapp' ? "e.g. WA_FREE_30" : "e.g. FOUNDU100"}
+                className="bg-gray-900/50 border border-gray-600 text-white rounded-lg px-4 py-2.5 w-full outline-none focus:border-blue-500 transition-colors"
+                maxLength={50}
+              />
+            </div>
+
+            {couponType === 'whatsapp' && (
+              <>
+                <div className="w-full sm:w-32">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Plan</label>
+                  <select 
+                    value={waPlan}
+                    onChange={(e) => setWaPlan(e.target.value)}
+                    className="bg-gray-900/50 border border-gray-600 text-white rounded-lg px-4 py-2.5 w-full outline-none focus:border-green-500 text-xs font-bold"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-24">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Days</label>
+                  <input 
+                    type="number"
+                    value={waDuration}
+                    onChange={(e) => setWaDuration(e.target.value)}
+                    className="bg-gray-900/50 border border-gray-600 text-white rounded-lg px-4 py-2.5 w-full outline-none focus:border-green-500 text-xs font-bold"
+                  />
+                </div>
+                <div className="w-full sm:w-24">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Limit</label>
+                  <input 
+                    type="number"
+                    value={waMaxUses}
+                    onChange={(e) => setWaMaxUses(e.target.value)}
+                    className="bg-gray-900/50 border border-gray-600 text-white rounded-lg px-4 py-2.5 w-full outline-none focus:border-green-500 text-xs font-bold"
+                  />
+                </div>
+              </>
+            )}
+
+            <button
+              type="submit"
+              className={`${couponType === 'whatsapp' ? 'bg-green-600 hover:bg-green-500 shadow-green-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20'} text-white px-8 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all w-full sm:w-auto active:scale-95 shadow-lg`}
+            >
+              <Plus size={18} /> {couponType === 'whatsapp' ? 'Generate Coupon' : 'Generate Code'}
+            </button>
+          </div>
         </form>
       </div>
 

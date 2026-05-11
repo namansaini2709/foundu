@@ -449,30 +449,103 @@
 .qj-actions {
   display: flex;
   gap: 12px;
+  margin-top: 10px;
 }
 
 .qj-sec-btn {
   flex: 1;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #d1d5db;
-  padding: 16px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.qj-publish-btn {
-  flex: 2;
-  background: #10b981;
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f3f4f6;
+  padding: 14px 20px;
+  border-radius: 16px;
   font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.qj-sec-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+.qj-publish-btn {
+  flex: 2;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+}
+
+.qj-publish-btn:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  transform: translateY(-2.5px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+.qj-sec-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #60a5fa;
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+.edit-input-inline {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dashed rgba(59, 130, 246, 0.5);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: inherit;
+  width: auto;
+  outline: none;
+}
+
+.title-edit {
+  width: 100%;
+  font-weight: 800;
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.edit-textarea-inline {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dashed rgba(59, 130, 246, 0.5);
+  color: #d1d5db;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  outline: none;
+  font-family: inherit;
+}
+
+.ps-grid input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  color: #9ca3af;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+  width: 80%;
 }

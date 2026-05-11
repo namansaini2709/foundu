@@ -62,7 +62,7 @@ exports.createProfile = (req, res) => {
         user_id,
         founder_id,
         startup_name || null,
-        req.file ? `/uploads/${req.file.filename}` : (startup_logo_url || null),
+        req.file ? req.file.path : (startup_logo_url || null), // Cloudinary URL
         founderType || null,
         whyBuilding || null,
         superpower || null,
