@@ -25,6 +25,9 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import api from "../utils/axiosConfig";
+import { toast } from "react-toastify";
+import { getUserId } from "../utils/authUtils";
 
 const StartupPortals = () => {
   const [explanation, setExplanation] = useState("");
@@ -59,6 +62,45 @@ const StartupPortals = () => {
   };
 
   const days = generateDays();
+
+  const handleBookMeeting = async () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select both a date and a time slot.");
+      return;
+    }
+
+    const userId = getUserId();
+    if (!userId) {
+      toast.error("Please login to book a meeting.");
+      return;
+    }
+
+    try {
+      const response = await api.post("/api/meetings/book", {
+        user_id: userId,
+        meeting_type: "Startup Portal",
+        portal_type: portalType,
+        other_portal_type: otherPortal,
+        explanation: explanation,
+        budget: budget,
+        selected_date: selectedDate.toISOString().split('T')[0],
+        selected_time: selectedTime
+      });
+
+      if (response.data.success) {
+        toast.success("Demo session booked! Our tech team will connect soon.");
+        setPortalType("");
+        setOtherPortal("");
+        setExplanation("");
+        setBudget("");
+        setSelectedDate(null);
+        setSelectedTime("");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Failed to book demo. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#020024] text-white selection:bg-yellow-500/30 overflow-x-hidden">
@@ -284,7 +326,10 @@ const StartupPortals = () => {
                   </div>
                 </div>
 
-                <button className="w-full py-6 bg-yellow-600 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest flex items-center justify-center gap-3 group/btn text-xs">
+                <button 
+                  onClick={handleBookMeeting}
+                  className="w-full py-6 bg-yellow-600 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest flex items-center justify-center gap-3 group/btn text-xs"
+                >
                   Book a Demo
                   <ArrowRight size={16} className="group-hover/btn:translate-x-2 transition-transform" />
                 </button>

@@ -26,6 +26,7 @@ const FreelancerDashboard = () => {
   const [realTransactions, setRealTransactions] = useState([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [upiId, setUpiId] = useState("");
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawProcessing, setWithdrawProcessing] = useState(false);
 
@@ -94,73 +95,42 @@ const FreelancerDashboard = () => {
     setShowWithdrawModal(true);
   };
 
-  // Step 2: User clicks Continue → open Razorpay → on success call backend
+  // Step 2: User clicks Continue → call backend directly (no Razorpay Checkout for withdrawals)
   const handleConfirmWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     const platformFee = amount * 0.05;
     const netPayout = amount - platformFee;
 
-    if (!window.Razorpay) {
-      toast.error("Razorpay SDK not loaded. Please refresh and try again.");
+    if (!upiId || !upiId.includes("@")) {
+      toast.error("Please enter a valid UPI ID (e.g. name@bank)");
       return;
     }
 
     setWithdrawProcessing(true);
     try {
-      // Create a Razorpay order for the NET payout amount
-      const orderRes = await api.post(`${API_URL}/payments/create-order`, {
-        amount: netPayout,
-        receipt: `withdraw_${userId}_${Date.now()}`,
+      // Direct call to backend withdrawal API
+      const res = await api.post(`${API_URL}/payments/withdraw`, {
+        user_id: userId,
+        amount,
+        upi_id: upiId,
       });
 
-      const { order_id, amount: orderAmount } = orderRes.data;
-
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderAmount,
-        currency: "INR",
-        name: "FoundU Withdrawal",
-        description: `Withdraw ₹${netPayout.toLocaleString()} (after 5% platform fee)`,
-        order_id: order_id,
-        handler: async function (response) {
-          try {
-            // Payment successful — record withdrawal on backend
-            await api.post(`${API_URL}/payments/withdraw`, {
-              user_id: userId,
-              amount,
-            });
-            toast.success(
-              `₹${netPayout.toLocaleString()} credited to your account! 🎉`,
-            );
-            setShowWithdrawModal(false);
-            setWithdrawAmount("");
-            fetchWalletData();
-          } catch (err) {
-            toast.error(
-              err.response?.data?.message || "Withdrawal recording failed",
-            );
-          } finally {
-            setWithdrawProcessing(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setWithdrawProcessing(false);
-            toast.info("Withdrawal cancelled.");
-          },
-        },
-        prefill: {
-          name: localStorage.getItem("user_name") || "",
-          email: localStorage.getItem("user_email") || "",
-        },
-        theme: { color: "#22c55e" },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      if (res.data.success) {
+        toast.success(
+          `Withdrawal request for ₹${netPayout.toLocaleString()} submitted! 🎉`,
+          { theme: "dark" }
+        );
+        setShowWithdrawModal(false);
+        setWithdrawAmount("");
+        fetchWalletData();
+      }
     } catch (err) {
-      console.error("Withdrawal initiation error:", err);
-      toast.error("Failed to initiate withdrawal. Please try again.");
+      console.error("Withdrawal error:", err);
+      toast.error(
+        err.response?.data?.message || "Failed to process withdrawal. Please contact support.",
+        { theme: "dark" }
+      );
+    } finally {
       setWithdrawProcessing(false);
     }
   };
@@ -695,10 +665,21 @@ const FreelancerDashboard = () => {
                   <div className="border-t border-dashed border-gray-600" />
                 </div>
 
-                <p className="text-gray-500 text-xs text-center mb-6">
-                  Funds will be transferred to your registered bank account via
-                  Razorpay.
-                </p>
+                <div className="space-y-4 mb-6">
+                  <label className="block text-xs font-black uppercase tracking-widest text-blue-400">
+                    Your UPI ID (For Payout)
+                  </label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="e.g. yourname@oksbi"
+                    className="w-full bg-gray-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  />
+                  <p className="text-gray-500 text-[10px] text-center">
+                    Funds will be transferred instantly to this UPI ID via RazorpayX.
+                  </p>
+                </div>
 
                 {/* Action buttons */}
                 <div className="flex gap-3">

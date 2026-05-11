@@ -1,6 +1,7 @@
 const razorpay = require("../utils/razorpay");
 const crypto = require("crypto");
 const db = require("../config/db");
+const axios = require("axios");
 const notificationService = require("../services/notificationService");
 
 // 1. Create Razorpay Order
@@ -189,13 +190,15 @@ exports.getWalletTransactions = async (req, res) => {
     }
 };
 
-// 5. Request Withdrawal
+// 5. Request Withdrawal (RazorpayX Real Payout)
 exports.requestWithdrawal = async (req, res) => {
-    const { user_id, amount } = req.body;
+    const { user_id, amount, upi_id } = req.body;
 
     try {
-        const [walletRows] = await db.promise().query("SELECT id, balance FROM wallets WHERE user_id = ?", [user_id]);
+        const [userRows] = await db.promise().query("SELECT email, full_name FROM users WHERE id = ?", [user_id]);
+        if (!userRows.length) return res.status(404).json({ success: false, message: "User not found" });
 
+        const [walletRows] = await db.promise().query("SELECT id, balance FROM wallets WHERE user_id = ?", [user_id]);
         if (!walletRows.length || walletRows[0].balance < amount) {
             return res.status(400).json({ success: false, message: "Insufficient balance" });
         }
@@ -204,49 +207,79 @@ exports.requestWithdrawal = async (req, res) => {
         const platformFee = amount * 0.05;
         const netPayout = amount - platformFee;
 
-        // Start transaction for atomic operations
+        // --- RazorpayX Real Payout Logic ---
+        const auth = Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString("base64");
+
+        // 1. Create Contact
+        const contactRes = await axios.post("https://api.razorpay.com/v1/contacts", {
+            name: userRows[0].full_name,
+            email: userRows[0].email,
+            type: "vendor",
+            reference_id: `user_${user_id}`
+        }, { headers: { Authorization: `Basic ${auth}` } });
+
+        const contact_id = contactRes.data.id;
+
+        // 2. Create Fund Account (UPI)
+        const fundRes = await axios.post("https://api.razorpay.com/v1/fund_accounts", {
+            account_type: "vpa",
+            contact_id: contact_id,
+            vpa: { address: upi_id }
+        }, { headers: { Authorization: `Basic ${auth}` } });
+
+        const fund_account_id = fundRes.data.id;
+
+        // 3. Create Payout
+        const payoutRes = await axios.post("https://api.razorpay.com/v1/payouts", {
+            account_number: process.env.RAZORPAYX_ACCOUNT_NUMBER,
+            fund_account_id: fund_account_id,
+            amount: Math.round(netPayout * 100), // in paise
+            currency: "INR",
+            mode: "UPI",
+            purpose: "payout",
+            queue_if_low_balance: true,
+            reference_id: `withdraw_${Date.now()}`
+        }, { headers: { Authorization: `Basic ${auth}` } });
+
+        const payout_id = payoutRes.data.id;
+
+        // --- Database Update ---
         await db.promise().query("START TRANSACTION");
 
         // Deduct FULL amount from wallet
         await db.promise().query("UPDATE wallets SET balance = balance - ? WHERE id = ?", [amount, wallet_id]);
 
-        // Log Main Withdrawal Transaction (Debit)
+        // Log Transaction
         await db.promise().query(
             `INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, description, status) 
              VALUES (?, ?, 'debit', ?, 'completed')`,
-            [wallet_id, amount, `Withdrawal: Net ₹${netPayout.toLocaleString()} (Fee ₹${platformFee.toLocaleString()} deducted)`]
+            [wallet_id, amount, `Withdrawal: Net ₹${netPayout} via RazorpayX (ID: ${payout_id})`]
         );
-
-        // Optional: Call RazorpayX Payouts API here in production
-        // For now, we simulate a successful payout
-        console.log(`[SIMULATION] RazorpayX Payout of ₹${netPayout} to User ${user_id} triggered.`);
 
         await db.promise().query("COMMIT");
 
-        // ⚡ Notify freelancer of successful withdrawal
-        const fmtAmount = parseFloat(amount).toLocaleString("en-IN");
-        const fmtNet = parseFloat(netPayout).toLocaleString("en-IN");
-        const fmtFee = parseFloat(platformFee).toLocaleString("en-IN");
+        // ⚡ Notify user
         notificationService.sendNotification(
             user_id,
-            "💸 Withdrawal Successful!",
-            `₹${fmtAmount} withdrawn. After 5% platform fee (₹${fmtFee}), ₹${fmtNet} is on its way to your bank account.`,
+            "💸 Payout Triggered!",
+            `₹${netPayout} is being transferred to your UPI ID ${upi_id} via RazorpayX.`,
             "payment",
             "/dashboard"
         ).catch(e => console.error("Withdrawal notify error:", e));
 
         res.json({
             success: true,
-            message: "Withdrawal processed successfully!",
-            details: {
-                requestedAmount: amount,
-                platformFee,
-                netPayout
-            }
+            message: "Payout initiated successfully via RazorpayX!",
+            payout_id
         });
+
     } catch (error) {
-        await db.promise().query("ROLLBACK");
-        console.error("Withdrawal Error:", error);
-        res.status(500).json({ success: false, error: error.message });
+        if (db.connection) await db.promise().query("ROLLBACK");
+        console.error("RazorpayX Payout Error Details:", error.response?.data || error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: "RazorpayX Error", 
+            error: error.response?.data?.error?.description || error.message 
+        });
     }
 };

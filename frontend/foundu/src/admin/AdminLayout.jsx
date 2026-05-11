@@ -14,9 +14,10 @@ const navItems = [
   { label: "Influencers", icon: "🔥", path: "/admin/influencers" },
   { label: "Queries", icon: "❓", path: "/admin/queries" },
   { label: "WhatsApp", icon: "📱", path: "/admin/whatsapp" },
+  { label: "Meetings", icon: "🤝", path: "/admin/meetings" },
   { label: "Referrals", icon: "🎫", path: "/admin/referrals" },
   { label: "Users", icon: "👥", path: "/admin/users", soon: true },
-  { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true },
+  { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true }
 ];
 
 export default function AdminLayout({ children }) {

@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import api from "../utils/axiosConfig";
+import { toast } from "react-toastify";
+import { getUserId } from "../utils/authUtils";
 
 const SESSION_PRICE = 0;
 
@@ -47,6 +50,42 @@ const PitchDeckPurchase = () => {
   };
 
   const days = generateDays();
+
+  const handleBookMeeting = async () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select both a date and a time slot.");
+      return;
+    }
+
+    const userId = getUserId();
+    if (!userId) {
+      toast.error("Please login to book a meeting.");
+      return;
+    }
+
+    try {
+      const response = await api.post("/api/meetings/book", {
+        user_id: userId,
+        meeting_type: "Pitch Deck",
+        explanation: explanation,
+        website_link: website,
+        selected_date: selectedDate.toISOString().split('T')[0],
+        selected_time: selectedTime
+      });
+
+      if (response.data.success) {
+        toast.success("Strategy session booked! We'll reach out via email.");
+        // Clear fields or redirect
+        setExplanation("");
+        setWebsite("");
+        setSelectedDate(null);
+        setSelectedTime("");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Failed to book meeting. Please try again.");
+    }
+  };
 
 
 
@@ -243,7 +282,10 @@ const PitchDeckPurchase = () => {
                   </div>
                 </div>
 
-                <button className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest flex items-center justify-center gap-3 group/btn text-xs">
+                <button 
+                  onClick={handleBookMeeting}
+                  className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all duration-300 transform hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest flex items-center justify-center gap-3 group/btn text-xs"
+                >
                   Book a Meeting
                   <ArrowRight size={16} className="group-hover/btn:translate-x-2 transition-transform" />
                 </button>

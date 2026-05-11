@@ -44,6 +44,7 @@ import AdminTestimonials from "./admin/pages/AdminTestimonials";
 import AdminNotifications from "./admin/pages/AdminNotifications";
 import AdminInfluencers from "./admin/pages/AdminInfluencers";
 import AdminQueries from "./admin/pages/AdminQueries";
+import AdminMeetings from "./admin/pages/AdminMeetings";
 import AdminReferrals from "./admin/pages/AdminReferrals";
 import AdminWhatsApp from "./admin/pages/AdminWhatsApp";
 import AboutDetails from "./pages/AboutDetails";
@@ -65,6 +66,7 @@ import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import StartupPortals from "./pages/StartupPortals";
 import WhatsAppSubscription from "./pages/WhatsAppSubscription";
+import WebDevelopment from "./pages/WebDevelopment";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -88,7 +90,7 @@ function App() {
     userId: getUserId(),
     userRole: getUserType(),
     isLoggedIn: !!getUserId(),
-    isSyncing: localStorage.getItem('auth_sync_pending') === 'true'
+    isSyncing: localStorage.getItem("auth_sync_pending") === "true",
   });
 
   // Listen for sync events from Navbar/LoginSignup
@@ -98,7 +100,7 @@ function App() {
         userId: getUserId(),
         userRole: getUserType(),
         isLoggedIn: !!getUserId(),
-        isSyncing: localStorage.getItem('auth_sync_pending') === 'true'
+        isSyncing: localStorage.getItem("auth_sync_pending") === "true",
       });
     };
 
@@ -107,17 +109,17 @@ function App() {
     if (authState.isSyncing) {
       safetyTimeout = setTimeout(() => {
         console.warn("[Auth] Syncing timed out. Forcing app unlock.");
-        localStorage.removeItem('auth_sync_pending');
+        localStorage.removeItem("auth_sync_pending");
         handleAuthChange();
       }, 5000);
     }
 
-    window.addEventListener('auth-change', handleAuthChange);
-    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", handleAuthChange);
     return () => {
       if (safetyTimeout) clearTimeout(safetyTimeout);
-      window.removeEventListener('auth-change', handleAuthChange);
-      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener("auth-change", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
     };
   }, [authState.isSyncing]);
 
@@ -139,7 +141,6 @@ function App() {
 
   return (
     <Router>
-
       <ScrollToTop />
       <NavbarWrapper />
 
@@ -159,8 +160,14 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/onboard-influencer" element={<InfluencerOnboarding />} />
         <Route path="/startup-dashboard" element={<StartupDashboard />} />
-        <Route path="/job-dashboard/founder/:jobId/:freelancerId" element={<JobDashboardFounder />} />
-        <Route path="/job-dashboard/freelancer/:jobId" element={<JobDashboardFreelancer />} />
+        <Route
+          path="/job-dashboard/founder/:jobId/:freelancerId"
+          element={<JobDashboardFounder />}
+        />
+        <Route
+          path="/job-dashboard/freelancer/:jobId"
+          element={<JobDashboardFreelancer />}
+        />
         <Route path="/startup-services" element={<StartupServices />} />
         <Route path="/freelancer-profile" element={<FreelancerProfile />} />
         <Route path="/cofounder-profile" element={<CoFounderProfile />} />
@@ -194,6 +201,7 @@ function App() {
         <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/admin/queries" element={<AdminQueries />} />
         <Route path="/admin/whatsapp" element={<AdminWhatsApp />} />
+        <Route path="/admin/meetings" element={<AdminMeetings />} />
         <Route path="/admin/referrals" element={<AdminReferrals />} />
         <Route path="/idea-lab" element={<IdeaLab />} />
 
@@ -201,6 +209,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/startup-portals" element={<StartupPortals />} />
+        <Route path="/web-development" element={<WebDevelopment />} />
         <Route
           path="/influencer-marketplace"
           element={<InfluencerMarketplace />}
@@ -217,7 +226,12 @@ function App() {
       {isLoggedIn && (
         <>
           <GlobalChatOverlay userId={userId} />
-          <SmartChatbot userRole={userRole} userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />
+          <SmartChatbot
+            userRole={userRole}
+            userId={userId}
+            activePopup={activePopup}
+            setActivePopup={setActivePopup}
+          />
         </>
       )}
     </Router>

@@ -119,6 +119,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
 const queryRoutes = require("./routes/queryRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
+const meetingRoutes = require("./routes/meetingRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -168,6 +169,7 @@ const referralRoutes = require("./routes/referralRoutes");
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api", whatsappRoutes);
+app.use("/api/meetings", meetingRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -281,7 +283,9 @@ server.listen(PORT, () => {
     noon.setHours(12, 0, 0, 0);
     if (now >= noon) noon.setDate(noon.getDate() + 1); // If past noon today, schedule for tomorrow
     const msUntilNoon = noon - now;
-    console.log(`📬 Unread message checker scheduled for 12:00 PM (in ${Math.round(msUntilNoon / 60000)} min)`);
+    console.log(
+      `📬 Unread message checker scheduled for 12:00 PM (in ${Math.round(msUntilNoon / 60000)} min)`,
+    );
     setTimeout(() => {
       checkUnreadMessages();
       setInterval(checkUnreadMessages, 24 * 60 * 60 * 1000); // Then every 24 hours
