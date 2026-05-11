@@ -44,6 +44,7 @@ import AdminTestimonials from "./admin/pages/AdminTestimonials";
 import AdminNotifications from "./admin/pages/AdminNotifications";
 import AdminInfluencers from "./admin/pages/AdminInfluencers";
 import AdminQueries from "./admin/pages/AdminQueries";
+import AdminMeetings from "./admin/pages/AdminMeetings";
 import AdminReferrals from "./admin/pages/AdminReferrals";
 import AboutDetails from "./pages/AboutDetails";
 import FreelancerReviews from "./pages/FreelancerReviews";
@@ -63,6 +64,7 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import StartupPortals from "./pages/StartupPortals";
+import WebDevelopment from "./pages/WebDevelopment";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -191,6 +193,7 @@ function App() {
         <Route path="/admin/influencers" element={<AdminInfluencers />} />
         <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/admin/queries" element={<AdminQueries />} />
+        <Route path="/admin/meetings" element={<AdminMeetings />} />
         <Route path="/admin/referrals" element={<AdminReferrals />} />
         <Route path="/idea-lab" element={<IdeaLab />} />
 
@@ -198,6 +201,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/startup-portals" element={<StartupPortals />} />
+        <Route path="/web-development" element={<WebDevelopment />} />
         <Route
           path="/influencer-marketplace"
           element={<InfluencerMarketplace />}

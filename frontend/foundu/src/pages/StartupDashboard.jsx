@@ -27,6 +27,7 @@ import {
   Award,
   Shield,
   CheckCircle,
+  Laptop
 } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
@@ -486,13 +487,13 @@ const StartupDashboard = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Startup Portals / Next Actions */}
-            <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-400/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-400/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group flex flex-col">
               <div className="absolute top-6 right-6 bg-yellow-400 text-black text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest z-10">
                 PREMIUM
               </div>
-              <div className="relative z-10">
+              <div className="relative z-10 flex flex-col h-full">
                 <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
                   Startup Portals
                 </h3>
@@ -500,7 +501,7 @@ const StartupDashboard = () => {
                   Deploy specialized business hubs instantly to manage hiring,
                   leads, and vendors.
                 </p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                <ul className="grid grid-cols-1 gap-4 mb-10">
                   {[
                     "Hiring & Talent Hub",
                     "CRM Lead Manager",
@@ -518,17 +519,19 @@ const StartupDashboard = () => {
                     </li>
                   ))}
                 </ul>
-                <button 
-                  onClick={() => navigate('/startup-portals')}
-                  className="px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs"
-                >
-                  VIEW ACTION PORTALS
-                </button>
+                <div className="mt-auto">
+                  <button 
+                    onClick={() => navigate('/startup-portals')}
+                    className="w-full px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs"
+                  >
+                    VIEW ACTION PORTALS
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Pitch Deck Pro */}
-            <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border-2 border-blue-500/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border-2 border-blue-500/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group flex flex-col">
               <div className="relative z-10 flex flex-col h-full">
                 <div className="p-4 rounded-2xl bg-blue-500/10 text-blue-400 w-fit mb-6">
                   <BarChart className="w-8 h-8" />
@@ -543,9 +546,32 @@ const StartupDashboard = () => {
                 <div className="mt-auto">
                   <button 
                     onClick={() => navigate('/buy-pitch-deck')}
-                    className="px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs"
+                    className="w-full px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs"
                   >
                     LAUNCH DECK BUILDER
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Web & App Development */}
+            <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-2 border-green-500/30 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group flex flex-col">
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="p-4 rounded-2xl bg-green-500/10 text-green-400 w-fit mb-6">
+                  <Laptop className="w-8 h-8" />
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+                  Web & App Dev
+                </h3>
+                <p className="text-gray-300 text-base mb-10 max-w-sm font-light italic">
+                  Build custom web and mobile solutions with our elite engineering team to scale your product.
+                </p>
+                <div className="mt-auto">
+                  <button 
+                    onClick={() => navigate('/web-development')}
+                    className="w-full px-10 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/20 uppercase tracking-widest text-xs"
+                  >
+                    START BUILDING
                   </button>
                 </div>
               </div>

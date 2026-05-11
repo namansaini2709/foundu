@@ -107,6 +107,7 @@ export default function JobApplicationsDashboard() {
         return {
           id: job.job_id,
           title: job.job_title,
+          budget: parseFloat(job.numeric_budget) || parseFloat(job.budget_range) || 0,
           preview:
             previewText.substring(0, 50) +
             (previewText.length > 50 ? "..." : ""),
@@ -371,7 +372,11 @@ export default function JobApplicationsDashboard() {
         aiMatchedApplicants.find((a) => Number(a.id) === numericAppId);
 
       // Calculate Bill
-      const baseBudget = applicantData?.details?.budget || 10000; // Fallback to 10k or get from job
+      const baseBudget = jobData?.budget || 0;
+      if (baseBudget === 0) {
+        toast.error("Job budget not found. Please contact support.");
+        return;
+      }
       const gst = baseBudget * 0.18;
       const fee = baseBudget * 0.03;
       const total = baseBudget + gst + fee;

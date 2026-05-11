@@ -118,6 +118,7 @@ const aiMatchRoutes = require("./routes/aiMatchRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
 const queryRoutes = require("./routes/queryRoutes");
+const meetingRoutes = require("./routes/meetingRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -166,6 +167,7 @@ const submissionRoutes = require("./routes/submissionRoutes");
 const referralRoutes = require("./routes/referralRoutes");
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/referrals", referralRoutes);
+app.use("/api/meetings", meetingRoutes);
 
 /* =========================
    HEALTH CHECK
