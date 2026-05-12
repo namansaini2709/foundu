@@ -138,12 +138,14 @@ exports.signup = async (req, res) => {
     );
 
       const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+      const profilePath = user_type === "founder" ? "/startup-profile" : (user_type === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+      
       emailNotificationService.sendEmailNotification(
         result.insertId,
         "Welcome to FoundU! 🎉",
         "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
         "Complete Your Profile",
-        `${baseUrl}/profile`,
+        `${baseUrl}${profilePath}`,
       );
   } catch (error) {
     console.error("Signup error:", error);

@@ -70,8 +70,11 @@ exports.verifyPayment = async (req, res) => {
                     [razorpay_order_id, razorpay_payment_id, total_amount, job_id, applicant_id]
                 );
 
-                // Mark job as assigned
-                await db.promise().query("UPDATE foundu_jobs SET is_assigned = TRUE WHERE job_id = ?", [job_id]);
+                // Mark job as assigned and paid
+                await db.promise().query(
+                    "UPDATE foundu_jobs SET is_assigned = TRUE, payment_status = 'paid', total_amount = ? WHERE job_id = ?", 
+                    [total_amount, job_id]
+                );
 
                 // ── NEW: Create initial submission record automatically ──
                 const [founderRows] = await db.promise().query("SELECT user_id FROM foundu_jobs WHERE job_id = ?", [job_id]);

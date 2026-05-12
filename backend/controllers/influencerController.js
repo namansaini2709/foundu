@@ -128,7 +128,7 @@ exports.updateStatus = async (req, res) => {
 
             // Send acceptance email
             const subject = "Welcome to the FoundU Influencer Marketplace! 🚀";
-            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
+            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login-signup`;
             const text = `Hi ${app.full_name},\n\nCongratulations! Your application has been approved. You are now part of the FoundU Influencer Marketplace.\n\nHere are your login credentials:\nEmail: ${app.email}\nPassword: ${rawPassword}\n\nYou can log in and manage your profile here: ${loginUrl}\n\nBest regards,\nFoundU Team`;
             const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">

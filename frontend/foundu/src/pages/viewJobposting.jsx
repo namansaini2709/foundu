@@ -109,7 +109,8 @@ export default function JobApplicationsDashboard() {
         return {
           id: job.job_id,
           title: job.job_title,
-          budget: parseFloat(job.numeric_budget) || parseFloat(job.budget_range) || 0,
+          budget:
+            parseFloat(job.numeric_budget) || parseFloat(job.budget_range) || 0,
           preview:
             previewText.substring(0, 50) +
             (previewText.length > 50 ? "..." : ""),
@@ -188,7 +189,11 @@ export default function JobApplicationsDashboard() {
             },
           };
         });
-        setManualApplicants(mappedApps);
+        setManualApplicants(
+          mappedApps.filter(
+            (a) => a.rawStatus !== "accepted" && a.rawStatus !== "shortlisted",
+          ),
+        );
       } catch (error) {
         console.error("Error fetching applicants:", error);
       }
@@ -200,40 +205,44 @@ export default function JobApplicationsDashboard() {
       try {
         const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
         const data = res.data;
-          const mapped = data.map((a) => ({
-            id: a.user_id,
-            name: a.full_name,
-            role:
-              a.user_type === "freelancer"
-                ? a.freelancer_type || "Freelancer"
-                : a.primary_identity || "Cofounder",
-            match: a.match_score,
-            isAI: true,
-            ai_reason: a.ai_reason,
-            status: a.status || "pending",
-            rawStatus: a.status || "pending",
-            image: getImageUrl(a.profile_picture_url) || "👤",
-            badges: [],
-            details: {
-              experience: a.experience || "N/A",
-              skills:
-                a.skills_description ||
-                [a.superpower1, a.superpower2, a.superpower3]
-                  .filter(Boolean)
-                  .join(", ") ||
-                "N/A",
-              availability: "Immediate",
-              workPref: a.working_environment || "Remote",
-              email: a.email,
-              phone: a.phone_number || a.reference_contact || "N/A",
-              location: "Remote",
-              applied: "AI Match",
-              github: a.github || a.github_behance,
-              linkedin: a.linkedin || a.cp_linkedin,
-            },
-          }));
-          setAiMatchedApplicants(mapped);
-          setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
+        const mapped = data.map((a) => ({
+          id: a.user_id,
+          name: a.full_name,
+          role:
+            a.user_type === "freelancer"
+              ? a.freelancer_type || "Freelancer"
+              : a.primary_identity || "Cofounder",
+          match: a.match_score,
+          isAI: true,
+          ai_reason: a.ai_reason,
+          status: a.status || "pending",
+          rawStatus: a.status || "pending",
+          image: getImageUrl(a.profile_picture_url) || "👤",
+          badges: [],
+          details: {
+            experience: a.experience || "N/A",
+            skills:
+              a.skills_description ||
+              [a.superpower1, a.superpower2, a.superpower3]
+                .filter(Boolean)
+                .join(", ") ||
+              "N/A",
+            availability: "Immediate",
+            workPref: a.working_environment || "Remote",
+            email: a.email,
+            phone: a.phone_number || a.reference_contact || "N/A",
+            location: "Remote",
+            applied: "AI Match",
+            github: a.github || a.github_behance,
+            linkedin: a.linkedin || a.cp_linkedin,
+          },
+        }));
+        setAiMatchedApplicants(
+          mapped.filter(
+            (a) => a.rawStatus !== "accepted" && a.rawStatus !== "shortlisted",
+          ),
+        );
+        setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
       } catch (err) {
         console.error("Error fetching AI matches:", err);
       } finally {
@@ -466,7 +475,9 @@ export default function JobApplicationsDashboard() {
         autoClose: 500,
       });
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("open_chat", { detail: { userId: applicantId } }));
+        window.dispatchEvent(
+          new CustomEvent("open_chat", { detail: { userId: applicantId } }),
+        );
       }, 500);
     } catch (err) {
       console.error("Error creating chat:", err);
@@ -910,21 +921,25 @@ export default function JobApplicationsDashboard() {
             <>
               {/* Selected Job Details */}
               {(() => {
-                const job = jobs.find(j => j.id === selectedJob);
+                const job = jobs.find((j) => j.id === selectedJob);
                 if (!job) return null;
                 const fd = job.fullDetails || {};
-                
+
                 let requirements = [];
                 try {
-                  requirements = fd.job_requirements ? JSON.parse(fd.job_requirements) : [];
+                  requirements = fd.job_requirements
+                    ? JSON.parse(fd.job_requirements)
+                    : [];
                 } catch (e) {
-                  requirements = fd.job_requirements ? [fd.job_requirements] : [];
+                  requirements = fd.job_requirements
+                    ? [fd.job_requirements]
+                    : [];
                 }
 
                 return (
                   <div className="bg-gray-900 border border-blue-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden group mb-8">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-                    
+
                     <div className="relative z-10">
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 pb-8 border-b border-white/5">
                         <div className="space-y-4">
@@ -945,21 +960,34 @@ export default function JobApplicationsDashboard() {
                             {job.title}
                           </h2>
                           <div className="flex items-center gap-4 text-gray-500 text-xs font-bold uppercase tracking-widest">
-                            <span>Posted {new Date(fd.created_at).toLocaleDateString()}</span>
+                            <span>
+                              Posted{" "}
+                              {new Date(fd.created_at).toLocaleDateString()}
+                            </span>
                             <span className="w-1 h-1 bg-gray-700 rounded-full" />
-                            <span className="text-blue-400">₹{fd.budget_range || "Competitive"}</span>
+                            <span className="text-blue-400">
+                              ₹{fd.budget_range || "Competitive"}
+                            </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-4">
-                           <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
-                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Duration</p>
-                              <p className="text-white font-black">{fd.job_duration || "Project"}</p>
-                           </div>
-                           <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
-                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status</p>
-                              <p className="text-green-400 font-black uppercase text-sm italic">Active</p>
-                           </div>
+                          <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">
+                              Duration
+                            </p>
+                            <p className="text-white font-black">
+                              {fd.job_duration || "Project"}
+                            </p>
+                          </div>
+                          <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">
+                              Status
+                            </p>
+                            <p className="text-green-400 font-black uppercase text-sm italic">
+                              Active
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -981,7 +1009,10 @@ export default function JobApplicationsDashboard() {
                               </h3>
                               <div className="flex flex-wrap gap-2.5">
                                 {requirements.map((req, i) => (
-                                  <span key={i} className="px-5 py-2.5 bg-gray-800/50 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold hover:border-purple-500/40 hover:bg-gray-800 transition-all cursor-default">
+                                  <span
+                                    key={i}
+                                    className="px-5 py-2.5 bg-gray-800/50 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold hover:border-purple-500/40 hover:bg-gray-800 transition-all cursor-default"
+                                  >
                                     {req}
                                   </span>
                                 ))}
@@ -991,38 +1022,52 @@ export default function JobApplicationsDashboard() {
                         </div>
 
                         <div className="space-y-6">
-                           <div className="bg-blue-600/5 border border-blue-500/20 rounded-[32px] p-8">
-                              <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">About this role</h4>
-                              <div className="space-y-6">
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
-                                       <Calendar size={18} />
-                                    </div>
-                                    <div>
-                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Type</p>
-                                       <p className="text-white text-sm font-bold">{fd.job_type || "Professional"}</p>
-                                    </div>
-                                 </div>
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
-                                       <Target size={18} />
-                                    </div>
-                                    <div>
-                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Category</p>
-                                       <p className="text-white text-sm font-bold">{fd.job_profile || "Startup"}</p>
-                                    </div>
-                                 </div>
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 shrink-0">
-                                       <Award size={18} />
-                                    </div>
-                                    <div>
-                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Experience</p>
-                                       <p className="text-white text-sm font-bold">{fd.job_level || "Any Level"}</p>
-                                    </div>
-                                 </div>
+                          <div className="bg-blue-600/5 border border-blue-500/20 rounded-[32px] p-8">
+                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">
+                              About this role
+                            </h4>
+                            <div className="space-y-6">
+                              <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                                  <Calendar size={18} />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                                    Type
+                                  </p>
+                                  <p className="text-white text-sm font-bold">
+                                    {fd.job_type || "Professional"}
+                                  </p>
+                                </div>
                               </div>
-                           </div>
+                              <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                                  <Target size={18} />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                                    Category
+                                  </p>
+                                  <p className="text-white text-sm font-bold">
+                                    {fd.job_profile || "Startup"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 shrink-0">
+                                  <Award size={18} />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                                    Experience
+                                  </p>
+                                  <p className="text-white text-sm font-bold">
+                                    {fd.job_level || "Any Level"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1055,14 +1100,14 @@ export default function JobApplicationsDashboard() {
                       <Target size={20} />
                       AI-Matched Applicants
                       <span className="text-xs text-gray-500 font-normal ml-2">
-                        (Top 3 by Gemini)
+                        (Top 3 by FoundU AI)
                       </span>
                     </h3>
                     <div className="space-y-3">
                       {aiLoading ? (
                         <div className="bg-gray-900/80 border border-purple-500/20 rounded-2xl p-8 text-center">
                           <div className="animate-pulse text-purple-400 font-bold text-sm">
-                            🤖 Gemini AI is analyzing applicants...
+                            FoundU AI is analyzing applicants...
                           </div>
                           <p className="text-gray-500 text-xs mt-2">
                             This may take a few seconds

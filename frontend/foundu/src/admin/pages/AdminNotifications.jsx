@@ -2,55 +2,55 @@ import { useState } from "react";
 import AdminLayout from "../AdminLayout";
 
 const inAppNotifications = [
-  { title: "Welcome to FoundU! 🎉", trigger: "User signs up on the platform", triggerFile: "userController.js", type: "success", sentTo: "New User" },
-  { title: "Profile Complete!", trigger: "Freelancer completes their profile", triggerFile: "freelancerProfileController.js", type: "success", sentTo: "Freelancer" },
-  { title: "Profile Complete!", trigger: "Co-Founder completes their profile", triggerFile: "cofounderProfileController.js", type: "success", sentTo: "Co-Founder" },
-  { title: "Profile Updated", trigger: "User uploads a profile picture", triggerFile: "usersSocialsController.js", type: "general", sentTo: "Any User" },
-  { title: "Job Posted Successfully", trigger: "Founder posts a freelancer job", triggerFile: "jobController.js", type: "success", sentTo: "Founder" },
-  { title: "Cofounder Request Posted", trigger: "Founder posts a co-founder role", triggerFile: "jobController.js", type: "job", sentTo: "Founder" },
-  { title: "New Job Applicant", trigger: "Someone applies to a founder's job", triggerFile: "jobApplicantsController.js", type: "application", sentTo: "Job Owner (Founder)" },
-  { title: "Application Submitted! 🚀", trigger: "Confirmation after applying to a job", triggerFile: "jobApplicantsController.js", type: "success", sentTo: "Applicant" },
-  { title: "Application Updated", trigger: "Applicant status changed (accepted/rejected)", triggerFile: "jobApplicantsController.js", type: "application", sentTo: "Applicant" },
-  { title: "Payment Successful! 💳", trigger: "Razorpay payment is verified", triggerFile: "paymentController.js", type: "success", sentTo: "Founder" },
-  { title: "Payment Received! 💰", trigger: "Job completed, wallet credited to freelancer", triggerFile: "jobApplicantsController.js", type: "success", sentTo: "Freelancer" },
-  { title: "New Review!", trigger: "Someone submits a review for you", triggerFile: "reviewController.js", type: "general", sentTo: "Reviewed User" },
-  { title: "Blue Tick Earned! 🔵", trigger: "User identity is verified by admin", triggerFile: "badgeService.js", type: "badge", sentTo: "Verified User" },
-  { title: "Gold Badge Earned! 🟡", trigger: "User reaches top performer status", triggerFile: "badgeService.js", type: "badge", sentTo: "Top Performer" },
-  { title: "Green Badge Earned! 🟢", trigger: "User completes 3 jobs on FoundU", triggerFile: "badgeService.js", type: "badge", sentTo: "Reliable User" },
-  { title: "Complete Your Profile", trigger: "Onboarding reminder if profile is incomplete", triggerFile: "onboardingReminderService.js", type: "reminder", sentTo: "Incomplete Profile Users" },
-  { title: "Admin Broadcast", trigger: "Admin sends a custom broadcast message", triggerFile: "adminController.js", type: "broadcast", sentTo: "All / Selected Users" },
-  { title: "Work Submitted", trigger: "Freelancer submits work for a sprint", triggerFile: "submissionController.js", type: "submission", sentTo: "Founder" },
-  { title: "Submission Approved/Rejected", trigger: "Founder reviews a sprint submission", triggerFile: "submissionController.js", type: "submission", sentTo: "Freelancer" },
-  { title: "New AI Matches Found", trigger: "AI matchmaker finds relevant job matches", triggerFile: "aiController.js", type: "ai", sentTo: "Freelancer / CoFounder" },
-  { title: "Account Verified ✅", trigger: "Admin verifies a user account", triggerFile: "adminController.js", type: "admin", sentTo: "Verified User" },
-  { title: "Account Rejected ❌", trigger: "Admin rejects a user verification", triggerFile: "adminController.js", type: "admin", sentTo: "Rejected User" },
-  { title: "New Message 💬", trigger: "Someone sends you a message in the chatbox", triggerFile: "chatController.js", type: "message", sentTo: "Message Receiver" },
-  { title: "Application Received 📥", trigger: "Influencer submits an application", triggerFile: "influencerController.js", type: "application", sentTo: "Admin" },
+  { title: "Welcome to FoundU! 🎉", trigger: "User signs up on the platform", routing: "/startup-dashboard", type: "success", sentTo: "New User" },
+  { title: "Profile Complete!", trigger: "Freelancer completes their profile", routing: "/freelancer-profile", type: "success", sentTo: "Freelancer" },
+  { title: "Profile Complete!", trigger: "Co-Founder completes their profile", routing: "/cofounder-profile", type: "success", sentTo: "Co-Founder" },
+  { title: "Profile Updated", trigger: "User uploads a profile picture", routing: "/freelancer-profile", type: "general", sentTo: "Any User" },
+  { title: "Job Posted Successfully", trigger: "Founder posts a freelancer job", routing: "/startup-dashboard", type: "success", sentTo: "Founder" },
+  { title: "Cofounder Request Posted", trigger: "Founder posts a co-founder role", routing: "/startup-dashboard", type: "job", sentTo: "Founder" },
+  { title: "New Job Applicant", trigger: "Someone applies to a founder's job", routing: "/job-dashboard/founder/:id/:id", type: "application", sentTo: "Job Owner (Founder)" },
+  { title: "Application Submitted! 🚀", trigger: "Confirmation after applying to a job", routing: "/freelancer-dashboard", type: "success", sentTo: "Applicant" },
+  { title: "Application Updated", trigger: "Applicant status changed (accepted/rejected)", routing: "/freelancer-dashboard", type: "application", sentTo: "Applicant" },
+  { title: "Payment Successful! 💳", trigger: "Razorpay payment is verified", routing: "/startup-dashboard", type: "success", sentTo: "Founder" },
+  { title: "Payment Received! 💰", trigger: "Job completed, wallet credited to freelancer", routing: "/freelancer-dashboard", type: "success", sentTo: "Freelancer" },
+  { title: "New Review!", trigger: "Someone submits a review for you", routing: "/reviews", type: "general", sentTo: "Reviewed User" },
+  { title: "Blue Tick Earned! 🔵", trigger: "User identity is verified by admin", routing: "/freelancer-badges", type: "badge", sentTo: "Verified User" },
+  { title: "Gold Badge Earned! 🟡", trigger: "User reaches top performer status", routing: "/freelancer-badges", type: "badge", sentTo: "Top Performer" },
+  { title: "Green Badge Earned! 🟢", trigger: "User completes 3 jobs on FoundU", routing: "/freelancer-badges", type: "badge", sentTo: "Reliable User" },
+  { title: "Complete Your Profile", trigger: "Onboarding reminder if profile is incomplete", routing: "/freelancer-profile", type: "reminder", sentTo: "Incomplete Profile Users" },
+  { title: "Admin Broadcast", trigger: "Admin sends a custom broadcast message", routing: "/notifications", type: "broadcast", sentTo: "All / Selected Users" },
+  { title: "Work Submitted", trigger: "Freelancer submits work for a sprint", routing: "/job-dashboard/founder/:id/:id", type: "submission", sentTo: "Founder" },
+  { title: "Submission Approved/Rejected", trigger: "Founder reviews a sprint submission", routing: "/job-dashboard/freelancer/:id", type: "submission", sentTo: "Freelancer" },
+  { title: "New AI Matches Found", trigger: "AI matchmaker finds relevant job matches", routing: "/freelancer-jobs", type: "ai", sentTo: "Freelancer / CoFounder" },
+  { title: "Account Verified ✅", trigger: "Admin verifies a user account", routing: "/notifications", type: "admin", sentTo: "Verified User" },
+  { title: "Account Rejected ❌", trigger: "Admin rejects a user verification", routing: "/notifications", type: "admin", sentTo: "Rejected User" },
+  { title: "New Message 💬", trigger: "Someone sends you a message in the chatbox", routing: "/chatbox", type: "message", sentTo: "Message Receiver" },
+  { title: "Application Received 📥", trigger: "Influencer submits an application", routing: "/admin/influencers", type: "application", sentTo: "Admin" },
 ];
 
 const emailNotifications = [
-  { title: "Welcome to FoundU! 🎉", trigger: "User signs up on the platform", triggerFile: "userController.js", sentTo: "New User" },
-  { title: "Your Job is Live! 🚀", trigger: "Founder posts a freelancer job", triggerFile: "jobController.js", sentTo: "Founder" },
-  { title: "New Candidate Applied! 👤", trigger: "Someone applies to a founder's job", triggerFile: "jobApplicantsController.js", sentTo: "Job Owner (Founder)" },
-  { title: "Application Received 🤝", trigger: "Confirmation email after applying", triggerFile: "jobApplicantsController.js", sentTo: "Applicant" },
-  { title: "Application Status Update 📢", trigger: "Applicant status changed (accepted/rejected)", triggerFile: "jobApplicantsController.js", sentTo: "Applicant" },
-  { title: "You Got a Review! ⭐", trigger: "Someone submits a review for you", triggerFile: "reviewController.js", sentTo: "Reviewed User" },
-  { title: "Blue Tick Verified! 🔵", trigger: "User earns the Blue Tick badge", triggerFile: "badgeService.js", sentTo: "Verified User" },
-  { title: "Gold Badge Earned! 🟡", trigger: "User earns the Gold Badge", triggerFile: "badgeService.js", sentTo: "Top Performer" },
-  { title: "Green Badge Earned! 🟢", trigger: "User earns the Green Badge", triggerFile: "badgeService.js", sentTo: "Reliable User" },
-  { title: "Complete Your Profile", trigger: "Onboarding reminder if profile incomplete", triggerFile: "onboardingReminderService.js", sentTo: "Incomplete Profile Users" },
-  { title: "New AI Matches Found", trigger: "AI matchmaker finds matches for user", triggerFile: "aiMatchmakerJob.js", sentTo: "Freelancer / CoFounder" },
-  { title: "Account Verified ✅", trigger: "Admin verifies a user account", triggerFile: "adminController.js", sentTo: "Verified User" },
-  { title: "Account Rejected ❌", trigger: "Admin rejects a user verification", triggerFile: "adminController.js", sentTo: "Rejected User" },
-  { title: "Admin Broadcast", trigger: "Admin sends a custom broadcast", triggerFile: "adminController.js", sentTo: "All / Selected Users" },
-  { title: "You Have a New Message 💬", trigger: "Someone sends you a message in the chatbox", triggerFile: "chatController.js", sentTo: "Message Receiver" },
-  { title: "Welcome to Influencer Marketplace! 🚀", trigger: "Admin accepts influencer application", triggerFile: "influencerController.js", sentTo: "Accepted Influencer" },
-  { title: "Influencer Application Update 📢", trigger: "Admin rejects influencer application", triggerFile: "influencerController.js", sentTo: "Rejected Influencer" },
-  { title: "You Have Unread Messages 💬", trigger: "User has 5+ unread messages (checked every 30 min)", triggerFile: "unreadMessageService.js", sentTo: "Users with 5+ Unread" },
+  { title: "Welcome to FoundU! 🎉", trigger: "User signs up on the platform", routing: "https://www.foundu.in/{role}-profile", sentTo: "New User" },
+  { title: "Your Job is Live! 🚀", trigger: "Founder posts a freelancer job", routing: "https://www.foundu.in/job-description?job_id={id}", sentTo: "Founder" },
+  { title: "New Candidate Applied! 👤", trigger: "Someone applies to a founder's job", routing: "https://www.foundu.in/startup-dashboard", sentTo: "Job Owner (Founder)" },
+  { title: "Application Received 🤝", trigger: "Confirmation email after applying", routing: "https://www.foundu.in/{role}-dashboard", sentTo: "Applicant" },
+  { title: "Application Status Update 📢", trigger: "Applicant status changed (accepted/rejected)", routing: "https://www.foundu.in/{role}-dashboard", sentTo: "Applicant" },
+  { title: "You Got a Review! ⭐", trigger: "Someone submits a review for you", routing: "https://www.foundu.in/{role}-profile", sentTo: "Reviewed User" },
+  { title: "Blue Tick Verified! 🔵", trigger: "User earns the Blue Tick badge", routing: "https://www.foundu.in/{role}-profile", sentTo: "Verified User" },
+  { title: "Gold Badge Earned! 🟡", trigger: "User earns the Gold Badge", routing: "https://www.foundu.in/{role}-profile", sentTo: "Top Performer" },
+  { title: "Green Badge Earned! 🟢", trigger: "User earns the Green Badge", routing: "https://www.foundu.in/{role}-profile", sentTo: "Reliable User" },
+  { title: "Complete Your Profile", trigger: "Onboarding reminder if profile incomplete", routing: "https://www.foundu.in/{role}-profile", sentTo: "Incomplete Profile Users" },
+  { title: "New AI Matches Found", trigger: "AI matchmaker finds matches for user", routing: "https://www.foundu.in/{role}-dashboard", sentTo: "Freelancer / CoFounder" },
+  { title: "Account Verified ✅", trigger: "Admin verifies a user account", routing: "https://www.foundu.in/{role}-profile", sentTo: "Verified User" },
+  { title: "Account Rejected ❌", trigger: "Admin rejects a user verification", routing: "https://www.foundu.in/{role}-profile", sentTo: "Rejected User" },
+  { title: "Admin Broadcast", trigger: "Admin sends a custom broadcast", routing: "https://www.foundu.in/{role}-dashboard", sentTo: "All / Selected Users" },
+  { title: "You Have a New Message 💬", trigger: "Someone sends you a message in the chatbox", routing: "https://www.foundu.in/chatbox", sentTo: "Message Receiver" },
+  { title: "Welcome to Influencer Marketplace! 🚀", trigger: "Admin accepts influencer application", routing: "https://www.foundu.in/influencer-marketplace", sentTo: "Accepted Influencer" },
+  { title: "Influencer Application Update 📢", trigger: "Admin rejects influencer application", routing: "https://www.foundu.in/onboard-influencer", sentTo: "Rejected Influencer" },
+  { title: "You Have Unread Messages 💬", trigger: "User has 5+ unread messages (checked every 30 min)", routing: "https://www.foundu.in/chatbox", sentTo: "Users with 5+ Unread" },
 ];
 
 const whatsappNotifications = [
-  { title: "AI Match Alert 🤖", trigger: "AI matchmaker cron job finds new matches for a user", triggerFile: "aiMatchmakerJob.js", sentTo: "Users with WhatsApp number", message: "Hi {name}, we found {count} new matches for you on FoundU!" },
+  { title: "AI Match Alert 🤖", trigger: "AI matchmaker cron job finds new matches for a user", routing: "/freelancer-jobs", sentTo: "Users with WhatsApp number", message: "Hi {name}, we found {count} new matches for you on FoundU!" },
 ];
 
 const ChannelBadge = ({ channel }) => {
@@ -177,7 +177,9 @@ export default function AdminNotifications() {
                 <th className="px-4 py-3 text-xs font-black text-gray-500 uppercase tracking-widest">Title</th>
                 <th className="px-4 py-3 text-xs font-black text-gray-500 uppercase tracking-widest">When / Why (Trigger)</th>
                 <th className="px-4 py-3 text-xs font-black text-gray-500 uppercase tracking-widest">Sent To</th>
-                <th className="px-4 py-3 text-xs font-black text-gray-500 uppercase tracking-widest">Source File</th>
+                <th className="px-4 py-3 text-xs font-black text-gray-500 uppercase tracking-widest">
+                  {activeTab === "email" ? "Email Routing (Links)" : activeTab === "whatsapp" ? "Message Format" : "App Routing"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700/50">
@@ -199,7 +201,9 @@ export default function AdminNotifications() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-blue-400/70 text-xs font-mono">{notif.triggerFile}</span>
+                    <span className="text-blue-400/70 text-xs font-mono">
+                      {activeTab === "whatsapp" ? notif.message : notif.routing}
+                    </span>
                   </td>
                 </tr>
               ))}

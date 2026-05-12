@@ -92,16 +92,17 @@ exports.applyToJob = (req, res) => {
                   "New Candidate Applied! 👤",
                   `A new candidate has recently applied for your job listing "${resJob[0].job_title}". Log in to your dashboard to review their profile and experience.`,
                   "Review Applications",
-                  `${process.env.FRONTEND_URL || "http://localhost:5173"}/job/${job_id}`,
+                  `${process.env.FRONTEND_URL || "http://localhost:5173"}/startup-dashboard`,
                 );
 
                 // 🔥 Email Notification (Applicant Confirmation)
+                const applicantDashboard = user.user_type === "cofounder" ? "/cofounder-dashboard" : "/freelancer-dashboard";
                 emailNotificationService.sendEmailNotification(
                   user_id,
                   "Application Received 🤝",
                   `Your application for "${resJob[0].job_title}" has been successfully submitted to the founder. We will notify you once they review your profile.`,
                   "Go to Dashboard",
-                  `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
+                  `${process.env.FRONTEND_URL || "http://localhost:5173"}${applicantDashboard}`,
                 );
               }
             },
@@ -248,13 +249,20 @@ exports.updateApplicantStatus = (req, res) => {
       );
 
       // 🔥 Email Notification (Status Update)
-      emailNotificationService.sendEmailNotification(
-        user_id,
-        "Application Status Update 📢",
-        `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
-        "View Application Status",
-        `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
-      );
+      db.query("SELECT user_type FROM users WHERE id = ?", [user_id], (err, userRows) => {
+        if (!err && userRows.length) {
+          const userType = userRows[0].user_type;
+          const dashboardPath = userType === "cofounder" ? "/cofounder-dashboard" : "/freelancer-dashboard";
+          
+          emailNotificationService.sendEmailNotification(
+            user_id,
+            "Application Status Update 📢",
+            `There's an update regarding your application for a job listing on FoundU. Your current status has been updated to: **${status.toUpperCase()}**.`,
+            "View Application Status",
+            `${process.env.FRONTEND_URL || "http://localhost:5173"}${dashboardPath}`,
+          );
+        }
+      });
     },
   );
 };

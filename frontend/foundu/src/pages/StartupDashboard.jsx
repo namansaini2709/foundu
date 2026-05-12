@@ -27,7 +27,11 @@ import {
   Award,
   Shield,
   CheckCircle,
-  Laptop
+  Laptop,
+  X,
+  Briefcase,
+  MapPin,
+  Calendar
 } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
@@ -146,6 +150,7 @@ const StartupDashboard = () => {
     green: false,
     loading: true
   });
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null);
 
   const userId = localStorage.getItem("user_id");
 
@@ -206,6 +211,17 @@ const StartupDashboard = () => {
       console.error("Error fetching user jobs:", err);
     }
     if (showLoading) setLoadingJobs(false);
+  };
+
+  const handleEndJob = async (jobId, currentOffline) => {
+    const newStatus = !currentOffline;
+    try {
+      await api.patch(`/api/jobs/${jobId}/end`, { is_offline: newStatus });
+      fetchUserJobs(false);
+      fetchDashboardStats();
+    } catch (err) {
+      console.error("Error updating job status:", err);
+    }
   };
 
   // Stats Data
@@ -376,19 +392,22 @@ const StartupDashboard = () => {
               {userJobs.map((job) => (
                 <div
                   key={job.job_id}
-                  className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative"
+                  onClick={() => setSelectedJobDetail(job)}
+                  className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative cursor-pointer"
                 >
-                  <div
-                    className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
-                      job.payment_status === "paid"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-red-500/20 text-red-400"
-                    }`}
-                  >
-                    {job.payment_status === "paid"
-                      ? "● Payment Verified"
-                      : "○ Payment Pending"}
-                  </div>
+                  {job.job_type?.toLowerCase() !== "cofounder" && (
+                    <div
+                      className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
+                        job.payment_status === "paid"
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {job.payment_status === "paid"
+                        ? "● Payment Completed"
+                        : "○ Payment Pending"}
+                    </div>
+                  )}
 
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
                     {job.job_title}
@@ -397,26 +416,36 @@ const StartupDashboard = () => {
                     <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
                       Type: {job.job_type}
                     </span>
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-                      Budget: {job.budget_range}
-                    </span>
+                    {job.job_type?.toLowerCase() !== "cofounder" && (
+                      <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
+                        Budget: {job.budget_range}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-500 uppercase font-black mb-1">
-                        Total Bill Paid
-                      </span>
-                      <span className="text-lg font-black text-white">
-                        ₹{(job.total_amount || 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${job.is_completed ? "bg-blue-500" : "bg-green-500 animate-pulse"}`}
-                      ></div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        {job.is_completed ? "Job Completed" : "Active Listing"}
+                    {job.job_type?.toLowerCase() !== "cofounder" && (
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-500 uppercase font-black mb-1">
+                          Total Bill Paid
+                        </span>
+                        <span className="text-lg font-black text-white">
+                          ₹{(job.total_amount || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    <div
+                      className="flex items-center gap-3 cursor-pointer select-none ml-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEndJob(job.job_id, job.is_offline);
+                      }}
+                    >
+                      <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${!job.is_offline ? "bg-green-500" : "bg-gray-600"}`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${!job.is_offline ? "translate-x-5" : "translate-x-0"}`}></div>
+                      </div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${!job.is_offline ? "text-green-400" : "text-gray-500"}`}>
+                        {!job.is_offline ? "Online" : "Offline"}
                       </span>
                     </div>
                   </div>
@@ -587,6 +616,137 @@ const StartupDashboard = () => {
           </div>
         </section>
       </main>
+
+      {/* Job Details Popup */}
+      {selectedJobDetail && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+            onClick={() => setSelectedJobDetail(null)}
+          />
+          <div className="relative w-full max-w-5xl max-h-[90vh] bg-gray-900 border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between p-8 border-b border-white/5 bg-white/2">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <Briefcase size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white">{selectedJobDetail.job_title}</h2>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">
+                    Job ID: {selectedJobDetail.job_id} • Posted {new Date(selectedJobDetail.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedJobDetail(null)}
+                className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 transition-all border border-white/5"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="lg:col-span-2 space-y-10">
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                      <Rocket size={14} /> Full Job Description
+                    </h3>
+                    <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                      {selectedJobDetail.full_job_description}
+                    </p>
+                  </div>
+
+                  {/* Requirements */}
+                  {selectedJobDetail.job_requirements && (
+                    <div>
+                      <h3 className="text-xs font-black text-purple-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                        <Target size={14} /> Technical Requirements
+                      </h3>
+                      <div className="flex flex-wrap gap-2.5">
+                        {(() => {
+                          try {
+                            const reqs = typeof selectedJobDetail.job_requirements === 'string' 
+                              ? JSON.parse(selectedJobDetail.job_requirements) 
+                              : selectedJobDetail.job_requirements;
+                            return Array.isArray(reqs) ? reqs.map((req, i) => (
+                              <span key={i} className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold transition-all">
+                                {req}
+                              </span>
+                            )) : null;
+                          } catch (e) {
+                            return <span className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold">{selectedJobDetail.job_requirements}</span>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sidebar Details */}
+                <div className="space-y-6">
+                  <div className="bg-blue-600/5 border border-blue-500/20 rounded-[32px] p-8">
+                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">About this role</h4>
+                    <div className="space-y-6">
+                      <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                          <Calendar size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Type</p>
+                          <p className="text-white text-sm font-bold">{selectedJobDetail.job_type}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                          <Target size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Category</p>
+                          <p className="text-white text-sm font-bold">{selectedJobDetail.role_category || selectedJobDetail.domain}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                          <Award size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Experience</p>
+                          <p className="text-white text-sm font-bold">{selectedJobDetail.job_level || "Any Level"}</p>
+                        </div>
+                      </div>
+                      {selectedJobDetail.location && (
+                        <div className="flex gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 shrink-0">
+                            <MapPin size={18} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Location</p>
+                            <p className="text-white text-sm font-bold">{selectedJobDetail.location}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedJobDetail.job_type?.toLowerCase() !== "cofounder" && (
+                    <div className="bg-emerald-600/5 border border-emerald-500/20 rounded-[32px] p-8">
+                       <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">Financials</h4>
+                       <div className="space-y-2">
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Budget Range</p>
+                          <p className="text-xl font-black text-white">₹{selectedJobDetail.budget_range}</p>
+                       </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
 

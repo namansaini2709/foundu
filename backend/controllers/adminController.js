@@ -250,14 +250,21 @@ exports.approveBlueTick = async (req, res) => {
     );
 
     // 🔥 Email Notification
-    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
-    emailNotificationService.sendEmailNotification(
-      user_id,
-      "Blue Tick Approved! 🌟",
-      "Congratulations! Your social verification request has been approved. You now have a Blue Tick badge on your profile, signaling high credibility to other users.",
-      "View Your Profile",
-      `${baseUrl}/profile`
-    );
+    db.query("SELECT user_type FROM users WHERE id = ?", [user_id], (err, userRows) => {
+      if (!err && userRows.length) {
+        const userType = userRows[0].user_type;
+        const profilePath = userType === "founder" ? "/startup-profile" : (userType === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+        const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+        
+        emailNotificationService.sendEmailNotification(
+          user_id,
+          "Blue Tick Approved! 🌟",
+          "Congratulations! Your social verification request has been approved. You now have a Blue Tick badge on your profile, signaling high credibility to other users.",
+          "View Your Profile",
+          `${baseUrl}${profilePath}`
+        );
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -289,14 +296,21 @@ exports.rejectBlueTick = async (req, res) => {
     );
 
     // 🔥 Email Notification
-    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
-    emailNotificationService.sendEmailNotification(
-      user_id,
-      "Blue Tick Request Update 🛡️",
-      "We've reviewed your request for social verification. Unfortunately, we couldn't verify your account at this time. Please ensure your links are correct and try again later.",
-      "Update Profile Socials",
-      `${baseUrl}/profile`
-    );
+    db.query("SELECT user_type FROM users WHERE id = ?", [user_id], (err, userRows) => {
+      if (!err && userRows.length) {
+        const userType = userRows[0].user_type;
+        const profilePath = userType === "founder" ? "/startup-profile" : (userType === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+        const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+        
+        emailNotificationService.sendEmailNotification(
+          user_id,
+          "Blue Tick Request Update 🛡️",
+          "We've reviewed your request for social verification. Unfortunately, we couldn't verify your account at this time. Please ensure your links are correct and try again later.",
+          "Update Profile Socials",
+          `${baseUrl}${profilePath}`
+        );
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -314,7 +328,7 @@ exports.sendBulkNotification = async (req, res) => {
 
   try {
     // 1️⃣ Fetch users based on category
-    let query = "SELECT id, full_name, email FROM users";
+    let query = "SELECT id, full_name, email, user_type FROM users";
     let params = [];
 
     if (targetType !== "all") {

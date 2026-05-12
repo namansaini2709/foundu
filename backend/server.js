@@ -275,6 +275,12 @@ server.listen(PORT, () => {
     else console.log("[DB FIX] user_type column expanded successfully.");
   });
 
+  // Add is_offline column to foundu_jobs if it doesn't exist
+  db.query("ALTER TABLE foundu_jobs ADD COLUMN is_offline TINYINT(1) DEFAULT 0", (err) => {
+    if (err && !err.message.includes("Duplicate column")) console.warn("[DB FIX] Could not add is_offline: ", err.message);
+    else if (!err) console.log("[DB FIX] is_offline column added to foundu_jobs.");
+  });
+
   // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
   const { checkUnreadMessages } = require("./services/unreadMessageService");
   const scheduleNoonCheck = () => {

@@ -53,8 +53,8 @@ const sendOnboardingReminder = async (user, type) => {
   
   const title = "Boost Your Profile! 🚀";
   const message = `Hey ${full_name}, it looks like you haven't completed your ${user_type} profile yet. Profiles with details get 5x more visibility. Complete yours now to unlock all features!`;
-  const actionText = "Complete Profile";
-  const actionLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/user-type-selection`; // Redirect to selection or direct profile
+  const profilePath = user_type === "founder" ? "/startup-profile" : (user_type === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+  const actionLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${profilePath}`;
 
   try {
     // Send Platform Notification

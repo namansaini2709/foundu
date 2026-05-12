@@ -9,5 +9,6 @@ router.get("/jobs/dashboard-stats/:userId", c.getDashboardStats);
 router.get("/jobs/:id", c.getJobById);
 router.get("/jobs/user/:userId", c.getJobsByUserId);
 router.delete("/jobs/:id", c.deleteJobById);
+router.patch("/jobs/:id/end", c.endJob);
 
 module.exports = router;

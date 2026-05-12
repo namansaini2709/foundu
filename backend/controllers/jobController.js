@@ -135,7 +135,7 @@ exports.createFreelancerJob = (req, res) => {
                     "Your Job is Live! 🚀",
                     `Congratulations! Your job listing for "${job_title}" has been successfully posted and is now visible to thousands of potential matches on FoundU.`,
                     "View Job Listing",
-                    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job/${freelancer_job_id}`
+                    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/job-description?job_id=${freelancer_job_id}`
                   );
                 }); // This closes the (err) => { ... } callback for the INSERT query
             }
@@ -266,7 +266,16 @@ exports.createCofounderJob = (req, res) => {
                     "Cofounder Request Posted",
                     `Your cofounder request "${job_title || 'Untitled'}" is now live.`,
                     "job",
-                    `/jobs/${cofounder_job_id}`
+                    `/cofounder-jobs/${cofounder_job_id}`
+                  );
+
+                  // 🔥 Email Notification
+                  emailNotificationService.sendEmailNotification(
+                    user_id,
+                    "Your Cofounder Request is Live! 🚀",
+                    `Great news! Your cofounder search for "${job_title || 'Untitled'}" is now live on FoundU and visible to potential partners.`,
+                    "View Listing",
+                    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/cofounder-jobs/${cofounder_job_id}`
                   );
                 }
               );
@@ -284,7 +293,7 @@ exports.createCofounderJob = (req, res) => {
 ================================ */
 exports.getAllJobs = (req, res) => {
   db.query(
-    "SELECT * FROM foundu_jobs ORDER BY created_at DESC",
+    "SELECT * FROM foundu_jobs WHERE (is_offline IS NULL OR is_offline = 0) ORDER BY created_at DESC",
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(rows);
@@ -416,4 +425,22 @@ exports.getDashboardStats = (req, res) => {
       });
     });
   });
+};
+
+// Toggle job online/offline status
+exports.endJob = (req, res) => {
+  const { id } = req.params;
+  const { is_offline } = req.body;
+
+  db.query(
+    "UPDATE foundu_jobs SET is_offline = ? WHERE job_id = ?",
+    [is_offline ? 1 : 0, id],
+    (err) => {
+      if (err) {
+        console.error("Error updating job status:", err);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true, message: is_offline ? "Job is now offline" : "Job is now online" });
+    }
+  );
 };

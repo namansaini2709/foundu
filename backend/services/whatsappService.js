@@ -42,7 +42,7 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
 
         // 3. Send via Meta API
         const response = await axios.post(
-            `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",
@@ -70,4 +70,48 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
     }
 };
 
-module.exports = { sendWhatsAppMatchAlert };
+/**
+ * Send a direct text message via WhatsApp
+ * @param {string} to - Recipient phone number
+ * @param {string} message - Message text
+ */
+const sendWhatsAppDirectMessage = async (to, message) => {
+    try {
+        const accessToken = process.env.META_ACCESS_TOKEN;
+        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+
+        if (!accessToken || !phoneNumberId) {
+            console.error("❌ Meta WhatsApp API credentials missing");
+            return { success: false, error: "Credentials missing" };
+        }
+
+        let formattedTo = to.replace(/\D/g, "");
+        if (!formattedTo.startsWith("91") && formattedTo.length === 10) {
+            formattedTo = "91" + formattedTo;
+        }
+
+        const response = await axios.post(
+            `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+            {
+                messaging_product: "whatsapp",
+                recipient_type: "individual",
+                to: formattedTo,
+                type: "text",
+                text: { preview_url: true, body: message },
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error("❌ WhatsApp Direct Message Error:", error.response ? error.response.data : error.message);
+        return { success: false, error: error.message };
+    }
+};
+
+module.exports = { sendWhatsAppMatchAlert, sendWhatsAppDirectMessage };

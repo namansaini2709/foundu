@@ -81,12 +81,13 @@ exports.evaluateGreenTick = (user_id) => {
               );
 
               // 🔥 Email Notification
+              const profilePath = type === "cofounder" ? "/cofounder-profile" : "/freelancer-profile";
               emailNotificationService.sendEmailNotification(
                 user_id,
                 "Badge Achieved: Green Tick! ✅",
                 "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully completing a job on FoundU, proving your reliability to the community.",
                 "View Your Badge",
-                `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+                `${process.env.FRONTEND_URL || 'http://localhost:5173'}${profilePath}`
               );
             }
           },
@@ -118,7 +119,7 @@ exports.evaluateGreenTick = (user_id) => {
                 "Badge Achieved: Green Tick! ✅",
                 "We're excited to inform you that you've earned the Green Tick badge! This badge is awarded for successfully posting a job on FoundU, proving your reliability to the community.",
                 "View Your Badge",
-                `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+                `${process.env.FRONTEND_URL || 'http://localhost:5173'}/startup-profile`
               );
             }
           },
@@ -134,11 +135,12 @@ exports.evaluateGreenTick = (user_id) => {
 exports.evaluateGoldenTick = (user_id) => {
   db.query(
     `SELECT 
-      blue_tick_verified 
+      blue_tick_verified, user_type 
      FROM users WHERE id = ?`,
     [user_id],
     (err, rows) => {
       if (!rows.length || !rows[0].blue_tick_verified) return;
+      const type = rows[0].user_type;
 
       db.query(
         `SELECT COUNT(*) as cnt 
@@ -162,12 +164,13 @@ exports.evaluateGoldenTick = (user_id) => {
             );
 
             // 🔥 Email Notification
+            const profilePath = type === "founder" ? "/startup-profile" : (type === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
             emailNotificationService.sendEmailNotification(
               user_id,
               "Milestone Badge: Golden Tick! 🏆",
               "Congratulations! Your consistent activity on FoundU has earned you the prestigious Golden Tick badge. This represents your commitment and regular engagement with the platform.",
               "View Your Badge",
-              `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`
+              `${process.env.FRONTEND_URL || 'http://localhost:5173'}${profilePath}`
             );
           } else {
             db.query(
