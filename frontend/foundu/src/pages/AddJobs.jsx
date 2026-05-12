@@ -19,6 +19,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import QuickJobPopup from "./QuickJobPopup";
 
 const ROLE_CATEGORIES = [
@@ -50,6 +51,7 @@ const initial = {
   common: {
     roleCategories: [],
     domain: "SaaS / B2B",
+    customDomain: "",
     startupStage: "Idea stage",
   },
   freelancer: {
@@ -169,6 +171,7 @@ export default function AddJobs() {
     const errors = [];
     const { hiringType, common, freelancer, cofounder } = formData;
     if (!common.domain) errors.push("Please select a domain");
+    if (common.domain === "Other" && !common.customDomain?.trim()) errors.push("Please specify your domain");
     if (hiringType === "freelancer" || hiringType === "both") {
       if (common.roleCategories.length === 0)
         errors.push("Please select at least one role category for freelancer");
@@ -249,7 +252,7 @@ export default function AddJobs() {
       if (hiringType === "freelancer" || hiringType === "both") {
         await api.post(`/api/jobs/freelancer`, {
           user_id: Number(userId),
-          domain: common.domain,
+          domain: common.domain === "Other" ? common.customDomain : common.domain,
           role_category: common.roleCategories.join(", "),
           work_type: freelancer.workType,
           duration: freelancer.duration,
@@ -268,7 +271,7 @@ export default function AddJobs() {
       if (hiringType === "cofounder" || hiringType === "both") {
         await api.post(`/api/jobs/cofounder`, {
           user_id: Number(userId),
-          domain: common.domain,
+          domain: common.domain === "Other" ? common.customDomain : common.domain,
           role_type: cofounder.roleType,
           compensation: cofounder.compensation,
           commitment: cofounder.commitment,
@@ -427,6 +430,30 @@ export default function AddJobs() {
                   </option>
                 ))}
               </select>
+
+              {formData.common.domain === "Other" && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4"
+                >
+                  <label className="block text-[10px] font-black tracking-widest text-blue-400 uppercase mb-3">
+                    Please specify your domain
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.common.customDomain}
+                    onChange={(e) =>
+                      setFormData((s) => ({
+                        ...s,
+                        common: { ...s.common, customDomain: e.target.value },
+                      }))
+                    }
+                    className="w-full bg-white/5 rounded-2xl p-5 border border-blue-500/30 focus:border-blue-500 focus:outline-none transition-all text-white font-bold hover:bg-white/10"
+                    placeholder="e.g. AgriTech, SpaceTech, etc."
+                  />
+                </motion.div>
+              )}
             </div>
           </section>
         )}
@@ -477,6 +504,7 @@ export default function AddJobs() {
                       "Ongoing part-time",
                       "Full-time contract",
                       "One-time consultation",
+                      "Internship",
                     ].map((w) => (
                       <button
                         key={w}
@@ -604,8 +632,12 @@ export default function AddJobs() {
                       <option value="" className="bg-gray-900">
                         Select job level
                       </option>
-                      {["Low level", "Medium level", "High level"].map((l) => (
-                        <option key={l} className="bg-gray-900">
+                      {[
+                        "Low level - Experience less than 1 year",
+                        "Medium level - 1-2 years",
+                        "High level - 2+ years"
+                      ].map((l) => (
+                        <option key={l} value={l} className="bg-gray-900">
                           {l}
                         </option>
                       ))}
@@ -859,8 +891,12 @@ export default function AddJobs() {
                       <option value="" className="bg-gray-900">
                         Select level
                       </option>
-                      {["Low level", "Medium level", "High level"].map((l) => (
-                        <option key={l} className="bg-gray-900">
+                      {[
+                        "Low level - Experience less than 1 year",
+                        "Medium level - 1-2 years",
+                        "High level - 2+ years"
+                      ].map((l) => (
+                        <option key={l} value={l} className="bg-gray-900">
                           {l}
                         </option>
                       ))}

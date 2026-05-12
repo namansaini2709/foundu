@@ -31,16 +31,25 @@ function FreelancerJobs() {
         // Fetch all startup profiles
         const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles`);
         const profilesData = await profilesResponse.json();
+        
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
         // Create a map of founder_id to startup logo
         const founderLogoMap = {};
         profilesData.forEach((profile) => {
-          founderLogoMap[profile.userId] = profile.startup_logo_url;
+          let logoUrl = profile.startup_logo_url;
+          if (logoUrl && logoUrl.startsWith('/')) {
+            logoUrl = `${API_BASE_URL}${logoUrl}`;
+          }
+          // Mapping by founder_id as that's what's stored in the jobs table
+          founderLogoMap[profile.founder_id] = logoUrl;
         });
+
         // Filter only freelancer jobs and map with startup logos
         const jobsWithLogos = jobsData
           .filter((job) => job.job_type === "freelancer")
           .map((job) => ({
-            id: job.job_id, // Use job_id from API response
+            id: job.job_id,
             name: job.job_title,
             info: job.full_job_description,
             stipend: job.budget_range,
@@ -70,6 +79,7 @@ function FreelancerJobs() {
               <img
                 src={job.logoUrl}
                 alt={job.name}
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   // Fallback to initials if image fails to load

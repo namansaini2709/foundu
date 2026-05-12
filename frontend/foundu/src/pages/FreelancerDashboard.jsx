@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserId } from "../utils/authUtils";
+import { getUserId, getFullName } from "../utils/authUtils";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import { ArrowLeft, Briefcase } from "lucide-react";
@@ -21,6 +21,19 @@ const FreelancerDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [badgeData, setBadgeData] = useState(null);
   const [credibilityData, setCredibilityData] = useState(null);
+  const [userName, setUserName] = useState(() => {
+    const fullName = getFullName();
+    if (fullName) return fullName.split(" ")[0];
+    const cachedName = localStorage.getItem("user_name");
+    return cachedName ? cachedName.split(" ")[0] : "";
+  });
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
 
   const [walletBalance, setWalletBalance] = useState(0);
   const [realTransactions, setRealTransactions] = useState([]);
@@ -37,9 +50,9 @@ const FreelancerDashboard = () => {
   };
   // Tab config with icons
   const tabs = [
-    { key: "projects", label: "Projects", icon: "📂" },
-    { key: "payments", label: "Payments", icon: "💰" },
-    { key: "badges", label: "Badges", icon: "🏅" },
+    { key: "projects", label: "Projects", icon: "" },
+    { key: "payments", label: "Payments", icon: "" },
+    { key: "badges", label: "Badges", icon: "" },
   ];
   // Fetch applications when projects tab is active
   useEffect(() => {
@@ -61,6 +74,16 @@ const FreelancerDashboard = () => {
         .get(`${API_URL}/reviews/credibility/${userId}`)
         .then((res) => setCredibilityData(res.data))
         .catch((err) => console.error("Error fetching credibility:", err));
+      api
+        .get(`${API_URL}/users/${userId}`)
+        .then((res) => {
+          if (res.data && res.data.success && res.data.data) {
+            const fullName = res.data.data.full_name || "";
+            setUserName(fullName.split(" ")[0]);
+            localStorage.setItem("user_name", fullName);
+          }
+        })
+        .catch((err) => console.error("Error fetching name:", err));
     }
   }, [userId]);
 
@@ -190,6 +213,9 @@ const FreelancerDashboard = () => {
         </button>
         {/* Header Section */}
         <div className="bg-gray-800/30 backdrop-blur-md border border-blue-700/30 rounded-2xl p-6 md:p-8 mb-8 shadow-lg">
+          <div className="text-blue-400 font-black tracking-tight text-2xl md:text-5xl mb-6 text-center uppercase">
+            {getGreeting()}, {userName || "Expert"}
+          </div>
           <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white tracking-tighter text-center mb-2">
             DASHBOARD<span className="text-blue-500">.</span>
           </h1>
@@ -208,11 +234,10 @@ const FreelancerDashboard = () => {
                   className={`
                                         relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold
                                         transition-all duration-400 ease-out cursor-pointer
-                                        ${
-                                          activeTab === tab.key
-                                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
-                                            : "text-gray-400 hover:text-white hover:bg-white/5"
-                                        }
+                                        ${activeTab === tab.key
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }
                                     `}
                   style={{
                     transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -243,11 +268,10 @@ const FreelancerDashboard = () => {
                     <button
                       key={f}
                       onClick={() => setStatusFilter(f)}
-                      className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-300 cursor-pointer ${
-                        statusFilter === f
+                      className={`px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-300 cursor-pointer ${statusFilter === f
                           ? "bg-blue-600 text-white shadow-md"
                           : "text-gray-400 hover:text-white hover:bg-white/5"
-                      }`}
+                        }`}
                     >
                       {f}
                     </button>
@@ -415,11 +439,10 @@ const FreelancerDashboard = () => {
                       >
                         <div className="flex items-center gap-5">
                           <div
-                            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg flex-shrink-0 ${
-                              tx.transaction_type === "credit"
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg flex-shrink-0 ${tx.transaction_type === "credit"
                                 ? "bg-green-500/10 text-green-400 border border-green-500/20"
                                 : "bg-red-500/10 text-red-400 border border-red-500/20"
-                            }`}
+                              }`}
                           >
                             {tx.transaction_type === "credit" ? "↓" : "↑"}
                           </div>
@@ -467,62 +490,62 @@ const FreelancerDashboard = () => {
                 badgeData?.golden_tick_verified === true ||
                 badgeData?.green_tick_verified === 1 ||
                 badgeData?.green_tick_verified === true) && (
-                <div className="mb-12">
-                  <h3 className="text-lg font-semibold text-blue-300 mb-6 pl-3 border-l-4 border-blue-500">
-                    Verification Badge
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {(badgeData?.blue_tick_verified === 1 ||
-                      badgeData?.blue_tick_verified === true) && (
-                      <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-blue-500/30 hover:border-blue-400 transition-all group">
-                        <img
-                          src={blueBadge}
-                          alt="Blue Badge"
-                          className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
-                        />
-                        <p className="font-bold text-blue-400 text-base md:text-lg">
-                          Identity Verified
-                        </p>
-                        <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
-                          Blue Tick Check
-                        </p>
-                      </div>
-                    )}
-                    {(badgeData?.golden_tick_verified === 1 ||
-                      badgeData?.golden_tick_verified === true) && (
-                      <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-yellow-500/30 hover:border-yellow-400 transition-all group">
-                        <img
-                          src={goldenBadge}
-                          alt="Golden Badge"
-                          className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
-                        />
-                        <p className="font-bold text-yellow-400 text-base md:text-lg">
-                          Skill Verified
-                        </p>
-                        <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
-                          Golden Tick Check
-                        </p>
-                      </div>
-                    )}
-                    {(badgeData?.green_tick_verified === 1 ||
-                      badgeData?.green_tick_verified === true) && (
-                      <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-green-500/30 hover:border-green-400 transition-all group">
-                        <img
-                          src={greenBadge}
-                          alt="Green Badge"
-                          className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
-                        />
-                        <p className="font-bold text-green-400 text-base md:text-lg">
-                          Payment Verified
-                        </p>
-                        <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
-                          Green Tick Check
-                        </p>
-                      </div>
-                    )}
+                  <div className="mb-12">
+                    <h3 className="text-lg font-semibold text-blue-300 mb-6 pl-3 border-l-4 border-blue-500">
+                      Verification Badge
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {(badgeData?.blue_tick_verified === 1 ||
+                        badgeData?.blue_tick_verified === true) && (
+                          <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-blue-500/30 hover:border-blue-400 transition-all group">
+                            <img
+                              src={blueBadge}
+                              alt="Blue Badge"
+                              className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
+                            />
+                            <p className="font-bold text-blue-400 text-base md:text-lg">
+                              Identity Verified
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
+                              Blue Tick Check
+                            </p>
+                          </div>
+                        )}
+                      {(badgeData?.golden_tick_verified === 1 ||
+                        badgeData?.golden_tick_verified === true) && (
+                          <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-yellow-500/30 hover:border-yellow-400 transition-all group">
+                            <img
+                              src={goldenBadge}
+                              alt="Golden Badge"
+                              className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
+                            />
+                            <p className="font-bold text-yellow-400 text-base md:text-lg">
+                              Skill Verified
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
+                              Golden Tick Check
+                            </p>
+                          </div>
+                        )}
+                      {(badgeData?.green_tick_verified === 1 ||
+                        badgeData?.green_tick_verified === true) && (
+                          <div className="flex flex-col items-center p-6 md:p-8 bg-gray-700/30 rounded-xl border border-green-500/30 hover:border-green-400 transition-all group">
+                            <img
+                              src={greenBadge}
+                              alt="Green Badge"
+                              className=" object-cover w-16 h-16 md:w-20 md:h-20 mb-2"
+                            />
+                            <p className="font-bold text-green-400 text-base md:text-lg">
+                              Payment Verified
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-400 text-center mt-2">
+                              Green Tick Check
+                            </p>
+                          </div>
+                        )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               {/* Credibility Score Badges */}
               {(credibilityData || badgeData?.credibility_badge) && (
                 <div>
@@ -532,62 +555,62 @@ const FreelancerDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {(credibilityData?.badge === "90-95" ||
                       badgeData?.credibility_badge === "90-95") && (
-                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-all group">
-                        <img
-                          src={red1}
-                          alt="Exceptional Badge"
-                          className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-500 shadow-lg shadow-red-500/20"
-                        />
-                        <p className="text-xl font-bold text-red-500">90-95</p>
-                        <p className="text-sm text-gray-300 mt-1">
-                          Top Rated (Exceptional)
-                        </p>
-                      </div>
-                    )}
+                        <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-600 text-center hover:bg-gray-700/50 transition-all group">
+                          <img
+                            src={red1}
+                            alt="Exceptional Badge"
+                            className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-500 shadow-lg shadow-red-500/20"
+                          />
+                          <p className="text-xl font-bold text-red-500">90-95</p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            Top Rated (Exceptional)
+                          </p>
+                        </div>
+                      )}
                     {(credibilityData?.badge === "85-90" ||
                       badgeData?.credibility_badge === "85-90") && (
-                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-all group">
-                        <img
-                          src={red2}
-                          alt="Excellent Badge"
-                          className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-400 shadow-lg shadow-red-400/20"
-                        />
-                        <p className="text-xl font-bold text-red-400">85-90</p>
-                        <p className="text-sm text-gray-300 mt-1">
-                          Highly Credible (Excellent)
-                        </p>
-                      </div>
-                    )}
+                        <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-400 text-center hover:bg-gray-700/50 transition-all group">
+                          <img
+                            src={red2}
+                            alt="Excellent Badge"
+                            className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-400 shadow-lg shadow-red-400/20"
+                          />
+                          <p className="text-xl font-bold text-red-400">85-90</p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            Highly Credible (Excellent)
+                          </p>
+                        </div>
+                      )}
                     {(credibilityData?.badge === "80-85" ||
                       badgeData?.credibility_badge === "80-85") && (
-                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-all group">
-                        <img
-                          src={red3}
-                          alt="Very Good Badge"
-                          className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-300 shadow-lg shadow-red-300/20"
-                        />
-                        <p className="text-xl font-bold text-red-300">80-85</p>
-                        <p className="text-sm text-gray-300 mt-1">
-                          Credible (Very Good)
-                        </p>
-                      </div>
-                    )}
+                        <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-300 text-center hover:bg-gray-700/50 transition-all group">
+                          <img
+                            src={red3}
+                            alt="Very Good Badge"
+                            className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-300 shadow-lg shadow-red-300/20"
+                          />
+                          <p className="text-xl font-bold text-red-300">80-85</p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            Credible (Very Good)
+                          </p>
+                        </div>
+                      )}
                     {(credibilityData?.badge === "below-80" ||
                       badgeData?.credibility_badge === "below-80") && (
-                      <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-all group">
-                        <img
-                          src={red4}
-                          alt="Growing Badge"
-                          className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-200 shadow-lg shadow-red-200/20"
-                        />
-                        <p className="text-xl font-bold text-red-200">
-                          Below 80
-                        </p>
-                        <p className="text-sm text-gray-300 mt-1">
-                          Growing (Good)
-                        </p>
-                      </div>
-                    )}
+                        <div className="bg-gray-700/30 p-8 rounded-xl border-t-4 border-red-200 text-center hover:bg-gray-700/50 transition-all group">
+                          <img
+                            src={red4}
+                            alt="Growing Badge"
+                            className="w-24 h-24 mx-auto mb-4 object-cover rounded-full border-2 border-red-200 shadow-lg shadow-red-200/20"
+                          />
+                          <p className="text-xl font-bold text-red-200">
+                            Below 80
+                          </p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            Growing (Good)
+                          </p>
+                        </div>
+                      )}
                   </div>
                 </div>
               )}

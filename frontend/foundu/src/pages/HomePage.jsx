@@ -14,7 +14,7 @@ import {
   CheckCircle,
   MessageSquare,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Navbar from "../components/Navbar";
@@ -22,6 +22,7 @@ import Footer from "../components/Footer";
 import ConsentBanner from "../components/ConsentBanner";
 import VideoBackground from "../components/VideoBackground";
 import { API_BASE } from "../utils/axiosConfig";
+import { getUserId } from "../utils/authUtils";
 import whatsappPlaceholder from "../assets/whatsapp1.png";
 
 // Primary black background for all sections
@@ -104,7 +105,7 @@ function HomePage() {
       <Navbar />
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
-      <FoundUAIs />
+      <FoundUAIs navigate={navigate} />
       <WhatsAppService />
       <UsersWeCater navigate={navigate} />
       <InfluencersSection navigate={navigate} />
@@ -519,7 +520,7 @@ const CategorySteps = () => {
     {
       type: "Freelancer's",
       description: "Your journey from expert to verified professional.",
-      alignment: "left",
+      alignment: "right",
       steps: [
         "Create your verified expert profile",
         "Showcase best visual highlights in the feed",
@@ -530,7 +531,7 @@ const CategorySteps = () => {
     {
       type: "Co-founder's",
       description: "Partner with visionaries to build the next unicorn.",
-      alignment: "right",
+      alignment: "left",
       steps: [
         "Pitch your skills to the AI Genie",
         "Discover startups looking for partners",
@@ -591,26 +592,12 @@ const CategorySteps = () => {
                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/50 via-blue-500/20 to-transparent -translate-x-1/2 hidden md:block"></div>
                 <div className="space-y-8 relative z-10">
                   {cat.steps.map((step, sIdx) => (
-                    <motion.div
-                      key={sIdx}
-                      initial={{
-                        opacity: 0,
-                        x: cat.alignment === "left" ? 50 : -50,
-                      }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
-                      transition={{ duration: 0.5, delay: sIdx * 0.1 }}
-                      className={`flex items-center gap-6 group`}
-                    >
-                      <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-white/10 flex items-center justify-center text-white/20 font-black text-2xl shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-500 transform group-hover:scale-110">
-                        {sIdx + 1}
-                      </div>
-                      <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 hover:translate-x-4 shadow-xl">
-                        <p className="text-white font-bold text-base md:text-xl leading-relaxed">
-                          {step}
-                        </p>
-                      </div>
-                    </motion.div>
+                    <RoadmapStep 
+                      key={sIdx} 
+                      step={step} 
+                      sIdx={sIdx} 
+                      alignment={cat.alignment} 
+                    />
                   ))}
                 </div>
               </div>
@@ -622,8 +609,54 @@ const CategorySteps = () => {
   );
 };
 
+const RoadmapStep = ({ step, sIdx, alignment }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { 
+    amount: 0.6,
+    margin: "-20% 0px -20% 0px"
+  });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{
+        opacity: 0,
+        x: alignment === "left" ? 50 : -50,
+      }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.5, delay: sIdx * 0.1 }}
+      className={`flex items-center gap-6 group`}
+    >
+      {/* Step Number with Scroll-Triggered Active State */}
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0 transition-all duration-700 transform 
+        ${isInView 
+          ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.5)] scale-110' 
+          : 'bg-gray-900 border border-white/10 text-white/20'
+        } group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] group-hover:scale-110`}
+      >
+        {sIdx + 1}
+      </div>
+
+      {/* Step Box with Scroll-Triggered Outline and BG */}
+      <div className={`backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] w-full transition-all duration-700 shadow-xl border-2
+        ${isInView 
+          ? 'bg-white/15 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] translate-x-2' 
+          : 'bg-white/5 border-white/10'
+        } group-hover:bg-white/10 group-hover:border-blue-500/30 group-hover:translate-x-4`}
+      >
+        <p className={`font-bold text-base md:text-xl leading-relaxed transition-colors duration-500
+          ${isInView ? 'text-white' : 'text-white/80'} group-hover:text-white`}
+        >
+          {step}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
 // FoundU AIs Section (Neon Theme)
-const FoundUAIs = () => {
+const FoundUAIs = ({ navigate }) => {
   const aiModels = [
     {
       title: "G.E.N.I.E AI",
@@ -698,33 +731,71 @@ const FoundUAIs = () => {
               transition={{ type: "spring", stiffness: 300 }}
               className="group relative h-full"
             >
-              <div
-                className={`absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700`}
-              ></div>
-              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-5 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-white/10 to-white/5 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+              <div className="relative h-full bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center text-center hover:bg-black/60 transition-all duration-500 shadow-2xl">
                 <div
-                  className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-4 md:mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
+                  className={`w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl ${ai.bg} border ${ai.border} flex items-center justify-center mb-6 md:mb-10 ${ai.glow} group-hover:scale-110 transition-transform duration-500`}
                 >
                   {React.cloneElement(ai.icon, { className: "w-8 h-8 md:w-10 md:h-10" })}
                 </div>
-                <div className="mb-4 md:mb-6">
-                  <h3 className="text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                <div className="mb-6">
+                  <h3 className="text-2xl md:text-3xl font-black text-white mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
                     {ai.title}
                   </h3>
-                  <p
-                    className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] ${ai.text}`}
-                  >
+                  <p className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.4em] ${ai.text}`}>
                     {ai.subtitle}
                   </p>
                 </div>
-                <p className="text-gray-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-10 flex-grow font-medium line-clamp-3 md:line-clamp-none">
+                
+                <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8 font-medium">
                   {ai.description}
                 </p>
-                <div className="flex flex-wrap gap-1.5 justify-center pt-4 md:pt-6 border-t border-white/5 w-full">
+
+                {/* Action Section - Centered */}
+                <div className="flex-1 flex flex-col items-center justify-center w-full mb-8">
+                  {idx === 0 ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center">
+                        <DotLottieReact
+                          src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
+                          loop
+                          autoplay
+                        />
+                      </div>
+                      <div className="px-4 py-1 bg-red-500/20 border border-red-500/30 rounded-lg mt-2">
+                        <span className="text-[8px] text-red-400 font-black uppercase tracking-widest animate-pulse">
+                          Caution: This is in the right bottom of our page
+                        </span>
+                      </div>
+                    </div>
+                  ) : idx === 1 ? (
+                    <button 
+                      onClick={() => {
+                        if (getUserId()) navigate("/idea-lab");
+                        else navigate("/login-signup");
+                      }}
+                      className="w-full py-4 bg-pink-500 hover:bg-pink-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-pink-500/20 transform hover:scale-105"
+                    >
+                      Open Idea Lab
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        if (getUserId()) navigate("/add-job");
+                        else navigate("/login-signup");
+                      }}
+                      className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-green-500/20 transform hover:scale-105"
+                    >
+                      Create JD Now
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 justify-center pt-6 border-t border-white/5 w-full">
                   {ai.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-[8px] md:text-[10px] font-bold uppercase px-2 md:px-4 py-1 rounded-full bg-white/5 border border-white/10 text-gray-500"
+                      className="text-[8px] md:text-[10px] font-bold uppercase px-3 md:px-4 py-1 rounded-full bg-white/5 border border-white/10 text-gray-500"
                     >
                       {tag}
                     </span>

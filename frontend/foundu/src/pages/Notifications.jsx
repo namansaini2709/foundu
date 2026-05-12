@@ -22,7 +22,7 @@ const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSig
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="relative overflow-hidden rounded-2xl mb-2 last:mb-0 bg-[#000000]"
+            className="relative overflow-hidden bg-transparent border-b border-white/10 last:border-b-0"
         >
             {/* Action Layer (Underneath) */}
             <div className="absolute inset-0 bg-[#000000] flex items-center justify-end px-6 gap-3">
@@ -55,10 +55,10 @@ const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSig
                         animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
                     }
                 }}
-                className={`relative z-10 p-5 bg-[#000000] border border-white/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center cursor-grab active:cursor-grabbing hover:bg-[#050505] transition-colors rounded-2xl ${n.is_read ? 'opacity-50 grayscale-[0.3]' : ''}`}
+                className={`relative z-10 p-6 sm:p-8 bg-[#000000] flex flex-col sm:flex-row gap-5 items-start sm:items-center cursor-grab active:cursor-grabbing transition-colors`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex-shrink-0 relative">
+                <div className={`flex-shrink-0 relative ${n.is_read ? 'opacity-40 grayscale' : ''}`}>
                     {getIcon(n.type)}
                     {!n.is_read && (
                         <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -69,7 +69,7 @@ const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSig
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                        <h3 className={`font-black text-base sm:text-lg tracking-tight truncate ${n.is_read ? 'text-gray-500' : 'text-white'}`}>
+                        <h3 className={`font-black text-base sm:text-lg tracking-tight truncate ${n.is_read ? 'text-gray-500 opacity-60' : 'text-white'}`}>
                             {n.title}
                         </h3>
                         <div className="flex items-center gap-1.5 text-[10px] uppercase font-black text-gray-700 tracking-wider">
@@ -77,14 +77,14 @@ const NotificationItem = ({ n, markAsRead, deleteNotification, getIcon, resetSig
                             {new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                     </div>
-                    <p className={`text-[13px] sm:text-sm leading-relaxed line-clamp-2 ${n.is_read ? 'text-gray-600' : 'text-gray-400'}`}>
+                    <p className={`text-[13px] sm:text-sm leading-relaxed line-clamp-2 ${n.is_read ? 'text-gray-600 opacity-60' : 'text-gray-400'}`}>
                         {n.message}
                     </p>
                 </div>
 
-                {/* Mobile/Small Device Swipe Hint */}
-                <div className="sm:hidden absolute right-3 bottom-3 opacity-20 flex gap-1 items-center animate-pulse">
-                    <span className="text-[9px] font-black uppercase tracking-tighter">Swipe</span>
+                {/* Swipe Hint */}
+                <div className="absolute right-3 bottom-3 opacity-20 flex gap-1 items-center animate-pulse">
+                    <span className="text-[9px] font-black uppercase tracking-tighter">Swipe Left</span>
                     <div className="w-1 h-1 bg-white rounded-full"></div>
                 </div>
             </motion.div>
@@ -193,19 +193,19 @@ const Notifications = () => {
                                 <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white">
                                     Notifications
                                 </h1>
-                                <p className="text-blue-400/50 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1 italic">Updates • Activity • Alerts</p>
+                                {/* <p className="text-blue-400/50 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mt-1 italic">Updates • Activity • Alerts</p> */}
                             </div>
                         </div>
                     </div>
 
                     {/* Single Glass Container Covering All Notifications */}
                     <div 
-                        className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-4 sm:p-8 shadow-2xl relative"
+                        className="bg-black border border-white/10 rounded-[2rem] shadow-2xl relative overflow-hidden"
                         onClick={(e) => e.stopPropagation()} 
                     >
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] pointer-events-none"></div>
                         
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col">
                             <AnimatePresence mode="popLayout">
                                 {notifications.length > 0 ? (
                                     notifications.map((n) => (

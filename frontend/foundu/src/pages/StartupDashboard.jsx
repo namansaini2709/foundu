@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
+import { getFullName, getUserId } from "../utils/authUtils";
 import {
   Plus,
   Target,
@@ -141,6 +142,12 @@ const StartupDashboard = () => {
     liveJobs: 0,
     selectedJobs: 0,
   });
+  const [userName, setUserName] = useState(() => {
+    const fullName = getFullName();
+    if (fullName) return fullName.split(" ")[0];
+    const cachedName = localStorage.getItem("user_name");
+    return cachedName ? cachedName.split(" ")[0] : "";
+  });
   const [badges, setBadges] = useState({
     blue: false,
     green: false,
@@ -151,18 +158,40 @@ const StartupDashboard = () => {
 
   useEffect(() => {
     if (userId) {
+      fetchUserName();
       fetchUserJobs();
       fetchDashboardStats();
       fetchBadges();
     }
   }, [userId]);
 
+  const fetchUserName = async () => {
+    try {
+      const res = await api.get(`/api/users/${userId}`);
+      if (res.data && res.data.success && res.data.data) {
+        const fullName = res.data.data.full_name || "";
+        const firstName = fullName.split(" ")[0];
+        setUserName(firstName);
+        localStorage.setItem("user_name", fullName);
+      }
+    } catch (err) {
+      console.error("Error fetching user name:", err);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   const fetchBadges = async () => {
     try {
       // 1. Check verified status from socials
       const socialRes = await api.get(`/api/user-socials/${userId}`);
       const socialData = socialRes.data.data;
-      
+
       // 2. Check jobs for green badge
       const jobsRes = await api.get(`/api/jobs/user/${userId}`);
       const jobCount = jobsRes.data.length;
@@ -259,9 +288,9 @@ const StartupDashboard = () => {
         {/* Welcome Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-white/5 pb-12">
           <div>
-            <div className="flex items-center gap-2 text-blue-400 font-bold tracking-[0.2em] text-xs mb-4 uppercase">
-              <Rocket className="w-4 h-4" />
-              Startup Command Center
+            <div className="flex items-center gap-4 text-blue-400 font-black tracking-tight text-2xl md:text-5xl mb-6 uppercase">
+              {/* <Rocket className="w-8 h-8 md:w-12 md:h-12 animate-bounce" /> */}
+              {getGreeting()}, {userName || "Entrepreneur"}
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter">
               DASHBOARD<span className="text-blue-500">.</span>
@@ -371,11 +400,10 @@ const StartupDashboard = () => {
                   className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative"
                 >
                   <div
-                    className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
-                      job.payment_status === "paid"
+                    className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${job.payment_status === "paid"
                         ? "bg-green-500/20 text-green-400"
                         : "bg-red-500/20 text-red-400"
-                    }`}
+                      }`}
                   >
                     {job.payment_status === "paid"
                       ? "● Payment Verified"
@@ -417,7 +445,7 @@ const StartupDashboard = () => {
             </div>
           )}
         </section>
-        
+
         {/* ── NEW: YOUR BADGES ── */}
         <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -425,7 +453,7 @@ const StartupDashboard = () => {
               <Award className="w-8 h-8 text-blue-400 group-hover:rotate-12 transition-transform" />
               Your Badges
             </h2>
-            <button 
+            <button
               onClick={() => navigate('/founder-badges')}
               className="px-6 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-blue-400"
             >
@@ -520,7 +548,7 @@ const StartupDashboard = () => {
                   ))}
                 </ul>
                 <div className="mt-auto">
-                  <button 
+                  <button
                     onClick={() => navigate('/startup-portals')}
                     className="w-full px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs"
                   >
@@ -544,7 +572,7 @@ const StartupDashboard = () => {
                   our proprietary AI engine.
                 </p>
                 <div className="mt-auto">
-                  <button 
+                  <button
                     onClick={() => navigate('/buy-pitch-deck')}
                     className="w-full px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs"
                   >
@@ -567,7 +595,7 @@ const StartupDashboard = () => {
                   Build custom web and mobile solutions with our elite engineering team to scale your product.
                 </p>
                 <div className="mt-auto">
-                  <button 
+                  <button
                     onClick={() => navigate('/web-development')}
                     className="w-full px-10 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/20 uppercase tracking-widest text-xs"
                   >
