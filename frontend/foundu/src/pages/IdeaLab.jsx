@@ -99,26 +99,31 @@ const IdeaLab = () => {
     <div className="idea-lab-container">
       <div className="idea-lab-main">
         <header className="idea-lab-header">
-          <h1>💡 Idea Lab</h1>
-          <p>Pitch your startup ideas and get AI-powered milestone tracking.</p>
+          <h1>Idea Lab</h1>
+          <p>
+            Fuel your entrepreneurial journey. Pitch your startup ideas and let our AI craft your roadmap to success.
+          </p>
         </header>
+
         <div className="idea-content-grid">
           {/* LEFT: IDEA LIST & NEW IDEA FORM */}
           <aside className="idea-sidebar">
             <div className="new-idea-card">
-              <h3>Pitch a New Idea</h3>
+              <h3>
+                <Lightbulb className="text-blue-400" /> Pitch New Idea
+              </h3>
               <form onSubmit={handleCreateIdea}>
                 <input
                   type="text"
-                  placeholder="Idea Title (e.g. AI Fitness App)"
+                  placeholder="What's your big idea?"
                   value={newIdea.title}
                   onChange={(e) =>
                     setNewIdea({ ...newIdea, title: e.target.value })
                   }
                 />
                 <textarea
-                  placeholder="Describe your idea in detail. Mention if it's an app, website, or marketing focus..."
-                  rows="4"
+                  placeholder="Describe the problem you're solving and your unique solution..."
+                  rows="5"
                   value={newIdea.description}
                   onChange={(e) =>
                     setNewIdea({ ...newIdea, description: e.target.value })
@@ -126,19 +131,20 @@ const IdeaLab = () => {
                 ></textarea>
                 <button type="submit" disabled={loading}>
                   {loading ? (
-                    "Analyzing..."
+                    "Analyzing Vision..."
                   ) : (
                     <>
-                      <Send size={18} /> Pitch Idea
+                      <Rocket size={20} /> Launch Pitch
                     </>
                   )}
                 </button>
               </form>
             </div>
+
             <div className="my-ideas-list">
-              <h3>My Pitches</h3>
+              <h3>Your Portfolio</h3>
               {ideas.length === 0 ? (
-                <p className="empty-text">No ideas yet. Pitch one above!</p>
+                <p className="empty-text">Your lab is empty. Pitch an idea to start.</p>
               ) : (
                 ideas.map((idea) => (
                   <div
@@ -164,78 +170,91 @@ const IdeaLab = () => {
               )}
             </div>
           </aside>
+
           {/* RIGHT: SELECTED IDEA DETAILS & MILESTONES */}
           <main className="idea-details">
             {selectedIdea ? (
-              <>
-                <div className="idea-showcase">
-                  <div className="showcase-header">
-                    <h2>{selectedIdea.title}</h2>
-                    <div className="idea-status">
-                      <span className="status-tag">{selectedIdea.status}</span>
-                    </div>
+              <div className="idea-showcase">
+                <div className="showcase-header">
+                  <h2>{selectedIdea.title}</h2>
+                  <div className="idea-status">
+                    <span className="status-tag">{selectedIdea.status}</span>
                   </div>
-                  <p className="idea-desc">{selectedIdea.description}</p>
-                  <div className="milestone-section">
-                    <h3>🚀 AI-Generated Milestones</h3>
-                    <div className="milestone-list">
-                      {selectedIdea.milestones?.map((m) => (
-                        <div
-                          key={m.id}
-                          className={`milestone-card ${m.is_completed ? "completed" : ""}`}
-                          onClick={() =>
-                            handleToggleMilestone(m.id, m.is_completed)
-                          }
-                        >
+                </div>
+                
+                <p className="idea-desc">{selectedIdea.description}</p>
+
+                <div className="milestone-section">
+                  <h3>
+                    <Rocket className="text-emerald-400" /> AI Roadmap
+                  </h3>
+                  <div className="milestone-list">
+                    {selectedIdea.milestones?.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`milestone-card ${m.is_completed ? "completed" : ""}`}
+                        onClick={() =>
+                          handleToggleMilestone(m.id, m.is_completed)
+                        }
+                      >
+                        <div className="icon-wrapper">
                           {m.is_completed ? (
                             <CheckCircle className="icon check" />
                           ) : (
                             <Circle className="icon" />
                           )}
-                          <span>{m.milestone_text}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* RESOURCES SECTION */}
-                  <div className="resources-section">
-                    <h3>📚 Recommended Resources</h3>
-                    <div className="resource-links">
-                      <div className="resource-card">
-                        <Rocket size={20} />
-                        <div>
-                          <h4>Tech Talent</h4>
-                          <p>
-                            Scale your tech stack with top vetted developers.
-                          </p>
-                          <a href="/freelancer-jobs">
-                            Find Developers <ArrowRight size={14} />
-                          </a>
-                        </div>
+                        <span>{m.milestone_text}</span>
                       </div>
-                      <div className="resource-card">
-                        <BookOpen size={20} />
-                        <div>
-                          <h4>Founder Guide</h4>
-                          <p>
-                            Learn how to navigate the early stages of a startup.
-                          </p>
-                          <a href="#">
-                            Read Guide <ArrowRight size={14} />
-                          </a>
-                        </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* RESOURCES SECTION */}
+                <div className="resources-section">
+                  <h3>
+                    <BookOpen className="text-blue-400" /> Growth Engine
+                  </h3>
+                  <div className="resource-links">
+                    <div className="resource-card">
+                      <div className="icon-wrapper">
+                        <Rocket size={24} />
+                      </div>
+                      <div>
+                        <h4>Tech Talent</h4>
+                        <p>
+                          Build your MVP with vetted developers who specialize in your tech stack.
+                        </p>
+                        <a href="/freelancer-jobs">
+                          Find Developers <ArrowRight size={16} />
+                        </a>
+                      </div>
+                    </div>
+                    <div className="resource-card">
+                      <div className="icon-wrapper">
+                        <BookOpen size={24} />
+                      </div>
+                      <div>
+                        <h4>Founder's Vault</h4>
+                        <p>
+                          Exclusive guides on fundraising, market fit, and scaling your startup.
+                        </p>
+                        <a href="#">
+                          Explore Vault <ArrowRight size={16} />
+                        </a>
                       </div>
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
               <div className="no-selection">
-                <Lightbulb size={60} />
-                <h2>Select or Pitch an Idea</h2>
+                <div className="icon-box">
+                  <Lightbulb size={64} />
+                </div>
+                <h2>The Lab is Open</h2>
                 <p>
-                  Every great startup begins with a single pitch. Start yours
-                  today.
+                  Every unicorn started as a simple idea. Select an existing pitch or launch a new one to see your AI roadmap.
                 </p>
               </div>
             )}

@@ -67,8 +67,10 @@ import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import StartupPortals from "./pages/StartupPortals";
 import WhatsAppSubscription from "./pages/WhatsAppSubscription";
 import WebDevelopment from "./pages/WebDevelopment";
+import SmoothScroll from "./components/SmoothScroll";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-function NavbarWrapper() {
+function NavbarWrapper({ setActivePopup }) {
   const location = useLocation();
   const hideNavbarRoutes = [
     "/admin/dashboard",
@@ -86,6 +88,7 @@ function NavbarWrapper() {
 }
 
 function App() {
+  const [activePopup, setActivePopup] = useState(null);
   const [authState, setAuthState] = useState({
     userId: getUserId(),
     userRole: getUserType(),
@@ -124,7 +127,6 @@ function App() {
   }, [authState.isSyncing]);
 
   const { userId, userRole, isLoggedIn, isSyncing } = authState;
-  const [activePopup, setActivePopup] = useState(null);
 
   if (isSyncing) {
     return (
@@ -141,99 +143,202 @@ function App() {
 
   return (
     <Router>
-      <ScrollToTop />
-      <NavbarWrapper />
+      <SmoothScroll>
+        <ScrollToTop />
+        <NavbarWrapper />
 
-      {/* ✅ GLOBAL TOAST CONTAINER */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="dark"
-      />
-
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/onboard-influencer" element={<InfluencerOnboarding />} />
-        <Route path="/startup-dashboard" element={<StartupDashboard />} />
-        <Route
-          path="/job-dashboard/founder/:jobId/:freelancerId"
-          element={<JobDashboardFounder />}
+        {/* ✅ GLOBAL TOAST CONTAINER */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="dark"
         />
-        <Route
-          path="/job-dashboard/freelancer/:jobId"
-          element={<JobDashboardFreelancer />}
-        />
-        <Route path="/startup-services" element={<StartupServices />} />
-        <Route path="/freelancer-profile" element={<FreelancerProfile />} />
-        <Route path="/cofounder-profile" element={<CoFounderProfile />} />
-        <Route path="/startup-profile" element={<StartupProfile />} />
-        <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
-        <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
-        <Route path="/cofounder-dashboard" element={<CoFounderDashboard />} />
-        <Route path="/login-signup" element={<LoginSignup />} />
-        <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
-        <Route path="/job-description" element={<FreelancerJobDetail />} />
-        <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
-        <Route path="/privacy-policy" element={<PPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/cookie-policy" element={<CPolicy />} />
-        <Route path="/add-job" element={<AddJobs />} />
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/freelancer-badges" element={<FreelancerBadges />} />
-        <Route path="/cofounder-badges" element={<CoFounderBadges />} />
-        <Route path="/founder-badges" element={<FounderBadges />} />
-        <Route path="/chatbox" element={<Chatbox />} />
-        <Route path="/jobposting" element={<ViewJobPosting />} />
-        <Route path="/reviews" element={<FreelancerReviews />} />
-        <Route path="/live-feed" element={<LiveUserFeed />} />
-        <Route path="/create-post" element={<CreatePost />} />
 
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/badges" element={<AdminBadges />} />
-        <Route path="/admin/broadcast" element={<AdminBroadcast />} />
-        <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-        <Route path="/admin/influencers" element={<AdminInfluencers />} />
-        <Route path="/admin/notifications" element={<AdminNotifications />} />
-        <Route path="/admin/queries" element={<AdminQueries />} />
-        <Route path="/admin/whatsapp" element={<AdminWhatsApp />} />
-        <Route path="/admin/meetings" element={<AdminMeetings />} />
-        <Route path="/admin/referrals" element={<AdminReferrals />} />
-        <Route path="/idea-lab" element={<IdeaLab />} />
-
-        <Route path="/about-details" element={<AboutDetails />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/startup-portals" element={<StartupPortals />} />
-        <Route path="/web-development" element={<WebDevelopment />} />
-        <Route
-          path="/influencer-marketplace"
-          element={<InfluencerMarketplace />}
-        />
-        <Route path="/our-team" element={<OurTeam />} />
-        <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
-        <Route path="/whatsapp-alerts" element={<WhatsAppSubscription />} />
-
-        {/* Catch-all 404 Route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {isLoggedIn && (
-        <>
-          <GlobalChatOverlay userId={userId} />
-          <SmartChatbot
-            userRole={userRole}
-            userId={userId}
-            activePopup={activePopup}
-            setActivePopup={setActivePopup}
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/onboard-influencer"
+            element={<InfluencerOnboarding />}
           />
-        </>
-      )}
+          <Route
+            path="/startup-dashboard"
+            element={
+              <ProtectedRoute allowedRole="founder">
+                <StartupDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/job-dashboard/founder/:jobId/:freelancerId"
+            element={
+              <ProtectedRoute allowedRole="founder">
+                <JobDashboardFounder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/job-dashboard/freelancer/:jobId"
+            element={
+              <ProtectedRoute allowedRole="freelancer">
+                <JobDashboardFreelancer />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/startup-services" element={<StartupServices />} />
+          <Route
+            path="/freelancer-profile"
+            element={
+              <ProtectedRoute allowedRole="freelancer">
+                <FreelancerProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cofounder-profile"
+            element={
+              <ProtectedRoute allowedRole="cofounder">
+                <CoFounderProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/startup-profile"
+            element={
+              <ProtectedRoute allowedRole="founder">
+                <StartupProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
+          <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
+          <Route
+            path="/cofounder-dashboard"
+            element={
+              <ProtectedRoute allowedRole="cofounder">
+                <CoFounderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login-signup" element={<LoginSignup />} />
+          <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
+          <Route path="/job-description" element={<FreelancerJobDetail />} />
+          <Route
+            path="/freelancer-dashboard"
+            element={
+              <ProtectedRoute allowedRole="freelancer">
+                <FreelancerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/privacy-policy" element={<PPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cookie-policy" element={<CPolicy />} />
+          <Route
+            path="/add-job"
+            element={
+              <ProtectedRoute allowedRole="founder">
+                <AddJobs />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/freelancer-badges" element={<FreelancerBadges />} />
+          <Route path="/cofounder-badges" element={<CoFounderBadges />} />
+          <Route path="/founder-badges" element={<FounderBadges />} />
+          <Route
+            path="/chatbox"
+            element={
+              <ProtectedRoute>
+                <Chatbox />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/jobposting" element={<ViewJobPosting />} />
+          <Route
+            path="/reviews"
+            element={
+              <ProtectedRoute>
+                <FreelancerReviews />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/live-feed"
+            element={
+              <ProtectedRoute>
+                <LiveUserFeed />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-post"
+            element={
+              <ProtectedRoute>
+                <CreatePost />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/badges" element={<AdminBadges />} />
+          <Route path="/admin/broadcast" element={<AdminBroadcast />} />
+          <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+          <Route path="/admin/influencers" element={<AdminInfluencers />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/queries" element={<AdminQueries />} />
+          <Route path="/admin/meetings" element={<AdminMeetings />} />
+          <Route path="/admin/referrals" element={<AdminReferrals />} />
+          <Route
+            path="/idea-lab"
+            element={
+              <ProtectedRoute>
+                <IdeaLab />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/about-details" element={<AboutDetails />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/startup-portals" element={<StartupPortals />} />
+          <Route path="/web-development" element={<WebDevelopment />} />
+          <Route
+            path="/influencer-marketplace"
+            element={<InfluencerMarketplace />}
+          />
+          <Route path="/our-team" element={<OurTeam />} />
+          <Route path="/contact-us" element={<ContactUs />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
+          <Route path="/whatsapp-subscription" element={<WhatsAppSubscription />} />
+
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        {isLoggedIn && (
+          <>
+            <GlobalChatOverlay userId={userId} />
+            <SmartChatbot
+              userRole={userRole}
+              userId={userId}
+              activePopup={activePopup}
+              setActivePopup={setActivePopup}
+            />
+          </>
+        )}
+      </SmoothScroll>
     </Router>
   );
 }

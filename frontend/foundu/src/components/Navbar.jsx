@@ -39,7 +39,7 @@ const userTypeLinks = {
   cofounder: [
     { label: "Dashboard", to: "/cofounder-dashboard" },
     { label: "View Jobs", to: "/cofounder-jobs" },
-    { label: "Idea Lab", to: "/idea-lab" },
+    // { label: "Idea Lab", to: "/idea-lab" },
     { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/cofounder-badges" },
     { label: "Reviews & Ratings", to: "/reviews" },
@@ -549,7 +549,7 @@ function Navbar() {
                         Logout
                       </button>
 
-                      <div className="border-t border-blue-700/30">
+                      {/* <div className="border-t border-blue-700/30">
                         <button
                           type="button"
                           onClick={() => setShowDeleteModal(true)}
@@ -570,7 +570,7 @@ function Navbar() {
                           </svg>
                           Delete Account
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 )}
@@ -706,7 +706,7 @@ function Navbar() {
                       </svg>
                       Logout
                     </button>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setShowDeleteModal(true)}
                       className="flex items-center gap-3 py-2 text-sm text-red-400 w-full text-left"
@@ -725,7 +725,7 @@ function Navbar() {
                         />
                       </svg>
                       Delete Account
-                    </button>
+                    </button> */}
                   </div>
                 </>
               ) : (

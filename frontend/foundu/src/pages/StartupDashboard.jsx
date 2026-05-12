@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
+import { getFullName, getUserId } from "../utils/authUtils";
 import {
   Plus,
   Target,
@@ -31,7 +32,7 @@ import {
   X,
   Briefcase,
   MapPin,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
@@ -145,10 +146,16 @@ const StartupDashboard = () => {
     liveJobs: 0,
     selectedJobs: 0,
   });
+  const [userName, setUserName] = useState(() => {
+    const fullName = getFullName();
+    if (fullName) return fullName.split(" ")[0];
+    const cachedName = localStorage.getItem("user_name");
+    return cachedName ? cachedName.split(" ")[0] : "";
+  });
   const [badges, setBadges] = useState({
     blue: false,
     green: false,
-    loading: true
+    loading: true,
   });
   const [selectedJobDetail, setSelectedJobDetail] = useState(null);
 
@@ -156,7 +163,8 @@ const StartupDashboard = () => {
 
   useEffect(() => {
     if (userId) {
-      fetchUserJobs(true);
+      fetchUserName();
+      fetchUserJobs();
       fetchDashboardStats();
       fetchBadges();
 
@@ -170,24 +178,45 @@ const StartupDashboard = () => {
     }
   }, [userId]);
 
+  const fetchUserName = async () => {
+    try {
+      const res = await api.get(`/api/users/${userId}`);
+      if (res.data && res.data.success && res.data.data) {
+        const fullName = res.data.data.full_name || "";
+        const firstName = fullName.split(" ")[0];
+        setUserName(firstName);
+        localStorage.setItem("user_name", fullName);
+      }
+    } catch (err) {
+      console.error("Error fetching user name:", err);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   const fetchBadges = async () => {
     try {
       // 1. Check verified status from socials
       const socialRes = await api.get(`/api/user-socials/${userId}`);
       const socialData = socialRes.data.data;
-      
+
       // 2. Check jobs for green badge
       const jobsRes = await api.get(`/api/jobs/user/${userId}`);
       const jobCount = jobsRes.data.length;
 
       setBadges({
-        blue: !!(socialData?.blue_tick_verified),
+        blue: !!socialData?.blue_tick_verified,
         green: !!(socialData?.green_tick_verified || jobCount >= 3),
-        loading: false
+        loading: false,
       });
     } catch (err) {
       console.error("Error fetching badges:", err);
-      setBadges(prev => ({ ...prev, loading: false }));
+      setBadges((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -283,9 +312,9 @@ const StartupDashboard = () => {
         {/* Welcome Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-white/5 pb-12">
           <div>
-            <div className="flex items-center gap-2 text-blue-400 font-bold tracking-[0.2em] text-xs mb-4 uppercase">
-              <Rocket className="w-4 h-4" />
-              Startup Command Center
+            <div className="flex items-center gap-4 text-blue-400 font-black tracking-tight text-2xl md:text-5xl mb-6 uppercase">
+              {/* <Rocket className="w-8 h-8 md:w-12 md:h-12 animate-bounce" /> */}
+              {getGreeting()}, {userName || "Entrepreneur"}
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter">
               DASHBOARD<span className="text-blue-500">.</span>
@@ -395,19 +424,17 @@ const StartupDashboard = () => {
                   onClick={() => setSelectedJobDetail(job)}
                   className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:border-blue-500/30 transition-all group overflow-hidden relative cursor-pointer"
                 >
-                  {job.job_type?.toLowerCase() !== "cofounder" && (
-                    <div
-                      className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
-                        job.payment_status === "paid"
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-red-500/20 text-red-400"
-                      }`}
-                    >
-                      {job.payment_status === "paid"
-                        ? "● Payment Completed"
-                        : "○ Payment Pending"}
-                    </div>
-                  )}
+                  <div
+                    className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${
+                      job.payment_status === "paid"
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-red-500/20 text-red-400"
+                    }`}
+                  >
+                    {job.payment_status === "paid"
+                      ? "● Payment Verified"
+                      : "○ Payment Pending"}
+                  </div>
 
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
                     {job.job_title}
@@ -441,10 +468,16 @@ const StartupDashboard = () => {
                         handleEndJob(job.job_id, job.is_offline);
                       }}
                     >
-                      <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${!job.is_offline ? "bg-green-500" : "bg-gray-600"}`}>
-                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${!job.is_offline ? "translate-x-5" : "translate-x-0"}`}></div>
+                      <div
+                        className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${!job.is_offline ? "bg-green-500" : "bg-gray-600"}`}
+                      >
+                        <div
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${!job.is_offline ? "translate-x-5" : "translate-x-0"}`}
+                        ></div>
                       </div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${!job.is_offline ? "text-green-400" : "text-gray-500"}`}>
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-widest ${!job.is_offline ? "text-green-400" : "text-gray-500"}`}
+                      >
                         {!job.is_offline ? "Online" : "Offline"}
                       </span>
                     </div>
@@ -454,7 +487,7 @@ const StartupDashboard = () => {
             </div>
           )}
         </section>
-        
+
         {/* ── NEW: YOUR BADGES ── */}
         <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -462,8 +495,8 @@ const StartupDashboard = () => {
               <Award className="w-8 h-8 text-blue-400 group-hover:rotate-12 transition-transform" />
               Your Badges
             </h2>
-            <button 
-              onClick={() => navigate('/founder-badges')}
+            <button
+              onClick={() => navigate("/founder-badges")}
               className="px-6 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-blue-400"
             >
               Manage Badges
@@ -472,44 +505,77 @@ const StartupDashboard = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Blue Tick Badge */}
-            <div className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.blue ? 'border-blue-500/30' : 'border-white/5 opacity-50'}`}>
+            <div
+              className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.blue ? "border-blue-500/30" : "border-white/5 opacity-50"}`}
+            >
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.blue ? 'bg-blue-500/20 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'bg-gray-800 border-gray-700'}`}>
-                  <img src={blueBadge} alt="Blue Badge" className={`w-12 h-12 object-contain ${!badges.blue && 'grayscale opacity-40'}`} />
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.blue ? "bg-blue-500/20 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "bg-gray-800 border-gray-700"}`}
+                >
+                  <img
+                    src={blueBadge}
+                    alt="Blue Badge"
+                    className={`w-12 h-12 object-contain ${!badges.blue && "grayscale opacity-40"}`}
+                  />
                 </div>
                 <div>
-                  <h3 className="font-black text-white uppercase tracking-tight">Verification</h3>
+                  <h3 className="font-black text-white uppercase tracking-tight">
+                    Verification
+                  </h3>
                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                    {badges.blue ? 'Verified Founder' : 'Not Verified'}
+                    {badges.blue ? "Verified Founder" : "Not Verified"}
                   </p>
                 </div>
               </div>
-              {badges.blue && <div className="absolute top-4 right-4"><CheckCircle className="w-4 h-4 text-blue-400" /></div>}
+              {badges.blue && (
+                <div className="absolute top-4 right-4">
+                  <CheckCircle className="w-4 h-4 text-blue-400" />
+                </div>
+              )}
             </div>
 
             {/* Green Tick Badge */}
-            <div className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.green ? 'border-green-500/30' : 'border-white/5 opacity-50'}`}>
+            <div
+              className={`relative overflow-hidden bg-white/5 border rounded-3xl p-6 transition-all duration-300 ${badges.green ? "border-green-500/30" : "border-white/5 opacity-50"}`}
+            >
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.green ? 'bg-green-500/20 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'bg-gray-800 border-gray-700'}`}>
-                  <img src={greenBadge} alt="Green Badge" className={`w-12 h-12 object-contain ${!badges.green && 'grayscale opacity-40'}`} />
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${badges.green ? "bg-green-500/20 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]" : "bg-gray-800 border-gray-700"}`}
+                >
+                  <img
+                    src={greenBadge}
+                    alt="Green Badge"
+                    className={`w-12 h-12 object-contain ${!badges.green && "grayscale opacity-40"}`}
+                  />
                 </div>
                 <div>
-                  <h3 className="font-black text-white uppercase tracking-tight">Active Recruiter</h3>
+                  <h3 className="font-black text-white uppercase tracking-tight">
+                    Active Recruiter
+                  </h3>
                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                    {badges.green ? 'Certified Recruiter' : 'Unlock at 3 Jobs'}
+                    {badges.green ? "Certified Recruiter" : "Unlock at 3 Jobs"}
                   </p>
                 </div>
               </div>
-              {badges.green && <div className="absolute top-4 right-4"><CheckCircle className="w-4 h-4 text-green-400" /></div>}
+              {badges.green && (
+                <div className="absolute top-4 right-4">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                </div>
+              )}
             </div>
 
             {/* Placeholder for more badges */}
-            <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-6 flex items-center justify-center group cursor-pointer hover:bg-white/[0.08] transition-all" onClick={() => navigate('/founder-badges')}>
+            <div
+              className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-6 flex items-center justify-center group cursor-pointer hover:bg-white/[0.08] transition-all"
+              onClick={() => navigate("/founder-badges")}
+            >
               <div className="text-center">
                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
                   <Plus className="w-4 h-4 text-gray-500" />
                 </div>
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Earn More Badges</span>
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  Earn More Badges
+                </span>
               </div>
             </div>
           </div>
@@ -557,8 +623,8 @@ const StartupDashboard = () => {
                   ))}
                 </ul>
                 <div className="mt-auto">
-                  <button 
-                    onClick={() => navigate('/startup-portals')}
+                  <button
+                    onClick={() => navigate("/startup-portals")}
                     className="w-full px-10 py-5 bg-yellow-400 hover:bg-yellow-500 text-black font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-yellow-600/20 uppercase tracking-widest text-xs"
                   >
                     VIEW ACTION PORTALS
@@ -581,8 +647,8 @@ const StartupDashboard = () => {
                   our proprietary AI engine.
                 </p>
                 <div className="mt-auto">
-                  <button 
-                    onClick={() => navigate('/buy-pitch-deck')}
+                  <button
+                    onClick={() => navigate("/buy-pitch-deck")}
                     className="w-full px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs"
                   >
                     LAUNCH DECK BUILDER
@@ -601,11 +667,12 @@ const StartupDashboard = () => {
                   Web & App Dev
                 </h3>
                 <p className="text-gray-300 text-base mb-10 max-w-sm font-light italic">
-                  Build custom web and mobile solutions with our elite engineering team to scale your product.
+                  Build custom web and mobile solutions with our elite
+                  engineering team to scale your product.
                 </p>
                 <div className="mt-auto">
-                  <button 
-                    onClick={() => navigate('/web-development')}
+                  <button
+                    onClick={() => navigate("/web-development")}
                     className="w-full px-10 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/20 uppercase tracking-widest text-xs"
                   >
                     START BUILDING
@@ -620,7 +687,7 @@ const StartupDashboard = () => {
       {/* Job Details Popup */}
       {selectedJobDetail && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-xl"
             onClick={() => setSelectedJobDetail(null)}
           />
@@ -632,13 +699,18 @@ const StartupDashboard = () => {
                   <Briefcase size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-white">{selectedJobDetail.job_title}</h2>
+                  <h2 className="text-2xl font-black text-white">
+                    {selectedJobDetail.job_title}
+                  </h2>
                   <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">
-                    Job ID: {selectedJobDetail.job_id} • Posted {new Date(selectedJobDetail.created_at).toLocaleDateString()}
+                    Job ID: {selectedJobDetail.job_id} • Posted{" "}
+                    {new Date(
+                      selectedJobDetail.created_at,
+                    ).toLocaleDateString()}
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedJobDetail(null)}
                 className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 transition-all border border-white/5"
               >
@@ -669,16 +741,27 @@ const StartupDashboard = () => {
                       <div className="flex flex-wrap gap-2.5">
                         {(() => {
                           try {
-                            const reqs = typeof selectedJobDetail.job_requirements === 'string' 
-                              ? JSON.parse(selectedJobDetail.job_requirements) 
-                              : selectedJobDetail.job_requirements;
-                            return Array.isArray(reqs) ? reqs.map((req, i) => (
-                              <span key={i} className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold transition-all">
-                                {req}
-                              </span>
-                            )) : null;
+                            const reqs =
+                              typeof selectedJobDetail.job_requirements ===
+                              "string"
+                                ? JSON.parse(selectedJobDetail.job_requirements)
+                                : selectedJobDetail.job_requirements;
+                            return Array.isArray(reqs)
+                              ? reqs.map((req, i) => (
+                                  <span
+                                    key={i}
+                                    className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold transition-all"
+                                  >
+                                    {req}
+                                  </span>
+                                ))
+                              : null;
                           } catch (e) {
-                            return <span className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold">{selectedJobDetail.job_requirements}</span>;
+                            return (
+                              <span className="px-5 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold">
+                                {selectedJobDetail.job_requirements}
+                              </span>
+                            );
                           }
                         })()}
                       </div>
@@ -689,15 +772,21 @@ const StartupDashboard = () => {
                 {/* Sidebar Details */}
                 <div className="space-y-6">
                   <div className="bg-blue-600/5 border border-blue-500/20 rounded-[32px] p-8">
-                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">About this role</h4>
+                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">
+                      About this role
+                    </h4>
                     <div className="space-y-6">
                       <div className="flex gap-4">
                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
                           <Calendar size={18} />
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Type</p>
-                          <p className="text-white text-sm font-bold">{selectedJobDetail.job_type}</p>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                            Type
+                          </p>
+                          <p className="text-white text-sm font-bold">
+                            {selectedJobDetail.job_type}
+                          </p>
                         </div>
                       </div>
                       <div className="flex gap-4">
@@ -705,8 +794,13 @@ const StartupDashboard = () => {
                           <Target size={18} />
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Category</p>
-                          <p className="text-white text-sm font-bold">{selectedJobDetail.role_category || selectedJobDetail.domain}</p>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                            Category
+                          </p>
+                          <p className="text-white text-sm font-bold">
+                            {selectedJobDetail.role_category ||
+                              selectedJobDetail.domain}
+                          </p>
                         </div>
                       </div>
                       <div className="flex gap-4">
@@ -714,8 +808,12 @@ const StartupDashboard = () => {
                           <Award size={18} />
                         </div>
                         <div>
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Experience</p>
-                          <p className="text-white text-sm font-bold">{selectedJobDetail.job_level || "Any Level"}</p>
+                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                            Experience
+                          </p>
+                          <p className="text-white text-sm font-bold">
+                            {selectedJobDetail.job_level || "Any Level"}
+                          </p>
                         </div>
                       </div>
                       {selectedJobDetail.location && (
@@ -724,21 +822,32 @@ const StartupDashboard = () => {
                             <MapPin size={18} />
                           </div>
                           <div>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Location</p>
-                            <p className="text-white text-sm font-bold">{selectedJobDetail.location}</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                              Location
+                            </p>
+                            <p className="text-white text-sm font-bold">
+                              {selectedJobDetail.location}
+                            </p>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {selectedJobDetail.job_type?.toLowerCase() !== "cofounder" && (
+                  {selectedJobDetail.job_type?.toLowerCase() !==
+                    "cofounder" && (
                     <div className="bg-emerald-600/5 border border-emerald-500/20 rounded-[32px] p-8">
-                       <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">Financials</h4>
-                       <div className="space-y-2">
-                          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Budget Range</p>
-                          <p className="text-xl font-black text-white">₹{selectedJobDetail.budget_range}</p>
-                       </div>
+                      <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">
+                        Financials
+                      </h4>
+                      <div className="space-y-2">
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                          Budget Range
+                        </p>
+                        <p className="text-xl font-black text-white">
+                          ₹{selectedJobDetail.budget_range}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

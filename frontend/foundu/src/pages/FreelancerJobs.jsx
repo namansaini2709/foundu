@@ -11,21 +11,21 @@ const gradientBlackToBlue = {
 
 function FreelancerJobs() {
   const navigate = useNavigate();
-  
+
   // Current input states
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStipend, setSelectedStipend] = useState("");
   const [selectedExperience, setSelectedExperience] = useState("");
   const [selectedJobType, setSelectedJobType] = useState("");
-  
+
   // Applied filter states
   const [appliedFilters, setAppliedFilters] = useState({
     keyword: "",
     category: "",
     stipend: "",
     experience: "",
-    jobType: ""
+    jobType: "",
   });
 
   const [availableJobs, setAvailableJobs] = useState([]);
@@ -36,18 +36,32 @@ function FreelancerJobs() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const jobsResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/jobs`);
+        const jobsResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/jobs`,
+        );
         const jobsData = await jobsResponse.json();
 
-        const profilesResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/startup-profiles`);
+        const profilesResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/startup-profiles`,
+        );
         const profilesData = await profilesResponse.json();
 
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+        // Create a map of founder_id to startup logo
         const founderLogoMap = {};
         profilesData.forEach((profile) => {
-          founderLogoMap[profile.userId] = profile.startup_logo_url;
+          let logoUrl = profile.startup_logo_url;
+          if (logoUrl && logoUrl.startsWith("/")) {
+            logoUrl = `${API_BASE_URL}${logoUrl}`;
+          }
+          // Mapping by founder_id as that's what's stored in the jobs table
+          founderLogoMap[profile.founder_id] = logoUrl;
         });
 
-        const mappedJobs = jobsData
+        // Filter only freelancer jobs and map with startup logos
+        const jobsWithLogos = jobsData
           .filter((job) => job.job_type === "freelancer")
           .map((job) => ({
             id: job.job_id,
@@ -59,7 +73,7 @@ function FreelancerJobs() {
             domain: job.domain || "",
             roleCategory: job.role_category || "",
             jobLevel: job.job_level || "",
-            workType: job.work_type || ""
+            workType: job.work_type || "",
           }));
         setAvailableJobs(mappedJobs);
       } catch (error) {
@@ -78,35 +92,56 @@ function FreelancerJobs() {
       category: selectedCategory,
       stipend: selectedStipend,
       experience: selectedExperience,
-      jobType: selectedJobType
+      jobType: selectedJobType,
     });
   };
 
   // Filtered list based on APPLIED states
   const filteredJobs = useMemo(() => {
     return availableJobs.filter((job) => {
-      const matchesSearch = !appliedFilters.keyword || 
-        job.name?.toLowerCase().includes(appliedFilters.keyword.toLowerCase()) || 
+      const matchesSearch =
+        !appliedFilters.keyword ||
+        job.name
+          ?.toLowerCase()
+          .includes(appliedFilters.keyword.toLowerCase()) ||
         job.info?.toLowerCase().includes(appliedFilters.keyword.toLowerCase());
-      
-      const matchesCategory = !appliedFilters.category || 
-        job.domain?.toLowerCase().includes(appliedFilters.category.toLowerCase()) || 
-        job.roleCategory?.toLowerCase().includes(appliedFilters.category.toLowerCase());
 
-      const matchesExperience = !appliedFilters.experience || job.jobLevel === appliedFilters.experience;
-      
-      const matchesJobType = !appliedFilters.jobType || job.workType === appliedFilters.jobType;
+      const matchesCategory =
+        !appliedFilters.category ||
+        job.domain
+          ?.toLowerCase()
+          .includes(appliedFilters.category.toLowerCase()) ||
+        job.roleCategory
+          ?.toLowerCase()
+          .includes(appliedFilters.category.toLowerCase());
+
+      const matchesExperience =
+        !appliedFilters.experience ||
+        job.jobLevel === appliedFilters.experience;
+
+      const matchesJobType =
+        !appliedFilters.jobType || job.workType === appliedFilters.jobType;
 
       let matchesStipend = true;
       if (appliedFilters.stipend) {
-        const budget = parseInt(String(job.stipend).replace(/[^0-9]/g, "")) || 0;
+        const budget =
+          parseInt(String(job.stipend).replace(/[^0-9]/g, "")) || 0;
         if (appliedFilters.stipend === "0-1k") matchesStipend = budget <= 1000;
-        else if (appliedFilters.stipend === "1-3k") matchesStipend = budget > 1000 && budget <= 3000;
-        else if (appliedFilters.stipend === "3-5k") matchesStipend = budget > 3000 && budget <= 5000;
-        else if (appliedFilters.stipend === "5k+") matchesStipend = budget > 5000;
+        else if (appliedFilters.stipend === "1-3k")
+          matchesStipend = budget > 1000 && budget <= 3000;
+        else if (appliedFilters.stipend === "3-5k")
+          matchesStipend = budget > 3000 && budget <= 5000;
+        else if (appliedFilters.stipend === "5k+")
+          matchesStipend = budget > 5000;
       }
 
-      return matchesSearch && matchesCategory && matchesExperience && matchesJobType && matchesStipend;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesExperience &&
+        matchesJobType &&
+        matchesStipend
+      );
     });
   }, [availableJobs, appliedFilters]);
 
@@ -121,6 +156,7 @@ function FreelancerJobs() {
               <img
                 src={job.logoUrl}
                 alt={job.name}
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.style.display = "none";
@@ -145,7 +181,11 @@ function FreelancerJobs() {
       </p>
       <div className="flex items-center gap-2 mb-4 text-blue-300 relative z-10">
         <IndianRupee className="w-3.5 h-3.5" />
-        <span className="font-semibold text-xs">{typeof job.stipend === 'string' ? job.stipend.replace(/₹/g, '').trim() : job.stipend}</span>
+        <span className="font-semibold text-xs">
+          {typeof job.stipend === "string"
+            ? job.stipend.replace(/₹/g, "").trim()
+            : job.stipend}
+        </span>
       </div>
       <button
         onClick={() => navigate(`/job-description?job_id=${job.id}`)}
@@ -170,14 +210,14 @@ function FreelancerJobs() {
           <div className="bg-gray-800/30 backdrop-blur-sm border-2 border-white/30 rounded-2xl p-6 md:p-8 mb-12">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Filter Jobs</h2>
-              <button 
+              <button
                 onClick={handleApplyFilters}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/30"
               >
                 Apply Filters
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="lg:col-span-2">
                 <label className="block text-white text-sm font-medium mb-2">
@@ -204,11 +244,19 @@ function FreelancerJobs() {
                   className="w-full px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-700/50 text-white focus:outline-none focus:border-blue-400 transition-colors"
                 >
                   <option value="">All Categories</option>
-                  <option value="Engineering / Development">Engineering / Development</option>
-                  <option value="Product / UX / UI Design">Product / UX / UI Design</option>
+                  <option value="Engineering / Development">
+                    Engineering / Development
+                  </option>
+                  <option value="Product / UX / UI Design">
+                    Product / UX / UI Design
+                  </option>
                   <option value="Marketing / Growth">Marketing / Growth</option>
-                  <option value="Sales / Business Development">Sales / Business Development</option>
-                  <option value="Operations / Support">Operations / Support</option>
+                  <option value="Sales / Business Development">
+                    Sales / Business Development
+                  </option>
+                  <option value="Operations / Support">
+                    Operations / Support
+                  </option>
                   <option value="Finance / Legal">Finance / Legal</option>
                   <option value="Data / AI / ML">Data / AI / ML</option>
                   <option value="Other">Other</option>
@@ -254,7 +302,9 @@ function FreelancerJobs() {
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-400 text-lg">No jobs match your filters.</p>
+              <p className="text-gray-400 text-lg">
+                No jobs match your filters.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
