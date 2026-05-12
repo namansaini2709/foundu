@@ -17,7 +17,7 @@ function LoginSignup() {
   const authStatus = searchParams.get("auth");
   const [isLogin, setIsLogin] = useState(true);
 
-  // 🚨 SUCCESS REDIRECT: Immediate redirect if success is in URL
+  // 🚨 SUCCESS REDIRECT: Immediate redirect if success  in URL
   if (authStatus === "success") {
     const t = searchParams.get("redirect") || "/";
     console.log("[Auth] Google Success! Redirecting to:", t);

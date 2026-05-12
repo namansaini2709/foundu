@@ -115,6 +115,7 @@ export default function JobApplicationsDashboard() {
             (previewText.length > 50 ? "..." : ""),
           applicants: 0,
           status: "Open",
+          fullDetails: job,
         };
       });
       setJobs(mappedJobs);
@@ -907,89 +908,128 @@ export default function JobApplicationsDashboard() {
           </div>
           {selectedJob && (
             <>
-              {/* <div className="bg-gray-900 border border-purple-500 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <Target className="text-purple-500" />
-                    AI Recommended — Top Matches for This Job
-                  </h2>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Based on role requirements, platform signals, and historical
-                    success patterns.
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {topRecommended.slice(0, 5).map((applicant) => (
-                  <div
-                    key={applicant.id}
-                    onClick={() => setSelectedApplicant(applicant)}
-                    className="bg-gray-800 border border-gray-700 rounded-lg p-3 hover:border-purple-500 transition-all cursor-pointer group"
-                  >
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">{applicant.image}</div>
-                      <h4 className="text-white font-semibold text-sm truncate group-hover:text-purple-400">
-                        {applicant.name}
-                      </h4>
-                      <div className="bg-green-500 text-black font-bold px-2 py-1 rounded-full text-xs mt-2 inline-block">
-                        {applicant.match}%
+              {/* Selected Job Details */}
+              {(() => {
+                const job = jobs.find(j => j.id === selectedJob);
+                if (!job) return null;
+                const fd = job.fullDetails || {};
+                
+                let requirements = [];
+                try {
+                  requirements = fd.job_requirements ? JSON.parse(fd.job_requirements) : [];
+                } catch (e) {
+                  requirements = fd.job_requirements ? [fd.job_requirements] : [];
+                }
+
+                return (
+                  <div className="bg-gray-900 border border-blue-500/30 rounded-3xl p-8 shadow-2xl relative overflow-hidden group mb-8">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    
+                    <div className="relative z-10">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 pb-8 border-b border-white/5">
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className="px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-xl">
+                              {fd.job_type || "Role"}
+                            </span>
+                            <span className="px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest rounded-xl">
+                              {fd.job_level || "Level"}
+                            </span>
+                            {fd.location && (
+                              <span className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-1.5">
+                                <MapPin size={10} /> {fd.location}
+                              </span>
+                            )}
+                          </div>
+                          <h2 className="text-4xl font-black text-white tracking-tight leading-none">
+                            {job.title}
+                          </h2>
+                          <div className="flex items-center gap-4 text-gray-500 text-xs font-bold uppercase tracking-widest">
+                            <span>Posted {new Date(fd.created_at).toLocaleDateString()}</span>
+                            <span className="w-1 h-1 bg-gray-700 rounded-full" />
+                            <span className="text-blue-400">₹{fd.budget_range || "Competitive"}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                           <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Duration</p>
+                              <p className="text-white font-black">{fd.job_duration || "Project"}</p>
+                           </div>
+                           <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center min-w-[120px]">
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status</p>
+                              <p className="text-green-400 font-black uppercase text-sm italic">Active</p>
+                           </div>
+                        </div>
                       </div>
-                      <div
-                        className={`mt-2 text-xs px-2 py-1 rounded ${
-                          applicant.source === "Applied"
-                            ? "bg-blue-500 text-white"
-                            : "bg-purple-500 text-white"
-                        }`}
-                      >
-                        {applicant.source}
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div className="lg:col-span-2 space-y-10">
+                          <div>
+                            <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                              <Briefcase size={14} /> Full Job Description
+                            </h3>
+                            <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                              {fd.full_job_description}
+                            </p>
+                          </div>
+
+                          {requirements.length > 0 && (
+                            <div>
+                              <h3 className="text-xs font-black text-purple-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                                <Target size={14} /> Technical Requirements
+                              </h3>
+                              <div className="flex flex-wrap gap-2.5">
+                                {requirements.map((req, i) => (
+                                  <span key={i} className="px-5 py-2.5 bg-gray-800/50 border border-white/5 rounded-2xl text-gray-300 text-xs font-bold hover:border-purple-500/40 hover:bg-gray-800 transition-all cursor-default">
+                                    {req}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-6">
+                           <div className="bg-blue-600/5 border border-blue-500/20 rounded-[32px] p-8">
+                              <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-6">About this role</h4>
+                              <div className="space-y-6">
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                                       <Calendar size={18} />
+                                    </div>
+                                    <div>
+                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Type</p>
+                                       <p className="text-white text-sm font-bold">{fd.job_type || "Professional"}</p>
+                                    </div>
+                                 </div>
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
+                                       <Target size={18} />
+                                    </div>
+                                    <div>
+                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Category</p>
+                                       <p className="text-white text-sm font-bold">{fd.job_profile || "Startup"}</p>
+                                    </div>
+                                 </div>
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 shrink-0">
+                                       <Award size={18} />
+                                    </div>
+                                    <div>
+                                       <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Experience</p>
+                                       <p className="text-white text-sm font-bold">{fd.job_level || "Any Level"}</p>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              {!showMoreAI && topRecommended.length > 5 && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={() => setShowMoreAI(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors"
-                  >
-                    View More
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-              {showMoreAI && (
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
-                  {topRecommended.slice(5, 10).map((applicant) => (
-                    <div
-                      key={applicant.id}
-                      onClick={() => setSelectedApplicant(applicant)}
-                      className="bg-gray-800 border border-gray-700 rounded-lg p-3 hover:border-purple-500 transition-all cursor-pointer group"
-                    >
-                      <div className="text-center">
-                        <div className="text-4xl mb-2">{applicant.image}</div>
-                        <h4 className="text-white font-semibold text-sm truncate group-hover:text-purple-400">
-                          {applicant.name}
-                        </h4>
-                        <div className="bg-green-500 text-black font-bold px-2 py-1 rounded-full text-xs mt-2 inline-block">
-                          {applicant.match}%
-                        </div>
-                        <div
-                          className={`mt-2 text-xs px-2 py-1 rounded ${
-                            applicant.source === "Applied"
-                              ? "bg-blue-500 text-white"
-                              : "bg-purple-500 text-white"
-                          }`}
-                        >
-                          {applicant.source}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div> */}
+                );
+              })()}
+
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <h2 className="text-2xl font-bold text-white mb-4">
                   All Applicants
