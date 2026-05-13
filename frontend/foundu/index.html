@@ -7,10 +7,133 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FoundU</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    body {
+      background-color: #020024;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #preloader {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    /* Sidebar Shell */
+    .sidebar-shell {
+      width: 280px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 40px 24px;
+      box-sizing: border-box;
+      display: none;
+    }
+    @media (min-width: 1024px) { .sidebar-shell { display: block; } }
+
+    .main-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    /* Top Nav Shell */
+    .nav-shell {
+      height: 80px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.01);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      box-sizing: border-box;
+    }
+    .content-shell {
+      padding: 40px;
+      flex: 1;
+      overflow: hidden;
+    }
+    /* Stats Grid Shell */
+    .stats-shell-grid {
+      display: grid;
+      grid-template-cols: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .shell-base {
+      background: rgba(255, 255, 255, 0.04);
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .shell-base::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      animation: shell-shimmer 1.8s infinite;
+    }
+    @keyframes shell-shimmer {
+      100% { transform: translateX(100%); }
+    }
+    .card-shell {
+      height: 140px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .large-shell {
+      height: 400px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div id="preloader">
+      <div class="sidebar-shell">
+        <div class="shell-base" style="width: 120px; height: 32px; margin-bottom: 60px;"></div>
+        <div class="shell-base" style="width: 100%; height: 20px; margin-bottom: 24px; opacity: 0.5;"></div>
+        <div class="shell-base" style="width: 90%; height: 20px; margin-bottom: 24px; opacity: 0.5;"></div>
+        <div class="shell-base" style="width: 80%; height: 20px; margin-bottom: 24px; opacity: 0.5;"></div>
+        <div class="shell-base" style="width: 85%; height: 20px; margin-bottom: 24px; opacity: 0.5;"></div>
+      </div>
+      <div class="main-shell">
+        <div class="nav-shell">
+          <div class="shell-base" style="width: 200px; height: 24px;"></div>
+          <div class="shell-base" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+        </div>
+        <div class="content-shell">
+          <div class="shell-base" style="width: 300px; height: 48px; margin-bottom: 40px;"></div>
+          <div class="stats-shell-grid">
+            <div class="card-shell"><div class="shell-base" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div><div class="shell-base" style="width: 100px; height: 20px;"></div></div>
+            <div class="card-shell"><div class="shell-base" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div><div class="shell-base" style="width: 100px; height: 20px;"></div></div>
+            <div class="card-shell"><div class="shell-base" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div><div class="shell-base" style="width: 100px; height: 20px;"></div></div>
+            <div class="card-shell"><div class="shell-base" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div><div class="shell-base" style="width: 100px; height: 20px;"></div></div>
+          </div>
+          <div class="large-shell">
+             <div class="shell-base" style="width: 200px; height: 32px; margin-bottom: 32px;"></div>
+             <div class="shell-base" style="width: 100%; height: 12px; margin-bottom: 16px; opacity: 0.3;"></div>
+             <div class="shell-base" style="width: 95%; height: 12px; margin-bottom: 16px; opacity: 0.3;"></div>
+             <div class="shell-base" style="width: 90%; height: 12px; margin-bottom: 16px; opacity: 0.3;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

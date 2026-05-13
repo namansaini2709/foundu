@@ -77,11 +77,11 @@ const FreelancerDashboard = () => {
       api
         .get(`${API_URL}/users/${userId}`)
         .then((res) => {
-          if (res.data && res.data.success && res.data.data) {
-            const fullName = res.data.data.full_name || "";
-            setUserName(fullName.split(" ")[0]);
-            localStorage.setItem("user_name", fullName);
-          }
+        if (res.data && res.data.success && res.data.data) {
+          const fullName = res.data.data.full_name || "";
+          setUserName(fullName.split(" ")[0]);
+          localStorage.setItem("user_name", fullName);
+        }
         })
         .catch((err) => console.error("Error fetching name:", err));
     }
