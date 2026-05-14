@@ -135,8 +135,11 @@ const InfluencerMarketplace = () => {
                             <Filter className="w-4 h-4" />
                             Reset
                         </button>
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl transition-all font-bold text-sm shadow-lg shadow-blue-600/20">
-                            Apply
+                        <button 
+                            onClick={() => navigate("/onboard-influencer")}
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 hover:bg-pink-500 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest shadow-lg shadow-pink-600/20"
+                        >
+                            Onboard as Influencer
                         </button>
                     </div>
                 </div>

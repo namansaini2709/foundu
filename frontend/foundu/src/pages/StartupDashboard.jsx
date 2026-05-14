@@ -28,7 +28,8 @@ import {
   Award,
   Shield,
   CheckCircle,
-  Laptop
+  Laptop,
+  Megaphone
 } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
@@ -296,13 +297,22 @@ const StartupDashboard = () => {
               DASHBOARD<span className="text-blue-500">.</span>
             </h1>
           </div>
-          <button
-            onClick={() => navigate("/add-job")}
-            className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-500/20 flex items-center gap-3 group"
-          >
-            POST NEW JOB
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => navigate("/promote-event")}
+              className="px-8 py-5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-purple-500/20 flex items-center gap-3 group border border-white/10"
+            >
+              PROMOTE EVENT
+              <Megaphone className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            </button>
+            <button
+              onClick={() => navigate("/add-job")}
+              className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-500/20 flex items-center gap-3 group"
+            >
+              POST NEW JOB
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+            </button>
+          </div>
         </header>
 
         {/* Dashboard Stats */}
@@ -345,11 +355,65 @@ const StartupDashboard = () => {
           ))}
         </section>
 
+        {/* ── NEW: MARKETPLACES ── */}
+        <section className="mb-16">
+          <div className="flex items-center gap-4 mb-8">
+            {/* <Layout className="w-8 h-8 text-blue-500" /> */}
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
+              Marketplaces<span className="text-blue-500">.</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Influencer Marketplace Box */}
+            <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-10 transition-all duration-500 hover:border-pink-500/30 overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Users className="w-32 h-32 text-pink-500" />
+              </div>
+              <div className="relative z-10">
+                <div className="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-4">Influencer Hub</div>
+                <div className="flex items-end gap-3 mb-8">
+                  <div className="text-6xl font-black text-white tracking-tighter">150+</div>
+                  <div className="text-gray-500 text-xs font-bold uppercase tracking-widest pb-3">Live Influencers</div>
+                </div>
+                <button
+                  onClick={() => navigate("/influencer-marketplace")}
+                  className="px-8 py-4 bg-pink-600 hover:bg-pink-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-pink-500/20 flex items-center gap-3 group"
+                >
+                  GO TO MARKETPLACE
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Event Marketplace Box */}
+            <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-10 transition-all duration-500 hover:border-purple-500/30 overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Megaphone className="w-32 h-32 text-purple-500" />
+              </div>
+              <div className="relative z-10">
+                <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-4">Event Hub</div>
+                <div className="flex items-end gap-3 mb-8">
+                  <div className="text-6xl font-black text-white tracking-tighter">45+</div>
+                  <div className="text-gray-500 text-xs font-bold uppercase tracking-widest pb-3">Live Events</div>
+                </div>
+                <button
+                  onClick={() => navigate("/event-marketplace")}
+                  className="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-purple-500/20 flex items-center gap-3 group"
+                >
+                  GO TO MARKETPLACE
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── NEW: MY JOB LISTINGS ── */}
         <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 overflow-hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
-              <Zap className="w-8 h-8 text-yellow-400 animate-pulse" />
+              {/* <Zap className="w-8 h-8 text-yellow-400 animate-pulse" /> */}
               My Job Listings
             </h2>
             <div className="flex flex-wrap items-center gap-6">
@@ -401,8 +465,8 @@ const StartupDashboard = () => {
                 >
                   <div
                     className={`absolute top-0 right-0 px-6 py-2 text-[10px] font-black tracking-widest uppercase rounded-bl-2xl ${job.payment_status === "paid"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-red-500/20 text-red-400"
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
                       }`}
                   >
                     {job.payment_status === "paid"
@@ -450,7 +514,7 @@ const StartupDashboard = () => {
         <section className="mb-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
-              <Award className="w-8 h-8 text-blue-400 group-hover:rotate-12 transition-transform" />
+              {/* <Award className="w-8 h-8 text-blue-400 group-hover:rotate-12 transition-transform" /> */}
               Your Badges
             </h2>
             <button
@@ -510,7 +574,7 @@ const StartupDashboard = () => {
         <section className="mt-16 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-4">
-              <Rocket className="w-8 h-8 text-blue-500 animate-bounce" />
+              {/* <Rocket className="w-8 h-8 text-blue-500 animate-bounce" /> */}
               Founder Add-ons
             </h2>
           </div>

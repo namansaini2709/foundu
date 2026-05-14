@@ -20,6 +20,7 @@ import {
   Sparkles,
   Brain,
   Cpu,
+  Megaphone,
 } from "lucide-react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
@@ -68,6 +69,72 @@ export default function StartupServices() {
     </section>
   );
 
+  // Marketplaces Section
+  const Marketplaces = () => (
+    <section className="py-24 px-6 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] -z-10"></div>
+      
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">
+            Ecosystem Hubs
+          </div>
+          <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic mb-6">
+            The <span className="text-blue-500 not-italic">Marketplaces.</span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Influencer Marketplace Card */}
+          <div className="group relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 hover:border-pink-500/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+              <Users className="w-64 h-64 text-pink-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                <Users className="w-8 h-8 text-pink-500" />
+              </div>
+              <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter italic">Influencer Marketplace</h3>
+              <p className="text-gray-400 text-sm font-medium leading-relaxed mb-10 max-w-sm">
+                Connect with verified creators and influencers to scale your brand reach instantly.
+              </p>
+              <button
+                onClick={() => navigate("/influencer-marketplace")}
+                className="px-10 py-5 bg-pink-600 hover:bg-pink-500 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-xl shadow-pink-600/30 flex items-center gap-3 group"
+              >
+                Access Marketplace
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Event Marketplace Card */}
+          <div className="group relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 hover:border-purple-500/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+              <Megaphone className="w-64 h-64 text-purple-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                <Megaphone className="w-8 h-8 text-purple-500" />
+              </div>
+              <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter italic">Event Marketplace</h3>
+              <p className="text-gray-400 text-sm font-medium leading-relaxed mb-10 max-w-sm">
+                Discover and promote high-impact startup events across the entire ecosystem.
+              </p>
+              <button
+                onClick={() => navigate("/event-marketplace")}
+                className="px-10 py-5 bg-purple-600 hover:bg-purple-500 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-xl shadow-purple-600/30 flex items-center gap-3 group"
+              >
+                Access Marketplace
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
   // Second Section - Our MVPs
   const OurMVPs = () => {
     const categories = [
@@ -107,6 +174,16 @@ export default function StartupServices() {
         color: "purple",
         btn: "Post a Job",
         onClick: () => navigate("/add-job")
+      },
+      {
+        icon: <Megaphone className="w-8 h-8 text-pink-500" />,
+        title: "Event Promotion",
+        tag: "NEW",
+        description: "Massive marketing engine for your events. Reach thousands via live feed, notifications, email, and WhatsApp.",
+        features: ["Live Feed Promotion", "Global Site Alerts", "AI Email Blasts", "Direct WhatsApp", "Event Partnership"],
+        color: "pink",
+        btn: "Promote Now",
+        onClick: () => navigate("/promote-event")
       },
     ];
 
@@ -498,6 +575,7 @@ export default function StartupServices() {
     <div className="min-h-screen bg-[#020024] selection:bg-blue-500/30">
       <DashboardIntro />
       <AIEcosystem />
+      <Marketplaces />
       <OurMVPs />
       <MatchingSteps />
       <WhyTrustFoundu />

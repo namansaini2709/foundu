@@ -111,8 +111,8 @@ function HomePage() {
       <InfluencersSection navigate={navigate} />
       <NumbersSection publicStats={publicStats} />
       <CategorySteps />
-      <TrustedBy startups={startups} />
-      <Testimonials testimonialsList={testimonialsList} />
+      {/* <TrustedBy startups={startups} /> */}
+      {/* <Testimonials testimonialsList={testimonialsList} /> */}
       <Footer />
       <ConsentBanner />
     </div>
@@ -592,11 +592,11 @@ const CategorySteps = () => {
                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/50 via-blue-500/20 to-transparent -translate-x-1/2 hidden md:block"></div>
                 <div className="space-y-8 relative z-10">
                   {cat.steps.map((step, sIdx) => (
-                    <RoadmapStep 
-                      key={sIdx} 
-                      step={step} 
-                      sIdx={sIdx} 
-                      alignment={cat.alignment} 
+                    <RoadmapStep
+                      key={sIdx}
+                      step={step}
+                      sIdx={sIdx}
+                      alignment={cat.alignment}
                     />
                   ))}
                 </div>
@@ -611,7 +611,7 @@ const CategorySteps = () => {
 
 const RoadmapStep = ({ step, sIdx, alignment }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { 
+  const isInView = useInView(ref, {
     amount: 0.6,
     margin: "-20% 0px -20% 0px"
   });
@@ -630,8 +630,8 @@ const RoadmapStep = ({ step, sIdx, alignment }) => {
     >
       {/* Step Number with Scroll-Triggered Active State */}
       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0 transition-all duration-700 transform 
-        ${isInView 
-          ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.5)] scale-110' 
+        ${isInView
+          ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.5)] scale-110'
           : 'bg-gray-900 border border-white/10 text-white/20'
         } group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] group-hover:scale-110`}
       >
@@ -640,8 +640,8 @@ const RoadmapStep = ({ step, sIdx, alignment }) => {
 
       {/* Step Box with Scroll-Triggered Outline and BG */}
       <div className={`backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] w-full transition-all duration-700 shadow-xl border-2
-        ${isInView 
-          ? 'bg-white/15 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] translate-x-2' 
+        ${isInView
+          ? 'bg-white/15 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] translate-x-2'
           : 'bg-white/5 border-white/10'
         } group-hover:bg-white/10 group-hover:border-blue-500/30 group-hover:translate-x-4`}
       >
@@ -746,7 +746,7 @@ const FoundUAIs = ({ navigate }) => {
                     {ai.subtitle}
                   </p>
                 </div>
-                
+
                 <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8 font-medium">
                   {ai.description}
                 </p>
@@ -769,7 +769,7 @@ const FoundUAIs = ({ navigate }) => {
                       </div>
                     </div>
                   ) : idx === 1 ? (
-                    <button 
+                    <button
                       onClick={() => {
                         if (getUserId()) navigate("/idea-lab");
                         else navigate("/login-signup");
@@ -779,7 +779,7 @@ const FoundUAIs = ({ navigate }) => {
                       Open Idea Lab
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => {
                         if (getUserId()) navigate("/add-job");
                         else navigate("/login-signup");
@@ -887,8 +887,8 @@ const WhatsAppService = () => {
                     key={key}
                     onClick={() => setSelectedPlan(key)}
                     className={`flex-1 min-w-[120px] sm:flex-none px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${selectedPlan === key
-                        ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
-                        : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      ? "bg-green-600 text-white shadow-lg shadow-green-500/20 scale-105"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10"
                       }`}
                   >
                     {plan.name}

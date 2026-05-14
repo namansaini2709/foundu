@@ -63,6 +63,8 @@ import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
+import EventPromotion from "./pages/EventPromotion";
+import EventMarketplace from "./pages/EventMarketplace";
 import StartupPortals from "./pages/StartupPortals";
 import WebDevelopment from "./pages/WebDevelopment";
 import SmoothScroll from "./components/SmoothScroll";
@@ -198,7 +200,7 @@ function App() {
           <Route path="/admin/queries" element={<AdminQueries />} />
           <Route path="/admin/meetings" element={<AdminMeetings />} />
           <Route path="/admin/referrals" element={<AdminReferrals />} />
-          <Route path="/idea-lab" element={<ProtectedRoute><IdeaLab /></ProtectedRoute>} />
+          <Route path="/idea-lab" element={<ProtectedRoute><IdeaLabPopup /></ProtectedRoute>} />
 
           <Route path="/about-details" element={<AboutDetails />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
@@ -213,6 +215,8 @@ function App() {
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
+          <Route path="/promote-event" element={<EventPromotion />} />
+          <Route path="/event-marketplace" element={<EventMarketplace />} />
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />

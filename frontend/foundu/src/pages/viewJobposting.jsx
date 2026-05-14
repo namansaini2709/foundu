@@ -104,10 +104,18 @@ export default function JobApplicationsDashboard() {
         } catch (e) {
           previewText = job.job_requirements || job.full_job_description;
         }
+        // Parse budget: MySQL DECIMAL returns "0.00" (truthy string), so check parsed value > 0
+        const parseNum = (v) => parseFloat(String(v || "0").replace(/[^0-9.]/g, "")) || 0;
+        const parsedBudget = parseNum(job.numeric_budget) > 0
+          ? parseNum(job.numeric_budget)
+          : parseNum(job.total_amount) > 0
+            ? parseNum(job.total_amount)
+            : parseNum(job.budget_range);
+        console.log("[DEBUG JOB]", job.job_title, "| numeric_budget:", job.numeric_budget, "| budget_range:", job.budget_range, "| total_amount:", job.total_amount, "| FINAL parsed:", parsedBudget);
         return {
           id: job.job_id,
           title: job.job_title,
-          budget: parseFloat(job.numeric_budget) || parseFloat(job.budget_range) || 0,
+          budget: parsedBudget,
           preview:
             previewText.substring(0, 50) +
             (previewText.length > 50 ? "..." : ""),
@@ -124,7 +132,7 @@ export default function JobApplicationsDashboard() {
             const appRes = await api.get(`/api/jobs/${job.id}/applicants`);
             const apps = appRes.data;
             return { ...job, applicants: apps.length };
-          } catch (e) {}
+          } catch (e) { }
           return job;
         }),
       );
@@ -153,8 +161,8 @@ export default function JobApplicationsDashboard() {
           const skills = isFreelancer
             ? app.skills_description || "N/A"
             : [app.superpower1, app.superpower2, app.superpower3]
-                .filter(Boolean)
-                .join(", ") || "N/A";
+              .filter(Boolean)
+              .join(", ") || "N/A";
           const githubLink = isFreelancer ? app.github : app.github_behance;
           const linkedinLink = app.linkedin;
           const phoneNum = isFreelancer
@@ -201,44 +209,44 @@ export default function JobApplicationsDashboard() {
       try {
         const res = await api.get(`/api/jobs/${selectedJob}/ai-matches`);
         const data = res.data;
-          const mapped = data.map((a) => ({
-            id: a.user_id,
-            name: a.full_name,
-            role:
-              a.user_type === "freelancer"
-                ? a.freelancer_type || "Freelancer"
-                : a.primary_identity || "Cofounder",
-            match: a.match_score,
-            isAI: true,
-            ai_reason: a.ai_reason,
-            status: a.status || "pending",
-            rawStatus: a.status || "pending",
-            image: a.profile_picture_url
-              ? a.profile_picture_url.startsWith("http")
-                ? a.profile_picture_url
-                : `${API_BASE}${a.profile_picture_url}`
-              : "👤",
-            badges: [],
-            details: {
-              experience: a.experience || "N/A",
-              skills:
-                a.skills_description ||
-                [a.superpower1, a.superpower2, a.superpower3]
-                  .filter(Boolean)
-                  .join(", ") ||
-                "N/A",
-              availability: "Immediate",
-              workPref: a.working_environment || "Remote",
-              email: a.email,
-              phone: a.phone_number || a.reference_contact || "N/A",
-              location: "Remote",
-              applied: "AI Match",
-              github: a.github || a.github_behance,
-              linkedin: a.linkedin || a.cp_linkedin,
-            },
-          }));
-          setAiMatchedApplicants(mapped);
-          setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
+        const mapped = data.map((a) => ({
+          id: a.user_id,
+          name: a.full_name,
+          role:
+            a.user_type === "freelancer"
+              ? a.freelancer_type || "Freelancer"
+              : a.primary_identity || "Cofounder",
+          match: a.match_score,
+          isAI: true,
+          ai_reason: a.ai_reason,
+          status: a.status || "pending",
+          rawStatus: a.status || "pending",
+          image: a.profile_picture_url
+            ? a.profile_picture_url.startsWith("http")
+              ? a.profile_picture_url
+              : `${API_BASE}${a.profile_picture_url}`
+            : "👤",
+          badges: [],
+          details: {
+            experience: a.experience || "N/A",
+            skills:
+              a.skills_description ||
+              [a.superpower1, a.superpower2, a.superpower3]
+                .filter(Boolean)
+                .join(", ") ||
+              "N/A",
+            availability: "Immediate",
+            workPref: a.working_environment || "Remote",
+            email: a.email,
+            phone: a.phone_number || a.reference_contact || "N/A",
+            location: "Remote",
+            applied: "AI Match",
+            github: a.github || a.github_behance,
+            linkedin: a.linkedin || a.cp_linkedin,
+          },
+        }));
+        setAiMatchedApplicants(mapped);
+        setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
       } catch (err) {
         console.error("Error fetching AI matches:", err);
       } finally {
@@ -381,6 +389,8 @@ export default function JobApplicationsDashboard() {
       const fee = baseBudget * 0.03;
       const total = baseBudget + gst + fee;
 
+      console.log("[PAYMENT] Budget:", baseBudget, "GST:", gst, "Fee:", fee, "Total:", total);
+
       if (!window.Razorpay) {
         toast.error("Razorpay SDK not loaded. Please refresh.");
         return;
@@ -486,6 +496,15 @@ export default function JobApplicationsDashboard() {
     const [loadingDetails, setLoadingDetails] = useState(true);
     const details = applicant.details || {};
     const currentStatus = applicant.rawStatus || applicant.status || "pending";
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }, []);
+
     useEffect(() => {
       const fetchUser = async () => {
         try {
@@ -514,15 +533,44 @@ export default function JobApplicationsDashboard() {
     const ud = userDetails || {};
     return (
       <div
-        className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+        data-lenis-prevent
         onClick={onClose}
+        onWheel={(e) => e.stopPropagation()}
       >
+        <style>
+          {`
+            .applicant-modal-box {
+              overflow-y: scroll !important;
+              scrollbar-width: auto;
+              scrollbar-color: #3b82f6 rgba(255, 255, 255, 0.08);
+            }
+            .applicant-modal-box::-webkit-scrollbar {
+              width: 10px !important;
+              display: block !important;
+            }
+            .applicant-modal-box::-webkit-scrollbar-track {
+              background: rgba(255, 255, 255, 0.08);
+              border-radius: 0 16px 16px 0;
+            }
+            .applicant-modal-box::-webkit-scrollbar-thumb {
+              background: linear-gradient(180deg, #3b82f6, #6366f1) !important;
+              border-radius: 10px;
+              min-height: 40px;
+            }
+            .applicant-modal-box::-webkit-scrollbar-thumb:hover {
+              background: linear-gradient(180deg, #2563eb, #4f46e5) !important;
+            }
+          `}
+        </style>
         <div
-          className="bg-gray-950 border border-white/10 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+          className="bg-gray-950 border border-white/10 rounded-3xl max-w-lg w-full max-h-[85vh] shadow-2xl relative applicant-modal-box"
+          data-lenis-prevent
           onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
         >
           {/* Close button */}
-          <div className="sticky top-0 z-10 flex justify-end p-4">
+          <div className="sticky top-0 z-20 flex justify-end p-4 bg-gray-950/90 backdrop-blur-md rounded-t-3xl">
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
@@ -562,33 +610,33 @@ export default function JobApplicationsDashboard() {
               {(ud.blue_tick_verified === 1 ||
                 ud.golden_tick_verified === 1 ||
                 ud.green_tick_verified === 1) && (
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  {ud.blue_tick_verified === 1 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
-                      <span className="text-blue-400 text-[9px] font-black uppercase tracking-wider">
-                        Blue
-                      </span>
-                    </div>
-                  )}
-                  {ud.golden_tick_verified === 1 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
-                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_6px_rgba(234,179,8,0.5)]"></div>
-                      <span className="text-yellow-400 text-[9px] font-black uppercase tracking-wider">
-                        Gold
-                      </span>
-                    </div>
-                  )}
-                  {ud.green_tick_verified === 1 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></div>
-                      <span className="text-emerald-400 text-[9px] font-black uppercase tracking-wider">
-                        Green
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    {ud.blue_tick_verified === 1 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></div>
+                        <span className="text-blue-400 text-[9px] font-black uppercase tracking-wider">
+                          Blue
+                        </span>
+                      </div>
+                    )}
+                    {ud.golden_tick_verified === 1 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_6px_rgba(234,179,8,0.5)]"></div>
+                        <span className="text-yellow-400 text-[9px] font-black uppercase tracking-wider">
+                          Gold
+                        </span>
+                      </div>
+                    )}
+                    {ud.green_tick_verified === 1 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></div>
+                        <span className="text-emerald-400 text-[9px] font-black uppercase tracking-wider">
+                          Green
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
               {/* Type + Score + Status */}
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <span className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
@@ -778,11 +826,10 @@ export default function JobApplicationsDashboard() {
               <button
                 onClick={() => handleUpdateStatus(applicant.id, "accepted")}
                 disabled={currentStatus === "accepted"}
-                className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-                  currentStatus === "accepted"
+                className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${currentStatus === "accepted"
                     ? "bg-green-500/10 text-green-400 border border-green-500/20 cursor-not-allowed"
                     : "bg-gradient-to-r from-green-500 to-emerald-400 text-black hover:shadow-lg hover:shadow-green-500/25 hover:scale-[1.02]"
-                }`}
+                  }`}
               >
                 {currentStatus === "accepted" ? "✓ Shortlisted" : "Shortlist"}
               </button>
@@ -795,11 +842,10 @@ export default function JobApplicationsDashboard() {
               <button
                 onClick={() => handleUpdateStatus(applicant.id, "rejected")}
                 disabled={currentStatus === "rejected"}
-                className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-                  currentStatus === "rejected"
+                className={`flex-1 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer ${currentStatus === "rejected"
                     ? "bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed"
                     : "bg-gradient-to-r from-red-500 to-rose-400 text-white hover:shadow-lg hover:shadow-red-500/25 hover:scale-[1.02]"
-                }`}
+                  }`}
               >
                 {currentStatus === "rejected" ? "✗ Rejected" : "Reject"}
               </button>
@@ -887,11 +933,10 @@ export default function JobApplicationsDashboard() {
                 <div
                   key={job.id}
                   onClick={() => setSelectedJob(job.id)}
-                  className={`bg-gray-900 border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedJob === job.id
+                  className={`bg-gray-900 border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedJob === job.id
                       ? "border-blue-500 shadow-lg shadow-blue-500/50"
                       : "border-gray-800 hover:border-gray-700"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-white font-semibold text-sm">
@@ -903,11 +948,10 @@ export default function JobApplicationsDashboard() {
                   </div>
                   <p className="text-gray-400 text-xs mb-3">{job.preview}</p>
                   <div
-                    className={`inline-block text-xs px-2 py-1 rounded ${
-                      job.status === "Open"
+                    className={`inline-block text-xs px-2 py-1 rounded ${job.status === "Open"
                         ? "bg-green-500 text-black"
                         : "bg-gray-700 text-gray-300"
-                    }`}
+                      }`}
                   >
                     {job.status}
                   </div>
