@@ -18,7 +18,7 @@ exports.getMyChats = (req, res) => {
       u.id AS other_user_id,
       u.full_name,
       u.user_type,
-      u.profile_picture_url,
+      us.profile_picture_url,
       (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
       (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_time,
       (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = 0 AND sender_id != ?) AS unread_count
@@ -26,6 +26,7 @@ exports.getMyChats = (req, res) => {
     JOIN chat_participants cp1 ON c.id = cp1.chat_id
     JOIN chat_participants cp2 ON c.id = cp2.chat_id
     JOIN users u ON cp2.user_id = u.id
+    LEFT JOIN users_socials us ON u.id = us.user_id
     WHERE cp1.user_id = ? AND cp2.user_id != ?
     ORDER BY c.updated_at DESC
   `;

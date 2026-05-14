@@ -75,7 +75,7 @@ function FreelancerJobs() {
             jobLevel: job.job_level || "",
             workType: job.work_type || "",
           }));
-        setAvailableJobs(mappedJobs);
+        setAvailableJobs(jobsWithLogos);
       } catch (error) {
         console.error("Error fetching jobs:", error);
       } finally {
