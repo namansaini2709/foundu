@@ -34,21 +34,31 @@ const runMatchmaker = async () => {
 
         // A. Fetch Freelancer Talent
         const freelancers = await queryAsync(`
-            SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
-                   f.freelancer_type, f.skills_description, f.experience, f.job_profile 
-            FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id WHERE u.is_profile_complete = 1 AND u.user_type = 'freelancer'
+             SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
+                    f.freelancer_type, f.skills_description, f.experience, f.job_profile 
+             FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id 
+             WHERE u.is_profile_complete = 1 
+               AND u.user_type = 'freelancer'
+               AND u.whatsapp_subscription = 1
         `);
 
         // B. Fetch Co-founder Talent
         const cofounders = await queryAsync(`
-            SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
-                   c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq
-            FROM users u LEFT JOIN cofounder_profiles c ON u.id = c.user_id WHERE u.is_profile_complete = 1 AND u.user_type = 'cofounder'
+             SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
+                    c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq
+             FROM users u LEFT JOIN cofounder_profiles c ON u.id = c.user_id 
+             WHERE u.is_profile_complete = 1 
+               AND u.user_type = 'cofounder'
+               AND u.whatsapp_subscription = 1
         `);
 
         // C. Fetch Founders (to suggest talent to them)
         const founders = await queryAsync(`
-            SELECT id AS NOTIFY_ID, founder_id, full_name, email, whatsapp_number, whatsapp_opt_in, user_type FROM users WHERE user_type = 'founder'
+             SELECT id AS NOTIFY_ID, founder_id, full_name, email, whatsapp_number, whatsapp_opt_in, user_type 
+             FROM users 
+             WHERE user_type = 'founder' 
+               AND whatsapp_subscription = 1
+               AND is_profile_complete = 1
         `);
 
         // D. Fetch ALL Open Jobs & MAP founder_id TO NOTIFY_ID (user_id)
@@ -150,19 +160,32 @@ const runMatchmaker = async () => {
                 `${process.env.FRONTEND_URL || 'http://localhost:5173'}${dashLink}`
             );
 
-            // B. Send WhatsApp (If Opted In)
-            if (user.whatsapp_opt_in && user.whatsapp_number) {
-                 // Build Custom Meta-friendly Body
+            // B. Send WhatsApp (If Subscribed & Opted In)
+            if (user.whatsapp_number) {
+                 // Build Custom Meta-friendly List for Template Variable {{3}}
                  let waMatches = userMatch.matches.map((m, i) => {
                      const title = isFounder ? `Talent: ${m.candidate_name}` : `Job: ${m.job_title}`;
                      const company = isFounder ? `(${m.role})` : `@ ${m.startup_name}`;
                      return `*${i+1}. ${title} ${company}*\n💡 ${m.reason}`;
                  }).join('\n\n');
 
-                 const waBody = `🎯 *FoundU AI Match Alert!*\nHi ${user.full_name}, we found ${userMatch.matches.length} new ${isFounder ? 'profiles' : 'jobs'} that perfectly fit:\n\n${waMatches}\n\nCheck them out in your dashboard!`;
-
-                 console.log(`📱 Triggering WhatsApp for ${user.full_name} (${user.user_type})...`);
-                 await whatsappService.sendWhatsAppMatchAlert(user.whatsapp_number, user.full_name, userMatch.matches, waBody); 
+                 console.log(`📱 Triggering Meta WhatsApp Template for ${user.full_name} (${user.user_type})...`);
+                 
+                 /**
+                  * Using Template: foundu_match_alert
+                  * {{1}} = First Name
+                  * {{2}} = 'jobs' or 'profiles'
+                  * {{3}} = The match list
+                  */
+                 await whatsappService.sendWhatsAppTemplate(
+                     user.whatsapp_number, 
+                     "foundu_match_alert", 
+                     [
+                        user.full_name.split(" ")[0],
+                        isFounder ? 'profiles' : 'jobs',
+                        waMatches
+                     ]
+                 ); 
             }
 
             // Track for Admin UI

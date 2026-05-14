@@ -196,13 +196,9 @@ exports.deactivateCoupon = async (req, res) => {
 ============================================================= */
 exports.sendWhatsAppAlerts = async (req, res) => {
   try {
-    // Fetch all eligible users
     const [eligibleUsers] = await db.promise().query(
-      `SELECT u.id, u.full_name, u.whatsapp_number, u.user_type,
-              COALESCE(fp.freelancer_type, cp.primary_identity) as category
+      `SELECT u.id, u.full_name, u.whatsapp_number, u.user_type
        FROM users u
-       LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
-       LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
        WHERE u.whatsapp_subscription = 1
          AND u.is_profile_complete = 1
          AND u.whatsapp_number IS NOT NULL
@@ -213,58 +209,56 @@ exports.sendWhatsAppAlerts = async (req, res) => {
       return res.json({ success: true, message: "No eligible users found.", sent: 0 });
     }
 
-    // Fetch latest 5 jobs for the message
-    const [latestJobs] = await db.promise().query(
-      `SELECT job_title, domain, budget_range FROM foundu_jobs 
-       ORDER BY created_at DESC LIMIT 5`
-    );
-
-    const jobList = latestJobs
-      .map((j, i) => `${i + 1}. *${j.job_title}* (${j.domain}) — ${j.budget_range || "Negotiable"}`)
-      .join("\n");
-
-    const results = { sent: 0, failed: 0, skipped: 0 };
+    const results = { sent: 0, failed: 0 };
 
     for (const user of eligibleUsers) {
       try {
         const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
         const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
 
-        const jobListFormatted = latestJobs
-          .map((j, i) => `${i + 1}. *${j.job_title}* (${j.domain})\n   💼 Budget: ${j.budget_range || "Negotiable"}`)
-          .join("\n\n");
+        let categoryName = "jobs";
+        let matchDataString = "";
 
-        const message = `🚀 *FoundU Daily Job Alerts*\n\nHi ${user.full_name}! Here are today's top opportunities matched for you:\n\n${jobListFormatted}\n\n🔗 View all jobs: ${baseUrl}/jobs\n\n_Reply STOP to unsubscribe._`;
+        // Logic based on user type
+        if (user.user_type === "startup") {
+          // Founder receives Talent Profiles
+          categoryName = "profiles";
+          const [talents] = await db.promise().query(
+            `SELECT full_name, user_type FROM users WHERE user_type != 'startup' ORDER BY created_at DESC LIMIT 3`
+          );
+          matchDataString = talents.map((t, i) => `*${i+1}. Talent:* ${t.full_name} (${t.user_type})\n💡 Top match for your open roles.`).join("\n\n");
+        } else {
+          // Freelancer/Co-founder receives Jobs
+          categoryName = "jobs";
+          const [jobs] = await db.promise().query(
+            `SELECT job_title, startup_name FROM foundu_jobs ORDER BY created_at DESC LIMIT 3`
+          );
+          matchDataString = jobs.map((j, i) => `*${i+1}. Job:* ${j.job_title} @ ${j.startup_name || 'FoundU'}\n💡 Matches your skills and experience.`).join("\n\n");
+        }
 
-        // Send real WhatsApp message via Meta API
-        await whatsappService.sendWhatsAppMatchAlert(
+        // Send via Meta Template: foundu_match_alert
+        const waResult = await whatsappService.sendWhatsAppTemplate(
           user.whatsapp_number,
-          user.full_name,
-          [],
-          message
+          "foundu_match_alert", 
+          [
+            user.full_name.split(" ")[0], // {{1}} - Name
+            categoryName,                 // {{2}} - "jobs" or "profiles"
+            matchDataString               // {{3}} - The dynamic list
+          ]
         );
 
-        // Notify on platform too
-        await notificationService.sendNotification(
-          user.id,
-          "📱 WhatsApp Alert Sent!",
-          "Your daily job recommendations have been sent to your WhatsApp number.",
-          "broadcast",
-          "/jobs"
-        );
-
-        results.sent++;
+        if (waResult.success) {
+          results.sent++;
+        } else {
+          results.failed++;
+        }
       } catch (err) {
-        console.error(`[WHATSAPP ALERT ERROR] User ${user.id}:`, err);
+        console.error(`[WA ALERT ERROR] User ${user.id}:`, err);
         results.failed++;
       }
     }
 
-    res.json({
-      success: true,
-      message: `WhatsApp alerts triggered for ${results.sent} users.`,
-      results
-    });
+    res.json({ success: true, message: `Alerts sent to ${results.sent} users.`, results });
   } catch (err) {
     console.error("[SEND WA ALERTS ERROR]", err);
     res.status(500).json({ success: false, error: err.message });

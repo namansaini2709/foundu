@@ -1,31 +1,44 @@
+const axios = require("axios");
 require("dotenv").config();
-const whatsappService = require("./services/whatsappService");
 
-async function runTest() {
+async function testWhatsApp() {
+    const accessToken = process.env.META_ACCESS_TOKEN;
+    const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+    const testRecipient = "919625207157"; // The new number you provided
+
     console.log("🚀 Starting WhatsApp API Test...");
-    
-    // Replace this with your actual WhatsApp number for testing
-    // Must include country code without '+' (e.g., 919318480126)
-    const testNumber = "919318480126"; 
-    const userName = "Devansh";
+    console.log(`📡 Sending test message to: ${testRecipient}...`);
 
-    const customMessage = `🌟 *Success! FoundU WhatsApp API is LIVE* 🌟\n\nHi ${userName},\n\nIf you are reading this, your Meta WhatsApp Business API integration and payment setup are working perfectly!\n\n🚀 *What's next?*\nYour users will now receive daily job alerts directly on their phones.\n\nKeep building! 🚀`;
+    try {
+        const response = await axios.post(
+            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+            {
+                messaging_product: "whatsapp",
+                recipient_type: "individual",
+                to: testRecipient,
+                type: "text",
+                text: {
+                    preview_url: true,
+                    body: "Hello! This is a test message from your FoundU WhatsApp API. 🚀",
+                },
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-    console.log(`📡 Sending test message to: ${testNumber}...`);
-    
-    const result = await whatsappService.sendWhatsAppMatchAlert(
-        testNumber,
-        userName,
-        [],
-        customMessage
-    );
-
-    if (result.success) {
-        console.log("✅ SUCCESS! Check your WhatsApp.");
-    } else {
-        console.log("❌ FAILED!");
-        console.log("Error Details:", result.error);
+        console.log("✅ SUCCESS! Message sent.", response.data);
+    } catch (error) {
+        console.error("❌ WhatsApp Meta API Error:", error.response ? error.response.data : error.message);
+        
+        if (error.response && error.response.data.error.code === 131030) {
+            console.log("\n💡 TIP: You might need to use a TEMPLATE because the 24-hour window is closed.");
+            console.log("Or, send a message FROM 9625207157 TO your bot first to open the window!");
+        }
     }
 }
 
-runTest();
+testWhatsApp();
