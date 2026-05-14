@@ -106,11 +106,31 @@ export default function JobApplicationsDashboard() {
         } catch (e) {
           previewText = job.job_requirements || job.full_job_description;
         }
+        // Parse budget: MySQL DECIMAL returns "0.00" (truthy string), so check parsed value > 0
+        const parseNum = (v) =>
+          parseFloat(String(v || "0").replace(/[^0-9.]/g, "")) || 0;
+        const parsedBudget =
+          parseNum(job.numeric_budget) > 0
+            ? parseNum(job.numeric_budget)
+            : parseNum(job.total_amount) > 0
+              ? parseNum(job.total_amount)
+              : parseNum(job.budget_range);
+        console.log(
+          "[DEBUG JOB]",
+          job.job_title,
+          "| numeric_budget:",
+          job.numeric_budget,
+          "| budget_range:",
+          job.budget_range,
+          "| total_amount:",
+          job.total_amount,
+          "| FINAL parsed:",
+          parsedBudget,
+        );
         return {
           id: job.job_id,
           title: job.job_title,
-          budget:
-            parseFloat(job.numeric_budget) || parseFloat(job.budget_range) || 0,
+          budget: parsedBudget,
           preview:
             previewText.substring(0, 50) +
             (previewText.length > 50 ? "..." : ""),
@@ -217,7 +237,11 @@ export default function JobApplicationsDashboard() {
           ai_reason: a.ai_reason,
           status: a.status || "pending",
           rawStatus: a.status || "pending",
-          image: getImageUrl(a.profile_picture_url) || "👤",
+          image: a.profile_picture_url
+            ? a.profile_picture_url.startsWith("http")
+              ? a.profile_picture_url
+              : `${API_BASE}${a.profile_picture_url}`
+            : "👤",
           badges: [],
           details: {
             experience: a.experience || "N/A",
@@ -237,11 +261,7 @@ export default function JobApplicationsDashboard() {
             linkedin: a.linkedin || a.cp_linkedin,
           },
         }));
-        setAiMatchedApplicants(
-          mapped.filter(
-            (a) => a.rawStatus !== "accepted" && a.rawStatus !== "shortlisted",
-          ),
-        );
+        setAiMatchedApplicants(mapped);
         setStats((prev) => ({ ...prev, aiMatched: mapped.length }));
       } catch (err) {
         console.error("Error fetching AI matches:", err);
@@ -385,6 +405,17 @@ export default function JobApplicationsDashboard() {
       const fee = baseBudget * 0.03;
       const total = baseBudget + gst + fee;
 
+      console.log(
+        "[PAYMENT] Budget:",
+        baseBudget,
+        "GST:",
+        gst,
+        "Fee:",
+        fee,
+        "Total:",
+        total,
+      );
+
       if (!window.Razorpay) {
         toast.error("Razorpay SDK not loaded. Please refresh.");
         return;
@@ -492,6 +523,15 @@ export default function JobApplicationsDashboard() {
     const [loadingDetails, setLoadingDetails] = useState(true);
     const details = applicant.details || {};
     const currentStatus = applicant.rawStatus || applicant.status || "pending";
+
+    // Lock body scroll when modal is open
+    useEffect(() => {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }, []);
+
     useEffect(() => {
       const fetchUser = async () => {
         try {
@@ -520,15 +560,44 @@ export default function JobApplicationsDashboard() {
     const ud = userDetails || {};
     return (
       <div
-        className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+        data-lenis-prevent
         onClick={onClose}
+        onWheel={(e) => e.stopPropagation()}
       >
+        <style>
+          {`
+            .applicant-modal-box {
+              overflow-y: scroll !important;
+              scrollbar-width: auto;
+              scrollbar-color: #3b82f6 rgba(255, 255, 255, 0.08);
+            }
+            .applicant-modal-box::-webkit-scrollbar {
+              width: 10px !important;
+              display: block !important;
+            }
+            .applicant-modal-box::-webkit-scrollbar-track {
+              background: rgba(255, 255, 255, 0.08);
+              border-radius: 0 16px 16px 0;
+            }
+            .applicant-modal-box::-webkit-scrollbar-thumb {
+              background: linear-gradient(180deg, #3b82f6, #6366f1) !important;
+              border-radius: 10px;
+              min-height: 40px;
+            }
+            .applicant-modal-box::-webkit-scrollbar-thumb:hover {
+              background: linear-gradient(180deg, #2563eb, #4f46e5) !important;
+            }
+          `}
+        </style>
         <div
-          className="bg-gray-950 border border-white/10 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+          className="bg-gray-950 border border-white/10 rounded-3xl max-w-lg w-full max-h-[85vh] shadow-2xl relative applicant-modal-box"
+          data-lenis-prevent
           onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
         >
           {/* Close button */}
-          <div className="sticky top-0 z-10 flex justify-end p-4">
+          <div className="sticky top-0 z-20 flex justify-end p-4 bg-gray-950/90 backdrop-blur-md rounded-t-3xl">
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"

@@ -64,6 +64,8 @@ import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
+import EventPromotion from "./pages/EventPromotion";
+import EventMarketplace from "./pages/EventMarketplace";
 import StartupPortals from "./pages/StartupPortals";
 import WhatsAppSubscription from "./pages/WhatsAppSubscription";
 import WebDevelopment from "./pages/WebDevelopment";
@@ -297,7 +299,7 @@ function App() {
             path="/idea-lab"
             element={
               <ProtectedRoute>
-                <IdeaLab />
+                <IdeaLabPopup />
               </ProtectedRoute>
             }
           />
@@ -322,7 +324,12 @@ function App() {
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
-          <Route path="/whatsapp-subscription" element={<WhatsAppSubscription />} />
+          <Route
+            path="/whatsapp-subscription"
+            element={<WhatsAppSubscription />}
+          />
+          <Route path="/promote-event" element={<EventPromotion />} />
+          <Route path="/event-marketplace" element={<EventMarketplace />} />
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />

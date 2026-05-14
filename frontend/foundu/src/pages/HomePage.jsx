@@ -944,7 +944,7 @@ const WhatsAppService = ({ navigate }) => {
                     </span>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => navigate("/whatsapp-subscription")}
                   className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl md:rounded-2xl transition-all hover:scale-[1.03] shadow-xl shadow-green-600/40 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2 md:gap-3"
                 >

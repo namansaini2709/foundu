@@ -1,7 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
-import { Bell, PlusSquare, MessageSquare } from "lucide-react";
+import {
+  Bell,
+  PlusSquare,
+  MessageSquare,
+  ChevronDown,
+  Users,
+  Megaphone,
+  ShoppingCart,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
@@ -21,9 +29,8 @@ const defaultNavLinks = [
 // Links based on user type
 const userTypeLinks = {
   founder: [
-    { label: "Our Services", to: "/startup-services" },
     { label: "Dashboard", to: "/startup-dashboard" },
-    { label: "Influencers", to: "/influencer-marketplace" },
+    { label: "Our Services", to: "/startup-services" },
     { label: "Add a New Job", to: "/add-job" },
     { label: "Idea Lab", to: "/idea-lab" },
     { label: "Live User Feed", to: "/live-feed" },
@@ -57,6 +64,8 @@ function Navbar() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false);
+  const marketplaceRef = useRef(null);
   // Fetch user data if logged in
   useEffect(() => {
     const isPending =
@@ -199,6 +208,21 @@ function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isProfileOpen]);
+
+  // Handle outside clicks for Marketplaces dropdown
+  useEffect(() => {
+    const handleMarketplaceClickOutside = (e) => {
+      if (
+        marketplaceRef.current &&
+        !marketplaceRef.current.contains(e.target)
+      ) {
+        setIsMarketplaceOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleMarketplaceClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleMarketplaceClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -383,6 +407,77 @@ function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {/* Marketplace Dropdown for All User Types */}
+            {isLoggedIn() && (
+              <div className="relative" ref={marketplaceRef}>
+                <button
+                  onMouseEnter={() => setIsMarketplaceOpen(true)}
+                  className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                    isMarketplaceOpen ||
+                    location.pathname.includes("marketplace")
+                      ? "text-blue-400"
+                      : "text-white hover:text-blue-400"
+                  }`}
+                >
+                  Marketplaces
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${isMarketplaceOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isMarketplaceOpen && (
+                  <div
+                    onMouseLeave={() => setIsMarketplaceOpen(false)}
+                    className="absolute top-full right-0 mt-4 w-64 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-4 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300"
+                  >
+                    <div className="flex flex-col gap-2">
+                      <Link
+                        to="/influencer-marketplace"
+                        onClick={() => setIsMarketplaceOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/10 transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-bold text-white uppercase tracking-tighter">
+                          Influencers
+                        </span>
+                      </Link>
+
+                      <Link
+                        to="/event-marketplace"
+                        onClick={() => setIsMarketplaceOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/10 transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                          <Megaphone className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-bold text-white uppercase tracking-tighter">
+                          Events
+                        </span>
+                      </Link>
+
+                      <div className="relative group/blocked">
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 opacity-40 cursor-not-allowed">
+                          <div className="w-8 h-8 rounded-lg bg-gray-500/20 flex items-center justify-center text-gray-500">
+                            <ShoppingCart className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+                            Vendors
+                          </span>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/blocked:opacity-100 transition-opacity">
+                          <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                            Coming Soon
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* User profile or login buttons */}
@@ -421,7 +516,11 @@ function Navbar() {
                 >
                   {user && user.profile_picture_url ? (
                     <img
-                      src={getImageUrl(user.profile_picture_url)}
+                      src={
+                        user.profile_picture_url.startsWith("http")
+                          ? user.profile_picture_url
+                          : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}${user.profile_picture_url}`
+                      }
                       alt="profile"
                       className="w-8 h-8 rounded-full object-cover border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                     />
