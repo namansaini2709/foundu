@@ -38,6 +38,7 @@ import Chatbox from "./pages/Chatbox";
 import ViewJobPosting from "./pages/viewJobposting";
 import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import EventOnboarding from "./pages/EventOnboarding";
 import AdminBadges from "./admin/pages/AdminBadges";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AdminTestimonials from "./admin/pages/AdminTestimonials";
@@ -72,6 +73,10 @@ import WebDevelopment from "./pages/WebDevelopment";
 import SmoothScroll from "./components/SmoothScroll";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthSyncSkeleton from "./components/AuthSyncSkeleton";
+import InvestorConnect from "./pages/InvestorConnect";
+import Agencies from "./pages/Agencies";
+import SearchUsers from "./pages/SearchUsers";
+import Profile from "./pages/Profile";
 
 function NavbarWrapper({ setActivePopup }) {
   const location = useLocation();
@@ -137,21 +142,21 @@ function App() {
 
   return (
     <Router>
-      <SmoothScroll>
-        <ScrollToTop />
-        <NavbarWrapper />
+      {/* ✅ GLOBAL TOAST CONTAINER - MOVED OUTSIDE SMOOTH SCROLL */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="dark"
+        limit={3}
+      />
 
-        {/* ✅ GLOBAL TOAST CONTAINER */}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnHover
-          draggable
-          theme="dark"
-        />
+      <SmoothScroll>
+        <NavbarWrapper />
 
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -187,7 +192,7 @@ function App() {
           <Route
             path="/freelancer-profile"
             element={
-              <ProtectedRoute allowedRole="freelancer">
+              <ProtectedRoute>
                 <FreelancerProfile />
               </ProtectedRoute>
             }
@@ -195,7 +200,7 @@ function App() {
           <Route
             path="/cofounder-profile"
             element={
-              <ProtectedRoute allowedRole="cofounder">
+              <ProtectedRoute>
                 <CoFounderProfile />
               </ProtectedRoute>
             }
@@ -203,7 +208,7 @@ function App() {
           <Route
             path="/startup-profile"
             element={
-              <ProtectedRoute allowedRole="founder">
+              <ProtectedRoute>
                 <StartupProfile />
               </ProtectedRoute>
             }
@@ -229,6 +234,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/event-onboarding" element={<EventOnboarding />} />
           <Route path="/privacy-policy" element={<PPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CPolicy />} />
@@ -322,13 +328,15 @@ function App() {
           />
           <Route path="/promote-event" element={<EventPromotion />} />
           <Route path="/event-marketplace" element={<EventMarketplace />} />
+          <Route path="/investor-connect" element={<InvestorConnect />} />
+          <Route path="/agencies" element={<Agencies />} />
+          <Route path="/search" element={<SearchUsers />} />
+          <Route path="/profile" element={<Profile />} />
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        {isLoggedIn && (
-          <GlobalChatOverlay userId={userId} />
-        )}
+        {isLoggedIn && <GlobalChatOverlay userId={userId} />}
         <SmartChatbot
           userRole={userRole}
           userId={userId}

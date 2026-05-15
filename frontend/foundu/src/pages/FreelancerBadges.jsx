@@ -81,12 +81,12 @@ const FreelancerBadges = () => {
           setGreenTickVerified(!!d.green_tick_verified);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
     // Load golden tick progress
     api
       .get(`${API}/badges/golden-status/${userId}`)
       .then((res) => setGoldenData(res.data.data))
-      .catch(() => {});
+      .catch(() => { });
   }, [userId]);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -129,7 +129,7 @@ const FreelancerBadges = () => {
       await api.post(
         `${API}/user-socials`,
         data,
-        { 
+        {
           headers: { 'Content-Type': 'multipart/form-data' }
         },
       );
@@ -279,20 +279,18 @@ const FreelancerBadges = () => {
           </div>
           {/* ── Golden Tick Badge ─────────────────────────────── */}
           <div
-            className={`bg-gray-800/40 backdrop-blur-md border rounded-xl p-6 hover:scale-[1.01] transition-all duration-300 ${
-              goldenData?.golden_tick_active
+            className={`bg-gray-800/40 backdrop-blur-md border rounded-xl p-6 hover:scale-[1.01] transition-all duration-300 ${goldenData?.golden_tick_active
                 ? "border-yellow-400/60 shadow-lg shadow-yellow-500/20"
                 : "border-yellow-500/30"
-            }`}
+              }`}
           >
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="flex-shrink-0">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all overflow-hidden border-2 ${
-                    goldenData?.golden_tick_active
+                  className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all overflow-hidden border-2 ${goldenData?.golden_tick_active
                       ? "bg-white shadow-yellow-400/50 border-yellow-300"
                       : "bg-gray-700 border-gray-600"
-                  }`}
+                    }`}
                 >
                   <img
                     src={goldenBadge}
@@ -341,11 +339,10 @@ const FreelancerBadges = () => {
                           Login Days (this month)
                         </span>
                         <span
-                          className={`font-bold ${
-                            goldenData.golden_tick_active
+                          className={`font-bold ${goldenData.golden_tick_active
                               ? "text-yellow-400"
                               : "text-white"
-                          }`}
+                            }`}
                         >
                           {goldenData.login_days_this_month} /{" "}
                           {goldenData.required_login_days}
@@ -353,11 +350,10 @@ const FreelancerBadges = () => {
                       </div>
                       <div className="w-full bg-gray-700/60 rounded-full h-2.5 overflow-hidden">
                         <div
-                          className={`h-2.5 rounded-full transition-all duration-700 ${
-                            goldenData.golden_tick_active
+                          className={`h-2.5 rounded-full transition-all duration-700 ${goldenData.golden_tick_active
                               ? "bg-gradient-to-r from-yellow-400 to-amber-400"
                               : "bg-gradient-to-r from-blue-500 to-yellow-500"
-                          }`}
+                            }`}
                           style={{ width: `${goldenData.progress_percent}%` }}
                         />
                       </div>
@@ -588,10 +584,10 @@ const FreelancerBadges = () => {
                   />
                   {formData.profilePhoto && (
                     <div className="w-10 h-10 rounded-full border border-gray-600 overflow-hidden shrink-0">
-                      <img 
-                        src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   )}
@@ -623,7 +619,7 @@ const FreelancerBadges = () => {
           </div>
         </div>
       )}
-      <ToastContainer position="top-right" theme="dark" />
+      {/* Toast handled by global ToastContainer in App.jsx */}
     </div>
   );
 };

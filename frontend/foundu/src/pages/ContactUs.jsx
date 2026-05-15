@@ -75,7 +75,6 @@ const ContactUs = () => {
 
     return (
         <div className="min-h-screen flex flex-col" style={gradientBlueToBlack}>
-            <Navbar />
 
             <main className="flex-grow pt-32 pb-20 px-4 relative">
                 <div className="max-w-7xl mx-auto">

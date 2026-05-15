@@ -116,7 +116,6 @@ const InfluencerOnboarding = () => {
           "linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 100%)",
       }}
     >
-      <Navbar />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">

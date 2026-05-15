@@ -69,8 +69,8 @@ export default function AdminLayout({ children }) {
 
       {/* ── Sidebar ─────────────────────────────── */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out bg-gray-900 border-r border-blue-900/40 backdrop-blur-md
-        md:relative md:translate-x-0 md:flex md:flex-col md:bg-gray-900/50
+        fixed inset-y-0 left-0 z-40 w-64 h-screen flex flex-col transform transition-transform duration-300 ease-in-out bg-gray-900 border-r border-blue-900/40 backdrop-blur-md
+        md:sticky md:top-0 md:translate-x-0 md:bg-gray-900/50
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         {/* Sidebar Overlay (Mobile) */}

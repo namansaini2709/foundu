@@ -102,7 +102,6 @@ function HomePage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#000000" }}>
-      <Navbar />
       <Hero navigate={navigate} />
       <WhatIsFoundu navigate={navigate} />
       <FoundUAIs navigate={navigate} />

@@ -9,13 +9,36 @@ import {
   Users,
   Megaphone,
   ShoppingCart,
+  Award,
+  Search,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { socket } from "../socket";
 import { getUserId, getUserType, logout } from "../utils/authUtils";
 import logo from "../assets/whitelogo.png";
-import { getImageUrl } from "../utils/imageUtils";
+
+const SearchBar = ({ navigate }) => {
+  const [q, setQ] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate(`/search?q=${q}`);
+      }}
+      className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 focus-within:border-blue-500/50 transition-all group"
+    >
+      <Search className="w-4 h-4 text-gray-500 group-focus-within:text-blue-400" />
+      <input
+        type="text"
+        placeholder="Search users..."
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="bg-transparent border-none outline-none text-xs text-white px-2 w-32 focus:w-44 transition-all placeholder:text-gray-600"
+      />
+    </form>
+  );
+};
 
 // Default links for non-logged-in users
 const defaultNavLinks = [
@@ -33,14 +56,15 @@ const userTypeLinks = {
     { label: "Our Services", to: "/startup-services" },
     { label: "Add a New Job", to: "/add-job" },
     { label: "Idea Lab", to: "/idea-lab" },
-    { label: "Live User Feed", to: "/live-feed" },
-    { label: "Badges", to: "/founder-badges" },
+    { label: "Live Feed", to: "/live-feed" },
+    { label: "Agencies", to: "/agencies" },
   ],
   freelancer: [
     { label: "View Jobs", to: "/freelancer-jobs" },
     { label: "Dashboard", to: "/freelancer-dashboard" },
     { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/freelancer-badges" },
+    { label: "Agencies", to: "/agencies" },
     { label: "Reviews & Ratings", to: "/reviews" },
   ],
   cofounder: [
@@ -49,6 +73,7 @@ const userTypeLinks = {
     // { label: "Idea Lab", to: "/idea-lab" },
     { label: "Live Feed", to: "/live-feed" },
     { label: "Badges", to: "/cofounder-badges" },
+    { label: "Agencies", to: "/agencies" },
     { label: "Reviews & Ratings", to: "/reviews" },
   ],
 };
@@ -172,17 +197,12 @@ function Navbar() {
     const handleRead = () => {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     };
-    const handleAllRead = () => {
-      setUnreadCount(0);
-    };
     window.addEventListener("notification_read", handleRead);
-    window.addEventListener("notifications_all_read", handleAllRead);
 
     return () => {
       socket.off("new_notification", handleNewNotification);
       socket.off("new_message_global", handleNewMessage);
       window.removeEventListener("notification_read", handleRead);
-      window.removeEventListener("notifications_all_read", handleAllRead);
     };
   }, []);
 
@@ -383,7 +403,7 @@ function Navbar() {
             : "bg-transparent border-transparent"
         } hover:bg-white/[0.08] hover:backdrop-blur-2xl transition-all duration-500`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center justify-between">
+        <div className="w-full px-2 sm:px-4 lg:px-6 py-0 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
               src={logo}
@@ -393,7 +413,7 @@ function Navbar() {
           </Link>
 
           {/* Navigation links shifted to the right */}
-          <div className="hidden md:flex items-center gap-6 ml-auto mr-4">
+          <div className="hidden md:flex items-center gap-5 ml-auto">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -481,7 +501,11 @@ function Navbar() {
           </div>
 
           {/* User profile or login buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ml-8">
+            {(isLoggedIn() || user) && getUserType() !== "founder" && (
+              <SearchBar navigate={navigate} />
+            )}
+
             {(isLoggedIn() || user) && (
               <Link
                 to="/notifications"
@@ -514,7 +538,9 @@ function Navbar() {
                   onClick={() => setIsProfileOpen((prev) => !prev)}
                   className="flex items-center gap-2 bg-blue-500/20 border border-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-500/30 transition-all duration-300"
                 >
-                  {user && user.profile_picture_url ? (
+                  {user &&
+                  user.blue_tick_verified &&
+                  user.profile_picture_url ? (
                     <img
                       src={
                         user.profile_picture_url.startsWith("http")
@@ -647,6 +673,17 @@ function Navbar() {
                         </svg>
                         Logout
                       </button>
+
+                      {getUserType() === "founder" && (
+                        <button
+                          type="button"
+                          onClick={() => navigate("/founder-badges")}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-blue-400 font-bold hover:bg-blue-600/20 transition-colors w-full text-left border-t border-blue-700/10"
+                        >
+                          <Award className="w-5 h-5" />
+                          Founder Badges
+                        </button>
+                      )}
 
                       {/* <div className="border-t border-blue-700/30">
                         <button

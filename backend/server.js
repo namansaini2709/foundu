@@ -120,6 +120,7 @@ const influencerRoutes = require("./routes/influencerRoutes");
 const queryRoutes = require("./routes/queryRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
+const eventRoutes = require("./routes/eventRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -170,6 +171,7 @@ app.use("/api/submissions", submissionRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api", whatsappRoutes);
 app.use("/api/meetings", meetingRoutes);
+app.use("/api", eventRoutes);
 
 /* =========================
    HEALTH CHECK

@@ -21,7 +21,6 @@ export default function CPolicy() {
       className="min-h-screen flex flex-col pt-20 overflow-x-hidden font-sans"
       style={gradientBlackToBlue}
     >
-      <Navbar />
 
       <main className="flex-grow flex flex-col items-center w-full z-10 px-4 md:px-0 py-16">
         {/* Header Section */}

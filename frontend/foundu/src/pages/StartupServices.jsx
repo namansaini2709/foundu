@@ -37,10 +37,10 @@ export default function StartupServices() {
 
       <div className="max-w-4xl mx-auto w-full text-center relative z-10">
         <div className="flex flex-col items-center">
-          <div className="flex items-center justify-center gap-2 text-blue-400 font-black tracking-[0.3em] text-[10px] md:text-xs mb-8 uppercase">
+          {/* <div className="flex items-center justify-center gap-2 text-blue-400 font-black tracking-[0.3em] text-[10px] md:text-xs mb-8 uppercase">
             <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5" />
             Foundu Intelligence
-          </div>
+          </div> */}
           <h1 className="text-4xl sm:text-6xl md:text-8xl font-black mb-10 leading-[0.85] tracking-tighter text-white uppercase italic">
             Everything For{" "}
             <span className="text-blue-500 not-italic block md:inline mt-2 md:mt-0">Founders.</span>
@@ -73,7 +73,7 @@ export default function StartupServices() {
   const Marketplaces = () => (
     <section className="py-24 px-6 relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] -z-10"></div>
-      
+
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <div className="text-blue-400 font-black tracking-[0.2em] text-[10px] mb-4 uppercase">
@@ -323,8 +323,8 @@ export default function StartupServices() {
                   <div
                     key={i}
                     className={`w-12 h-12 rounded-full border-2 transition-all duration-500 flex items-center justify-center ${i <= activeStep
-                        ? "bg-blue-600 border-blue-500 scale-125 shadow-lg shadow-blue-500/20"
-                        : "bg-gray-900 border-white/10"
+                      ? "bg-blue-600 border-blue-500 scale-125 shadow-lg shadow-blue-500/20"
+                      : "bg-gray-900 border-white/10"
                       }`}
                   >
                     <div className="text-[10px] font-black">
@@ -341,15 +341,15 @@ export default function StartupServices() {
               <div
                 key={index}
                 className={`group relative p-8 rounded-[2.5rem] border transition-all duration-500 ${index === activeStep
-                    ? "bg-white/10 border-blue-500/50 scale-105 shadow-2xl shadow-blue-500/10"
-                    : "bg-white/5 border-white/5 opacity-50 grayscale"
+                  ? "bg-white/10 border-blue-500/50 scale-105 shadow-2xl shadow-blue-500/10"
+                  : "bg-white/5 border-white/5 opacity-50 grayscale"
                   }`}
                 onMouseEnter={() => setActiveStep(index)}
               >
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 ${index === activeStep
-                      ? "bg-blue-600 text-white"
-                      : "bg-white/10 text-gray-500"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/10 text-gray-500"
                     }`}
                 >
                   {step.icon}
@@ -517,40 +517,40 @@ export default function StartupServices() {
 
                 {/* Action Section - Centered */}
                 <div className="flex-1 flex flex-col items-center justify-center py-6">
-                    {i === 0 ? (
-                      <div className="flex flex-col items-center">
-                        <div className="w-40 h-40 flex items-center justify-center">
-                          <DotLottieReact
-                            src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
-                            loop
-                            autoplay
-                          />
-                        </div>
-                        <div className="px-4 py-1 bg-red-500/20 border border-red-500/30 rounded-lg mt-2">
-                          <span className="text-[8px] text-red-400 font-black uppercase tracking-widest animate-pulse">
-                            Caution: This is in the right bottom of our page
-                          </span>
-                        </div>
+                  {i === 0 ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-40 h-40 flex items-center justify-center">
+                        <DotLottieReact
+                          src="https://lottie.host/7d07affa-7420-4fa7-b118-0834ce127b1b/M1WQe2EcHa.lottie"
+                          loop
+                          autoplay
+                        />
                       </div>
-                    ) : i === 1 ? (
-                      <div className="w-full">
-                        <button 
-                          onClick={() => navigate("/idea-lab")}
-                          className="w-full py-4 bg-pink-500 hover:bg-pink-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-pink-500/20 transform hover:scale-105"
-                        >
-                          Open Idea Lab
-                        </button>
+                      <div className="px-4 py-1 bg-red-500/20 border border-red-500/30 rounded-lg mt-2">
+                        <span className="text-[8px] text-red-400 font-black uppercase tracking-widest animate-pulse">
+                          Caution: This is in the right bottom of our page
+                        </span>
                       </div>
-                    ) : (
-                      <div className="w-full">
-                        <button 
-                          onClick={() => navigate("/add-job")}
-                          className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-green-500/20 transform hover:scale-105"
-                        >
-                          Create JD Now
-                        </button>
-                      </div>
-                    )}
+                    </div>
+                  ) : i === 1 ? (
+                    <div className="w-full">
+                      <button
+                        onClick={() => navigate("/idea-lab")}
+                        className="w-full py-4 bg-pink-500 hover:bg-pink-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-pink-500/20 transform hover:scale-105"
+                      >
+                        Open Idea Lab
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full">
+                      <button
+                        onClick={() => navigate("/add-job")}
+                        className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black text-[10px] tracking-widest uppercase rounded-2xl transition-all shadow-lg shadow-green-500/20 transform hover:scale-105"
+                      >
+                        Create JD Now
+                      </button>
+                    </div>
+                  )}
                   <p className="text-[10px] text-gray-500 text-center font-black uppercase tracking-widest italic mt-4">
                     {ai.locationDesc}
                   </p>

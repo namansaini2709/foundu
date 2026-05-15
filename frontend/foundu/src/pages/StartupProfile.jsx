@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
@@ -9,21 +9,27 @@ import { getImageUrl } from "../utils/imageUtils";
  * Startup Profile Page Component
  * Multi-step profile completion page for startups
  */
+
 const StartupProfile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get("id");
+  const currentUserId = getUserId();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [userBasicInfo, setUserBasicInfo] = useState(null);
+  const isReadOnly = targetUserId && targetUserId !== currentUserId;
+
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-  // Form state management
+
   const [formData, setFormData] = useState({
-    // Step 1: Founder DNA
     startupName: "",
     ownerPhone: "+91",
-    startupLogo: null, // Now holds File or URL string
+    startupLogo: null,
     founderType: "",
     whyBuilding: "",
     superpower: "",
@@ -31,40 +37,33 @@ const StartupProfile = () => {
     weaknesses: [],
     hoursPerWeek: "",
     cofounderType: [],
-    // Step 2: Startup DNA
     problemSolving: "",
     whoHasProblem: "",
     problemImpact: "",
     solutionBuilding: "",
     monetization: "",
     unfairAdvantage: "",
-    // Step 3: Burn Reality
     monthlyInvestment: "",
     survivalWithoutRevenue: "",
     biggestRisk: "",
-    // Step 4: Hiring & Execution
     currentNeed: "",
     outcome30Days: "",
     executionFailures: "",
     trustFactors: [],
-    // Step 5: Vendor Intelligence
     useVendors: "",
     vendorCategories: [],
     vendorPreference: [],
-    // Step 6: AI Idea & Strategy Engine
     currentStage: "",
     growthBlocker: "",
     magicFix: "",
-    // Step 7: Dashboard Intelligence
     dashboards: [],
     currentTools: "",
   });
 
   const hasFetched = useRef(false);
 
-  // Get user data and fetch existing profile
   useEffect(() => {
-    const userId = getUserId();
+    const userId = targetUserId || currentUserId;
     if (!userId) {
       navigate("/login-signup");
       return;
@@ -74,7 +73,7 @@ const StartupProfile = () => {
       fetchUserData(userId);
       fetchProfile(userId);
     }
-  }, [navigate]);
+  }, [navigate, targetUserId, currentUserId]);
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {
     try {
@@ -423,7 +422,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                       STEP 1-Founder DNA
+                        STEP 1-Founder DNA
                       </h2>
                       <div>
                         <label
@@ -447,7 +446,8 @@ const StartupProfile = () => {
                           htmlFor="ownerPhone"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          Owner Phone (Your Phone Number) <span className="text-red-500">*</span>
+                          Owner Phone (Your Phone Number){" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -697,7 +697,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                         STEP 2 – Startup DNA 
+                        STEP 2 – Startup DNA
                       </h2>
                       <div>
                         <label
@@ -835,7 +835,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                         STEP 3 – Burn Reality 
+                        STEP 3 – Burn Reality
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
@@ -1064,7 +1064,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                         STEP 5 – Vendor Intelligence
+                        STEP 5 – Vendor Intelligence
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
@@ -1186,7 +1186,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                         STEP 6 – AI Idea & Strategy Engine
+                        STEP 6 – AI Idea & Strategy Engine
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
@@ -1257,7 +1257,7 @@ const StartupProfile = () => {
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
                       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                         STEP 7 – Dashboard Intelligence
+                        STEP 7 – Dashboard Intelligence
                       </h2>
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">

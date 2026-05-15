@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import api from '../utils/axiosConfig';
+import api, { API_BASE } from '../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getUserId } from '../utils/authUtils';
@@ -24,56 +24,37 @@ const EventMarketplace = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
-    const [events, setEvents] = useState([
-        {
-            id: 1,
-            title: "Global Tech Summit 2026",
-            organizer: "NextGen Ventures",
-            date: "Oct 24, 2026",
-            location: "Bangalore, India",
-            attendees: "5000+",
-            category: "Technology",
-            description: "The largest tech gathering of the year focusing on AI and deep tech.",
-            color: "blue"
-        },
-        {
-            id: 2,
-            title: "SaaS Founders Meetup",
-            organizer: "FoundU Ecosystem",
-            date: "Nov 12, 2026",
-            location: "Online / Virtual",
-            attendees: "1200",
-            category: "Networking",
-            description: "Join fellow SaaS founders for a day of networking and growth hacks.",
-            color: "purple"
-        },
-        {
-            id: 3,
-            title: "AgriTech Expo",
-            organizer: "Green Earth Org",
-            date: "Dec 05, 2026",
-            location: "Delhi, India",
-            attendees: "3500",
-            category: "Agriculture",
-            description: "Showcasing the future of sustainable farming and food technology.",
-            color: "green"
-        }
-    ]);
+    const [events, setEvents] = useState([]);
 
     useEffect(() => {
-        // Mocking API delay
-        setTimeout(() => setLoading(false), 800);
+        const fetchEvents = async () => {
+            try {
+                const res = await api.get('/api/events/live');
+                if (res.data.success) {
+                    setEvents(res.data.events);
+                }
+            } catch (error) {
+                console.error("Failed to fetch live events:", error);
+                toast.error("Could not load events.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEvents();
     }, []);
 
-    const filteredEvents = events.filter((ev) =>
-        ev.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ev.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ev.location.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredEvents = events.filter((ev) => {
+        const searchStr = searchTerm.toLowerCase();
+        // Since we don't have location/category formally as string inputs in the DB (target_audience is json), 
+        // we'll search by event_name and brief
+        return (
+            (ev.event_name && ev.event_name.toLowerCase().includes(searchStr)) ||
+            (ev.brief && ev.brief.toLowerCase().includes(searchStr))
+        );
+    });
 
     return (
         <div className="min-h-screen bg-[#020024] text-white flex flex-col">
-            <Navbar />
 
             {/* Header */}
             <div className="pt-32 pb-16 px-6 relative overflow-hidden">
@@ -132,49 +113,85 @@ const EventMarketplace = () => {
                             <h3 className="text-2xl font-black text-white mb-2 uppercase">No events found</h3>
                             <p className="text-gray-400 font-medium">Be the first to list an event in this category!</p>
                         </div>
-                    ) : filteredEvents.map((event) => (
+                    ) : filteredEvents.map((event) => {
+                        // Safely parse target audience
+                        let categoryText = "General";
+                        try {
+                            const aud = typeof event.target_audience === 'string' 
+                                ? JSON.parse(event.target_audience) 
+                                : event.target_audience;
+                            if (Array.isArray(aud) && aud.length > 0) {
+                                categoryText = aud.join(", ");
+                            }
+                        } catch(e) {
+                            console.error("Error parsing target audience:", e);
+                        }
+
+                        // Format date
+                        const d = new Date(event.event_date);
+                        const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                        return (
                         <div
                             key={event.id}
-                            className="group bg-white/5 border border-white/5 rounded-[3rem] p-10 hover:border-purple-500/30 transition-all duration-500 hover:bg-white/[0.07] flex flex-col h-full"
+                            className="group relative bg-white/5 border border-white/5 rounded-[3rem] overflow-hidden hover:border-purple-500/30 transition-all duration-500 hover:bg-white/[0.07] flex flex-col h-full"
                         >
-                            <div className="flex justify-between items-start mb-8">
-                                <div className={`p-4 rounded-2xl bg-purple-500/10 text-purple-400`}>
-                                    <Calendar className="w-6 h-6" />
-                                </div>
-                                <span className="bg-white/5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                    {event.category}
-                                </span>
-                            </div>
-
-                            <h3 className="text-2xl font-black text-white mb-4 group-hover:text-purple-400 transition-colors uppercase tracking-tight">
-                                {event.title}
-                            </h3>
-
-                            <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 flex-grow">
-                                {event.description}
-                            </p>
-
-                            <div className="space-y-4 mb-10 pt-6 border-t border-white/5">
-                                <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
-                                    <MapPin className="w-4 h-4 text-purple-500" />
-                                    {event.location}
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
-                                        <Users className="w-4 h-4 text-purple-500" />
-                                        {event.attendees} Expected
-                                    </div>
-                                    <span className="text-[10px] font-black text-purple-400 tracking-widest uppercase">
-                                        {event.date}
+                            {/* Card Header Banner */}
+                            <div className="h-48 relative overflow-hidden">
+                                {event.flyer_url ? (
+                                    <img 
+                                        src={`${API_BASE}${event.flyer_url}`} 
+                                        alt={event.event_name} 
+                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500" 
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+                                )}
+                                <div className="absolute top-6 right-6">
+                                    <span className="bg-black/50 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                                        {categoryText}
                                     </span>
                                 </div>
                             </div>
 
-                            <button className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase group-hover:bg-purple-600 group-hover:border-purple-600 transition-all duration-300 flex items-center justify-center gap-2">
-                                Event Details <ArrowRight className="w-4 h-4" />
-                            </button>
+                            {/* Card Content */}
+                            <div className="p-8 md:p-10 flex flex-col flex-grow">
+                                <h3 className="text-2xl font-black text-white mb-4 group-hover:text-purple-400 transition-colors uppercase tracking-tight line-clamp-2">
+                                    {event.event_name}
+                                </h3>
+
+                                <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 flex-grow">
+                                    {event.brief?.substring(0, 100)}{event.brief?.length > 100 ? '...' : ''}
+                                </p>
+
+                                <div className="space-y-4 mb-10 pt-6 border-t border-white/5">
+                                    <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
+                                        <Users className="w-4 h-4 text-purple-500" />
+                                        {event.organizer_name || 'Verified Organizer'}
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
+                                        <MapPin className="w-4 h-4 text-purple-500" />
+                                        {event.location}
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
+                                            <Calendar className="w-4 h-4 text-purple-500" />
+                                            {event.event_time}
+                                        </div>
+                                        <span className="text-[10px] font-black text-purple-400 tracking-widest uppercase">
+                                            {formattedDate}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => window.open(event.registration_link, '_blank')}
+                                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase group-hover:bg-purple-600 group-hover:border-purple-600 transition-all duration-300 flex items-center justify-center gap-2">
+                                    Register Now <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
-                    ))}
+                    )})}
                 </div>
             </div>
 

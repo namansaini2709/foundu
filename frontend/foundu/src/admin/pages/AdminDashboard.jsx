@@ -79,7 +79,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <ToastContainer position="top-right" theme="dark" />
+      {/* Toast handled by global ToastContainer in App.jsx */}
 
       <div className="mb-6">
         <h1 className="text-2xl font-black text-white">Dashboard</h1>
@@ -120,8 +120,8 @@ export default function AdminDashboard() {
             onClick={triggerMatchmaker}
             disabled={aiLoading}
             className={`flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all ${aiLoading
-                ? "bg-purple-900/50 text-purple-300 cursor-not-allowed border border-purple-500/30"
-                : "bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+              ? "bg-purple-900/50 text-purple-300 cursor-not-allowed border border-purple-500/30"
+              : "bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20"
               }`}
           >
             {aiLoading ? (

@@ -433,8 +433,26 @@ exports.resetPassword = async (req, res) => {
    GET USERS
 ========================= */
 exports.getAllUsers = async (_, res) => {
-  const [rows] = await db.promise().query("SELECT * FROM users");
-  res.json(rows);
+  try {
+    const query = `
+      SELECT 
+        u.id, u.full_name, u.email, u.user_type, u.credibility_score,
+        u.blue_tick_verified, u.golden_tick_verified, u.green_tick_verified,
+        us.profile_picture_url,
+        COALESCE(fp.freelancer_type, cp.primary_identity, sp.founder_type) AS professional_role
+      FROM users u
+      LEFT JOIN users_socials us ON u.id = us.user_id
+      LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+      LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+      LEFT JOIN startup_profiles sp ON u.id = sp.user_id
+      ORDER BY u.credibility_score DESC
+    `;
+    const [rows] = await db.promise().query(query);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.getUserById = (req, res) => {
