@@ -6,40 +6,37 @@ const SmoothScroll = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Disable smooth scroll for admin routes
-    if (location.pathname.startsWith('/admin')) {
-      return;
+    // Disable browser's automatic scroll restoration to prevent it fighting with Lenis
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
     }
+
+    if (location.pathname.startsWith('/admin')) return;
 
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
+      lerp: 0.1, // Smooth scrolling
       smoothWheel: true,
-      wheelMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
+      autoRaf: true, // Let Lenis handle the requestAnimationFrame internally (default in 1.3+)
     });
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    // Update Lenis on window resize
-    const resizeObserver = new ResizeObserver(() => {
-      lenis.resize();
-    });
-    resizeObserver.observe(document.body);
+    // Initial scroll reset
+    lenis.scrollTo(0, { immediate: true });
 
     return () => {
       lenis.destroy();
-      resizeObserver.disconnect();
     };
+  }, []);
+
+  // Handle route change scroll reset separately to avoid re-initializing Lenis
+  useEffect(() => {
+    // Small timeout ensures the DOM has updated before we scroll
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      // If lenis exists on the global scope or via a ref, we'd use it here. 
+      // Since it's destroyed/re-init in the other effect (which we fixed), 
+      // we can just use the native scroll reset which Lenis will pick up on next frame.
+    }, 50);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   return <>{children}</>;

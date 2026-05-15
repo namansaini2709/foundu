@@ -84,11 +84,10 @@ function Chip({ label, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase border transition-all duration-300 mr-2 mb-2 ${
-        active
+      className={`px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase border transition-all duration-300 mr-2 mb-2 ${active
           ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
           : "bg-white/5 text-gray-400 border-white/10 hover:border-blue-500/30 hover:text-white"
-      }`}
+        }`}
     >
       {label}
     </button>
@@ -379,11 +378,10 @@ export default function AddJobs() {
                 onClick={() =>
                   setFormData((s) => ({ ...s, hiringType: c.key }))
                 }
-                className={`p-6 md:p-8 text-left rounded-[1.5rem] md:rounded-[2rem] border transition-all duration-300 ${
-                  formData.hiringType === c.key
+                className={`p-6 md:p-8 text-left rounded-[1.5rem] md:rounded-[2rem] border transition-all duration-300 ${formData.hiringType === c.key
                     ? "bg-blue-600/10 border-blue-500 text-white shadow-xl shadow-blue-500/10"
                     : "bg-white/5 border-white/10 text-gray-400 hover:border-blue-400/50 hover:bg-white/10 hover:text-white"
-                }`}
+                  }`}
               >
                 <div className="font-black text-lg md:text-xl mb-1 tracking-tighter">
                   {c.title}
@@ -432,7 +430,7 @@ export default function AddJobs() {
               </select>
 
               {formData.common.domain === "Other" && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4"
@@ -515,11 +513,10 @@ export default function AddJobs() {
                             freelancer: { ...fd.freelancer, workType: w },
                           }))
                         }
-                        className={`px-4 py-3 rounded-xl border text-[10px] font-black tracking-widest uppercase transition-all ${
-                          formData.freelancer.workType === w
+                        className={`px-4 py-3 rounded-xl border text-[10px] font-black tracking-widest uppercase transition-all ${formData.freelancer.workType === w
                             ? "bg-blue-500 border-blue-500 text-white"
                             : "bg-white/5 border-white/10 text-gray-500 hover:border-blue-500/30"
-                        }`}
+                          }`}
                       >
                         {w}
                       </button>
@@ -948,11 +945,10 @@ export default function AddJobs() {
                         key={p}
                         type="button"
                         onClick={() => togglePriority(p)}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase border transition-all duration-300 mr-2 mb-2 ${
-                          formData.cofounder.priorities.includes(p)
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase border transition-all duration-300 mr-2 mb-2 ${formData.cofounder.priorities.includes(p)
                             ? "bg-purple-600 border-purple-500 text-white"
                             : "bg-white/5 text-gray-500 border-white/10 hover:border-purple-500/30"
-                        }`}
+                          }`}
                       >
                         {p}
                       </button>
@@ -1304,7 +1300,7 @@ export default function AddJobs() {
         </div>
       </main>
       <Footer />
-      <ToastContainer theme="dark" position="bottom-right" />
+      {/* Toast handled by global ToastContainer in App.jsx */}
       <style
         dangerouslySetInnerHTML={{
           __html: `.animate-in { animation: fadeIn 0.5s ease-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`,

@@ -29,7 +29,6 @@ const teamMembers = [
 const OurTeam = () => {
     return (
         <div className="min-h-screen flex flex-col" style={gradientBlackToBlue}>
-            <Navbar />
 
             <main className="flex-grow pt-32 pb-20 px-4 relative overflow-hidden">
                 {/* Decorative elements */}

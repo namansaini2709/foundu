@@ -70,7 +70,7 @@ function LoginSignup() {
     } else if (authStatus === 'error') {
       const urlParams = new URLSearchParams(window.location.search);
       const reason = urlParams.get('reason');
-      
+
       if (reason === 'no_email') {
         toast.error('Your GitHub account has no public email. Please make your email public in GitHub settings or use Google.', { theme: 'dark', autoClose: 6000 });
       } else if (!localStorage.getItem('user_id')) {
@@ -592,7 +592,7 @@ function LoginSignup() {
         </div>
       </section>
       <Footer />
-      <ToastContainer position="top-right" theme="dark" />
+      {/* Toast handled by global ToastContainer in App.jsx */}
     </div>
   )
 }

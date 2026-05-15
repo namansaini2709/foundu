@@ -311,14 +311,14 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
                 {post.user_id?.toString() === currentUserId?.toString() && (
                   <div className="mt-3 flex items-center gap-3">
                     {!review.reply_text && (
-                      <button 
+                      <button
                         onClick={() => setReplyingTo(review.review_id)}
                         className="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest"
                       >
                         Reply
                       </button>
                     )}
-                    <button 
+                    <button
                       onClick={() => handleDeleteReview(review.review_id)}
                       className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-widest"
                     >
@@ -336,14 +336,14 @@ const ProfilePanel = ({ post, currentUserId, allPosts }) => {
                       className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500/50 resize-none h-20 mb-2"
                     />
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleReplySubmit(review.review_id)}
                         disabled={submittingReply}
                         className="px-4 py-2 bg-blue-600 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest"
                       >
                         {submittingReply ? "Saving..." : "Submit Reply"}
                       </button>
-                      <button 
+                      <button
                         onClick={() => { setReplyingTo(null); setReplyText(""); }}
                         className="px-4 py-2 bg-white/10 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest"
                       >
@@ -701,7 +701,7 @@ const LiveUserFeed = () => {
                           <span className="text-white font-black text-sm">{post.full_name}</span>
                         </div>
                         {post.caption && <p className="text-gray-300 text-xs line-clamp-2">{post.caption}</p>}
-                        <button 
+                        <button
                           onClick={() => setShowMobileProfile(true)}
                           className="mt-3 py-2 px-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-white pointer-events-auto"
                         >
@@ -721,20 +721,20 @@ const LiveUserFeed = () => {
               );
             })}
             {/* Mobile Profile Overlay */}
-          {showMobileProfile && (
-            <div className="fixed inset-0 z-[250] bg-black/95 flex flex-col md:hidden animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center justify-between p-6 border-b border-white/10">
-                <span className="text-white font-black text-xs uppercase tracking-[0.2em]">Profile Details</span>
-                <button onClick={() => setShowMobileProfile(false)} className="p-2 bg-white/10 rounded-full text-white">
-                  <X className="w-5 h-5" />
-                </button>
+            {showMobileProfile && (
+              <div className="fixed inset-0 z-[250] bg-black/95 flex flex-col md:hidden animate-in slide-in-from-bottom duration-300">
+                <div className="flex items-center justify-between p-6 border-b border-white/10">
+                  <span className="text-white font-black text-xs uppercase tracking-[0.2em]">Profile Details</span>
+                  <button onClick={() => setShowMobileProfile(false)} className="p-2 bg-white/10 rounded-full text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto px-6 py-8">
+                  <ProfilePanel post={posts[activeReelIndex]} currentUserId={currentUserId} allPosts={posts} />
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-6 py-8">
-                 <ProfilePanel post={posts[activeReelIndex]} currentUserId={currentUserId} allPosts={posts} />
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -743,9 +743,9 @@ const LiveUserFeed = () => {
         <header className="mb-14 relative flex flex-col md:flex-row items-center justify-between">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-500/10 blur-[120px] -z-10" />
           <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-5">
+            {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-5">
               <Zap className="w-3.5 h-3.5" /> Live Ecosystem Feed
-            </div>
+            </div> */}
             <h1 className="text-4xl md:text-7xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/30 px-4">
               {viewMode === "my-posts" ? "My Collection" : "The Live Feed"}
             </h1>

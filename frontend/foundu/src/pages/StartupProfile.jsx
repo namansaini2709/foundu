@@ -1,28 +1,30 @@
 import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
-/**
- * Startup Profile Page Component
- * Multi-step profile completion page for startups
- */
+
 const StartupProfile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get("id");
+  const currentUserId = getUserId();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [userBasicInfo, setUserBasicInfo] = useState(null);
+  const isReadOnly = targetUserId && targetUserId !== currentUserId;
+  
   const gradientBlue = {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-  // Form state management
+  
   const [formData, setFormData] = useState({
-    // Step 1: Founder DNA
     startupName: "",
     ownerPhone: "+91",
-    startupLogo: null, // Now holds File or URL string
+    startupLogo: null, 
     founderType: "",
     whyBuilding: "",
     superpower: "",
@@ -30,40 +32,33 @@ const StartupProfile = () => {
     weaknesses: [],
     hoursPerWeek: "",
     cofounderType: [],
-    // Step 2: Startup DNA
     problemSolving: "",
     whoHasProblem: "",
     problemImpact: "",
     solutionBuilding: "",
     monetization: "",
     unfairAdvantage: "",
-    // Step 3: Burn Reality
     monthlyInvestment: "",
     survivalWithoutRevenue: "",
     biggestRisk: "",
-    // Step 4: Hiring & Execution
     currentNeed: "",
     outcome30Days: "",
     executionFailures: "",
     trustFactors: [],
-    // Step 5: Vendor Intelligence
     useVendors: "",
     vendorCategories: [],
     vendorPreference: [],
-    // Step 6: AI Idea & Strategy Engine
     currentStage: "",
     growthBlocker: "",
     magicFix: "",
-    // Step 7: Dashboard Intelligence
     dashboards: [],
     currentTools: "",
   });
 
   const hasFetched = useRef(false);
 
-  // Get user data and fetch existing profile
   useEffect(() => {
-    const userId = getUserId();
+    const userId = targetUserId || currentUserId;
     if (!userId) {
       navigate("/login-signup");
       return;
@@ -73,7 +68,7 @@ const StartupProfile = () => {
       fetchUserData(userId);
       fetchProfile(userId);
     }
-  }, [navigate]);
+  }, [navigate, targetUserId, currentUserId]);
   // Fetch user registration info for auto-fill
   const fetchUserData = async (userId) => {
     try {

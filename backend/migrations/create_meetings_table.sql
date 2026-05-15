@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS meetings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    meeting_type ENUM('Pitch Deck', 'Startup Portal', 'Web Development') NOT NULL,
+    meeting_type ENUM('Pitch Deck', 'Startup Portal', 'Web Development', 'Event Partnership') NOT NULL,
     
     -- Common details
     explanation TEXT,

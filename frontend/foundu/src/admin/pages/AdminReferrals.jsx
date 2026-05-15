@@ -78,8 +78,8 @@ const AdminReferrals = () => {
 
   return (
     <AdminLayout>
-      <ToastContainer position="top-right" theme="dark" />
-      
+      <ToastContainer position="bottom-right" theme="dark" />
+
       <div className="mb-6">
         <h1 className="text-2xl font-black text-white">Referrals & Coupons</h1>
         <p className="text-gray-400 text-sm mt-1">
@@ -144,7 +144,7 @@ const AdminReferrals = () => {
                       })}
                     </td>
                     <td className="px-6 py-4">
-                      <button 
+                      <button
                         onClick={() => handleViewUsers(ref.code)}
                         className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-black text-xs bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 transition-all hover:scale-105"
                       >
@@ -154,11 +154,10 @@ const AdminReferrals = () => {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleToggleStatus(ref.id, ref.is_active)}
-                        className={`text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all active:scale-95 ${
-                          ref.is_active 
-                            ? 'text-red-400 hover:text-red-300' 
-                            : 'text-green-400 hover:text-green-300'
-                        }`}
+                        className={`text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all active:scale-95 ${ref.is_active
+                          ? 'text-red-400 hover:text-red-300'
+                          : 'text-green-400 hover:text-green-300'
+                          }`}
                       >
                         {ref.is_active ? 'Stop' : 'Launch'}
                       </button>
@@ -184,14 +183,14 @@ const AdminReferrals = () => {
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">List of users who registered using this code</p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedReferral(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white transition-all"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto">
               {usersLoading ? (
                 <div className="text-center py-12">

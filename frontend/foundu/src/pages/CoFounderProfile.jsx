@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { getUserId } from "../utils/authUtils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import ProfilePreview from "../components/ProfilePreview";
-/**
- * Co-Founder Profile Page Component
- * Multi-step profile completion page for co-founders
- */
+
 const CoFounderProfile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get("id");
+  const currentUserId = getUserId();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState("edit"); // "edit" or "view"
+  const [viewMode, setViewMode] = useState(targetUserId && targetUserId !== currentUserId ? "view" : "edit"); 
   const [profileData, setProfileData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [userBasicInfo, setUserBasicInfo] = useState(null);
@@ -21,9 +22,7 @@ const CoFounderProfile = () => {
     background:
       "linear-gradient(180deg, rgba(2, 0, 36, 1) 16%, rgba(9, 9, 121, 1) 100%)",
   };
-  // Form state management
   const [formData, setFormData] = useState({
-    // Step 1: The Trust & Reputation Layer
     fullLegalName: "",
     linkedin: "",
     githubBehance: "",
@@ -32,7 +31,6 @@ const CoFounderProfile = () => {
     primaryIdentityOther: "",
     currentOccupationalStatus: "",
     pedigreeScore: "",
-    // Step 2: Deep Competency & Intelligence
     superpower1: "",
     superpower2: "",
     superpower3: "",
@@ -44,22 +42,18 @@ const CoFounderProfile = () => {
     domainIQ: "",
     antiPortfolio: "",
     quantifiableImpact: "",
-    // Step 3: The Financial & Time "Stress Test"
     drySpellRunway: "",
     currentBurnRequirement: "",
     bandwidthReality: "",
     moonlightPolicy: "",
-    // Step 4: The Ego & Psychology Match
     decisionHierarchy: "",
     conflictSimulation: "",
     feedbackLoop: "",
     workEnvironment: "",
     riskAppetite: "",
-    // Step 5: Ethics & Value Alignment
     exitVision: "",
     redLine: "",
     diversityOfThought: "",
-    // Step 6: Targeted Requirement Filters
     missingHalfProfile: "",
     industrySpecificity: [],
     equityMinimum: "",
@@ -68,14 +62,10 @@ const CoFounderProfile = () => {
 
   const hasFetched = useRef(false);
 
-  // Get user data and fetch existing profile
   useEffect(() => {
-    const userId = getUserId();
+    const userId = targetUserId || currentUserId;
     if (!userId) {
-      if (localStorage.getItem("auth_sync_pending") === "true") {
-        console.log("[Auth] Sync pending, skipping 'Not logged in' toast.");
-        return;
-      }
+      if (localStorage.getItem("auth_sync_pending") === "true") return;
       toast.error("User not logged in");
       navigate("/login-signup");
       return;
@@ -86,7 +76,7 @@ const CoFounderProfile = () => {
       fetchProfile(userId);
       fetchReviews(userId);
     }
-  }, [navigate]);
+  }, [navigate, targetUserId, currentUserId]);
 
   const fetchReviews = async (userId) => {
     try {
@@ -409,22 +399,24 @@ const CoFounderProfile = () => {
       {/* Main Content */}
       <div className="pt-24 pb-8 flex flex-col items-center">
         {/* View/Edit Toggle Bar */}
-        <div className="w-full md:w-[85%] max-w-7xl mb-8 px-4">
-          <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
-            <button
-              onClick={() => setViewMode("edit")}
-              className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'edit' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
-            >
-              EDIT PROFILE
-            </button>
-            <button
-              onClick={() => setViewMode("view")}
-              className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'view' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
-            >
-              VIEW PROFILE
-            </button>
+        {(!targetUserId || targetUserId === currentUserId) && (
+          <div className="w-full md:w-[85%] max-w-7xl mb-8 px-4">
+            <div className="flex bg-gray-800/50 backdrop-blur-md p-1 rounded-2xl border border-white/10 w-fit mx-auto shadow-xl">
+              <button
+                onClick={() => setViewMode("edit")}
+                className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'edit' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
+              >
+                EDIT PROFILE
+              </button>
+              <button
+                onClick={() => setViewMode("view")}
+                className={`px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${viewMode === 'view' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-white/40 hover:text-white'}`}
+              >
+                VIEW PROFILE
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         {viewMode === "view" ? (
           <ProfilePreview
             user={{

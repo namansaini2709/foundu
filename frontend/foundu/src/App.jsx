@@ -38,6 +38,7 @@ import Chatbox from "./pages/Chatbox";
 import ViewJobPosting from "./pages/viewJobposting";
 import SmartChatbot from "./pages/SmartChatbot";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import EventOnboarding from "./pages/EventOnboarding";
 import AdminBadges from "./admin/pages/AdminBadges";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
 import AdminTestimonials from "./admin/pages/AdminTestimonials";
@@ -69,6 +70,10 @@ import StartupPortals from "./pages/StartupPortals";
 import WebDevelopment from "./pages/WebDevelopment";
 import SmoothScroll from "./components/SmoothScroll";
 import ProtectedRoute from "./components/ProtectedRoute";
+import InvestorConnect from "./pages/InvestorConnect";
+import Agencies from "./pages/Agencies";
+import SearchUsers from "./pages/SearchUsers";
+import Profile from "./pages/Profile";
 
 function NavbarWrapper({ setActivePopup }) {
   const location = useLocation();
@@ -143,22 +148,21 @@ function App() {
 
   return (
     <Router>
+      {/* ✅ GLOBAL TOAST CONTAINER - MOVED OUTSIDE SMOOTH SCROLL */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="dark"
+        limit={3}
+      />
+
       <SmoothScroll>
-
-        <ScrollToTop />
         <NavbarWrapper />
-
-        {/* ✅ GLOBAL TOAST CONTAINER */}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnHover
-          draggable
-          theme="dark"
-        />
 
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -167,9 +171,9 @@ function App() {
           <Route path="/job-dashboard/founder/:jobId/:freelancerId" element={<ProtectedRoute allowedRole="founder"><JobDashboardFounder /></ProtectedRoute>} />
           <Route path="/job-dashboard/freelancer/:jobId" element={<ProtectedRoute allowedRole="freelancer"><JobDashboardFreelancer /></ProtectedRoute>} />
           <Route path="/startup-services" element={<StartupServices />} />
-          <Route path="/freelancer-profile" element={<ProtectedRoute allowedRole="freelancer"><FreelancerProfile /></ProtectedRoute>} />
-          <Route path="/cofounder-profile" element={<ProtectedRoute allowedRole="cofounder"><CoFounderProfile /></ProtectedRoute>} />
-          <Route path="/startup-profile" element={<ProtectedRoute allowedRole="founder"><StartupProfile /></ProtectedRoute>} />
+          <Route path="/freelancer-profile" element={<ProtectedRoute><FreelancerProfile /></ProtectedRoute>} />
+          <Route path="/cofounder-profile" element={<ProtectedRoute><CoFounderProfile /></ProtectedRoute>} />
+          <Route path="/startup-profile" element={<ProtectedRoute><StartupProfile /></ProtectedRoute>} />
           <Route path="/cofounder-jobs" element={<CoFounderJobs />} />
           <Route path="/cofounder-jobs/:id" element={<CoFounderJobDetail />} />
           <Route path="/cofounder-dashboard" element={<ProtectedRoute allowedRole="cofounder"><CoFounderDashboard /></ProtectedRoute>} />
@@ -177,6 +181,7 @@ function App() {
           <Route path="/freelancer-jobs" element={<FreelancerJobs />} />
           <Route path="/job-description" element={<FreelancerJobDetail />} />
           <Route path="/freelancer-dashboard" element={<ProtectedRoute allowedRole="freelancer"><FreelancerDashboard /></ProtectedRoute>} />
+          <Route path="/event-onboarding" element={<EventOnboarding />} />
           <Route path="/privacy-policy" element={<PPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookie-policy" element={<CPolicy />} />
@@ -217,6 +222,10 @@ function App() {
           <Route path="/buy-pitch-deck" element={<PitchDeckPurchase />} />
           <Route path="/promote-event" element={<EventPromotion />} />
           <Route path="/event-marketplace" element={<EventMarketplace />} />
+          <Route path="/investor-connect" element={<InvestorConnect />} />
+          <Route path="/agencies" element={<Agencies />} />
+          <Route path="/search" element={<SearchUsers />} />
+          <Route path="/profile" element={<Profile />} />
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />

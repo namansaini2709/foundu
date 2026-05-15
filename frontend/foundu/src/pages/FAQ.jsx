@@ -254,7 +254,6 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-[#020024] selection:bg-blue-500/30">
-      <Navbar />
 
       {/* Background Ambient Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

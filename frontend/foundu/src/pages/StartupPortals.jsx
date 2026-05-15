@@ -104,7 +104,6 @@ const StartupPortals = () => {
 
   return (
     <div className="min-h-screen bg-[#020024] text-white selection:bg-yellow-500/30 overflow-x-hidden">
-      <Navbar />
 
       {/* Background Ambient Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

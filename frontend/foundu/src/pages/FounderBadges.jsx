@@ -14,7 +14,7 @@ const gradientBlackToBlue = {
 const BlueTickStatusBadge = ({ status, verified }) => {
     if (verified) return (
         <span className="inline-flex items-center gap-1.5 bg-blue-500/20 border border-blue-400/50 text-blue-300 text-xs font-bold px-3 py-1 rounded-full">
-            <img src={blueBadge} alt="Blue Check" className="w-3 h-3 rounded-full" /> Blue Tick Verified 
+            <img src={blueBadge} alt="Blue Check" className="w-3 h-3 rounded-full" /> Blue Tick Verified
         </span>
     );
     if (status === 'pending') return (
@@ -30,8 +30,8 @@ const BlueTickStatusBadge = ({ status, verified }) => {
     return null;
 };
 const FounderBadges = () => {
-    const [isModalOpen, setIsModalOpen]       = useState(false);
-    const [submitting, setSubmitting]         = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [blueTickStatus, setBlueTickStatus] = useState(null);
     const [blueTickVerified, setBlueTickVerified] = useState(false);
     const [greenTickVerified, setGreenTickVerified] = useState(false);
@@ -39,9 +39,9 @@ const FounderBadges = () => {
     // Founder-specific fields
     const [formData, setFormData] = useState({
         companyLinkedin: '',
-        companySocial:   '',
-        dpiitNumber:     '',
-        profilePhoto:    null
+        companySocial: '',
+        dpiitNumber: '',
+        profilePhoto: null
     });
     const userId = getUserId();
     /* Load existing status on mount */
@@ -52,17 +52,17 @@ const FounderBadges = () => {
                 const d = res.data.data;
                 if (d) {
                     setFormData({
-                        companyLinkedin: d.company_linkedin_url         || '',
-                        companySocial:   d.company_social_url           || '',
-                        dpiitNumber:     d.company_registration_number  || '',
-                        profilePhoto:    d.profile_picture_url          || null
+                        companyLinkedin: d.company_linkedin_url || '',
+                        companySocial: d.company_social_url || '',
+                        dpiitNumber: d.company_registration_number || '',
+                        profilePhoto: d.profile_picture_url || null
                     });
                     setBlueTickStatus(d.blue_tick_status);
                     setBlueTickVerified(!!d.blue_tick_verified);
                     setGreenTickVerified(!!d.green_tick_verified);
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
         // Fetch job count for Green Badge logic
         api.get(`${API}/jobs/user/${userId}`)
             .then(res => {
@@ -73,7 +73,7 @@ const FounderBadges = () => {
                     setGreenTickVerified(true);
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
     }, [userId]);
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -87,8 +87,8 @@ const FounderBadges = () => {
     };
     const handleSave = async () => {
         if (!formData.companyLinkedin) return toast.error('Company LinkedIn URL is required', { theme: 'dark' });
-        if (!formData.dpiitNumber)     return toast.error('DPIIT / Registration Number is required', { theme: 'dark' });
-        if (!userId)                   return toast.error('You must be logged in', { theme: 'dark' });
+        if (!formData.dpiitNumber) return toast.error('DPIIT / Registration Number is required', { theme: 'dark' });
+        if (!userId) return toast.error('You must be logged in', { theme: 'dark' });
         setSubmitting(true);
         try {
             const data = new FormData();
@@ -102,7 +102,7 @@ const FounderBadges = () => {
                 data.append('profile_picture_url', formData.profilePhoto);
             }
             // Save company social details to users_socials
-            await api.post(`${API}/user-socials`, data, { 
+            await api.post(`${API}/user-socials`, data, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             // Apply for Blue Tick
@@ -139,9 +139,9 @@ const FounderBadges = () => {
                             <p className="text-gray-300 text-sm">
                                 Verify your company by linking your Company LinkedIn and providing your DPIIT / Company Registration Number.
                             </p>
-                            {blueTickStatus === 'pending'  && <p className="text-yellow-400/80 text-xs mt-1">⏳ Your submission is under manual review.</p>}
+                            {blueTickStatus === 'pending' && <p className="text-yellow-400/80 text-xs mt-1">⏳ Your submission is under manual review.</p>}
                             {blueTickStatus === 'rejected' && <p className="text-red-400/80 text-xs mt-1">❌ Rejected. Please update your details and resubmit.</p>}
-                            {blueTickVerified              && <p className="text-blue-400/80 text-xs mt-1">🎉 Your company is Blue Tick verified.</p>}
+                            {blueTickVerified && <p className="text-blue-400/80 text-xs mt-1">🎉 Your company is Blue Tick verified.</p>}
                         </div>
                         <div className="flex-shrink-0">
                             {blueTickVerified ? (
@@ -175,8 +175,8 @@ const FounderBadges = () => {
                                         <span className="text-green-400 font-bold">{jobCount} / 3 Jobs</span>
                                     </div>
                                     <div className="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
-                                        <div 
-                                            className="bg-green-500 h-full transition-all duration-500" 
+                                        <div
+                                            className="bg-green-500 h-full transition-all duration-500"
                                             style={{ width: `${Math.min((jobCount / 3) * 100, 100)}%` }}
                                         />
                                     </div>
@@ -239,8 +239,8 @@ const FounderBadges = () => {
             {/* Modal — Founder specific fields */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => !submitting && setIsModalOpen(false)} />
-                <div className="bg-gray-900 border border-blue-500/50 rounded-2xl p-6 md:p-8 w-full max-w-md relative z-10 shadow-2xl shadow-blue-900/50 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => !submitting && setIsModalOpen(false)} />
+                    <div className="bg-gray-900 border border-blue-500/50 rounded-2xl p-6 md:p-8 w-full max-w-md relative z-10 shadow-2xl shadow-blue-900/50 max-h-[90vh] overflow-y-auto custom-scrollbar">
                         <button onClick={() => !submitting && setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
                             <X size={24} />
                         </button>
@@ -274,7 +274,7 @@ const FounderBadges = () => {
                                         className="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white" />
                                     {formData.profilePhoto && (
                                         <div className="w-10 h-10 rounded-full border border-gray-600 overflow-hidden shrink-0">
-                                            <img src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`} 
+                                            <img src={formData.profilePhoto instanceof File ? URL.createObjectURL(formData.profilePhoto) : `${API.replace('/api', '')}${formData.profilePhoto}`}
                                                 alt="Preview" className="w-full h-full object-cover" />
                                         </div>
                                     )}
@@ -294,7 +294,7 @@ const FounderBadges = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer position="top-right" theme="dark" />
+            {/* Toast handled by global ToastContainer in App.jsx */}
         </div>
     );
 };
