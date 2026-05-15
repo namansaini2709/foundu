@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const db = require("../config/db");
 const axios = require("axios");
 const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
 
 // 1. Create Razorpay Order
 exports.createOrder = async (req, res) => {
@@ -284,5 +285,116 @@ exports.requestWithdrawal = async (req, res) => {
             message: "RazorpayX Error", 
             error: error.response?.data?.error?.description || error.message 
         });
+    }
+};
+
+// 6. Create WhatsApp Subscription Order
+exports.createWhatsAppOrder = async (req, res) => {
+    const { amount, currency = "INR" } = req.body;
+
+    if (!amount) {
+        return res.status(400).json({ success: false, message: "Amount is required" });
+    }
+
+    const options = {
+        amount: Math.round(amount * 100), // paise
+        currency,
+        receipt: `wa_sub_${Date.now()}`,
+    };
+
+    try {
+        const order = await razorpay.orders.create(options);
+        res.json({
+            success: true,
+            order_id: order.id,
+            amount: order.amount,
+            currency: order.currency,
+        });
+    } catch (error) {
+        console.error("WhatsApp Order Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// 7. Verify WhatsApp Subscription Payment
+exports.verifyWhatsAppPayment = async (req, res) => {
+    const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        user_id,
+        amount,
+        plan = 'monthly',
+        duration_days = 30
+    } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .update(body.toString())
+        .digest("hex");
+
+    if (expectedSignature === razorpay_signature) {
+        try {
+            await db.promise().query("START TRANSACTION");
+
+            // 1. Insert into whatsapp_payments table
+            await db.promise().query(
+                `INSERT INTO whatsapp_payments 
+                 (user_id, razorpay_order_id, razorpay_payment_id, amount, plan, duration_days, status, paid_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, 'successful', NOW())`,
+                [user_id, razorpay_order_id, razorpay_payment_id, amount, plan, duration_days]
+            );
+
+            // 2. Update user's whatsapp_subscription flag AND set expiration date
+            await db.promise().query(
+                `UPDATE users 
+                 SET whatsapp_subscription = 1,
+                     whatsapp_plan = ?,
+                     whatsapp_activated_via = 'Razorpay',
+                     whatsapp_expires_at = DATE_ADD(NOW(), INTERVAL ? DAY)
+                 WHERE id = ?`,
+                [plan, duration_days, user_id]
+            );
+
+            await db.promise().query("COMMIT");
+
+            // Send In-App notification
+            notificationService.sendNotification(
+                user_id,
+                "🟢 AI Match Alerts Activated!",
+                "Your WhatsApp subscription is now active. You will receive live matches directly on your phone.",
+                "payment",
+                "/dashboard"
+            ).catch(e => console.error("WA Sub notify error:", e));
+
+            // Send Email notification
+            try {
+                const [userRows] = await db.promise().query("SELECT full_name, user_type FROM users WHERE id = ?", [user_id]);
+                if (userRows.length) {
+                    const uType = userRows[0].user_type;
+                    const dashLink = uType === 'founder' ? "/startup-dashboard" : (uType === 'cofounder' ? "/cofounder-dashboard" : "/freelancer-dashboard");
+                    
+                    await emailNotificationService.sendEmailNotification(
+                        user_id,
+                        "🟢 WhatsApp AI Matches Activated!",
+                        `Hi ${userRows[0].full_name.split(' ')[0]},<br><br>Your WhatsApp Subscription (<b>${plan} plan</b>) is officially active!<br><br>Our AI Matchmaker will now send highly curated, personalized opportunities directly to your WhatsApp.<br><br>Pro tip: Keep your profile updated to ensure the AI finds you the best matches.`,
+                        "Go to Dashboard",
+                        `${process.env.FRONTEND_URL || 'http://localhost:5173'}${dashLink}`
+                    );
+                }
+            } catch (e) {
+                console.error("WA Sub email notify error:", e);
+            }
+
+            res.json({ success: true, message: "WhatsApp Subscription Activated!" });
+        } catch (error) {
+            await db.promise().query("ROLLBACK");
+            console.error("WhatsApp Payment Verification DB Error:", error);
+            res.status(500).json({ success: false, message: "Database update failed" });
+        }
+    } else {
+        res.status(400).json({ success: false, message: "Invalid signature" });
     }
 };

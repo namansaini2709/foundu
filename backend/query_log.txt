@@ -1,0 +1,729 @@
+
+--- DEBUG ---
+TIME: 2026-05-15T20:59:02.278Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Fresher","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        ) AND (
+          (u.user_type = 'freelancer' AND fp.experience LIKE ?) OR 
+          (u.user_type = 'cofounder' AND cp.current_occupational_status LIKE ?)
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%","%Fresher%","%Fresher%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T20:59:24.359Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Best Credibility","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:04:09.496Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Fresher","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        ) AND (
+          (u.user_type = 'freelancer' AND fp.experience LIKE ?) OR 
+          (u.user_type = 'cofounder' AND cp.current_occupational_status LIKE ?)
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%","%Fresher%","%Fresher%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:08:44.936Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:11:03.477Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Fresher","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        ) AND (
+          (u.user_type = 'freelancer' AND fp.experience LIKE ?) OR 
+          (u.user_type = 'cofounder' AND cp.current_occupational_status LIKE ?)
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%","%Fresher%","%Fresher%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:16:19.494Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Fresher","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND fp.freelancer_type LIKE ?) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND cp.primary_identity LIKE ?)
+        ) AND (
+          (u.user_type = 'freelancer' AND fp.experience LIKE ?) OR 
+          (u.user_type = 'cofounder' AND cp.current_occupational_status LIKE ?)
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%Tech%","%Fresher%","%Fresher%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:19:16.556Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer'
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 11
+
+--- DEBUG ---
+TIME: 2026-05-15T21:19:47.530Z
+FILTERS: {"type":"Co-Founder","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:21:02.516Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Applicants only"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer'
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 11
+
+--- DEBUG ---
+TIME: 2026-05-15T21:34:07.608Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer'
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 11
+
+--- DEBUG ---
+TIME: 2026-05-15T21:35:02.327Z
+FILTERS: {"type":"Co-Founder","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:35:56.897Z
+FILTERS: {"type":"Co-Founder","domain":"Tech","experience":"Senior","priority":"Exact Skill Match","includeNonApplicants":"Applicants only"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:39:30.064Z
+FILTERS: {"type":"Co-Founder","domain":"Design","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:40:00.815Z
+FILTERS: {"type":"Co-Founder","domain":"Tech","experience":"Any Level","priority":"Exact Skill Match","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:40:19.720Z
+FILTERS: {"type":"Freelancer","domain":"Finance","experience":"Senior","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer'
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 11
+
+--- DEBUG ---
+TIME: 2026-05-15T21:43:01.955Z
+FILTERS: {"type":"Freelancer","domain":"Finance","experience":"Senior","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer'
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 11
+
+--- DEBUG ---
+TIME: 2026-05-15T21:43:26.072Z
+FILTERS: {"type":"Co-Founder","domain":"Design","experience":"Senior","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: []
+RESULTS COUNT: 13
+
+--- DEBUG ---
+TIME: 2026-05-15T21:45:42.208Z
+FILTERS: {"type":"Freelancer","domain":"Finance","experience":"Senior","priority":"Exact Skill Match","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:46:05.407Z
+FILTERS: {"type":"Freelancer","domain":"Finance","experience":"Senior","priority":"Best Credibility","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%","%Finance%","%account%","%tax%","%audit%","%bank%","%invest%","%trading%","%crypto%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:46:21.159Z
+FILTERS: {"type":"Co-Founder","domain":"Legal","experience":"Senior","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder') AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Legal%","%Legal%","%Legal%","%Legal%","%Legal%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:46:36.999Z
+FILTERS: {"type":"Co-Founder","domain":"Tech","experience":"Any Level","priority":"Best Credibility","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE (LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder') AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:46:56.964Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Highest Rating","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY avg_rating DESC, u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%"]
+RESULTS COUNT: 5
+
+--- DEBUG ---
+TIME: 2026-05-15T21:47:21.986Z
+FILTERS: {"type":"Freelancer","domain":"Design","experience":"Any Level","priority":"Discover Hidden Talent","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Design%","%ui%","%ux%","%graphic%","%art%","%figma%","%illustrat%","%Design%","%ui%","%ux%","%graphic%","%art%","%figma%","%illustrat%","%Design%","%ui%","%ux%","%graphic%","%art%","%figma%","%illustrat%","%Design%","%ui%","%ux%","%graphic%","%art%","%figma%","%illustrat%","%Design%","%ui%","%ux%","%graphic%","%art%","%figma%","%illustrat%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:48:00.165Z
+FILTERS: {"type":"Freelancer","domain":"Legal","experience":"Senior","priority":"Discover Hidden Talent","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Legal%","%Legal%","%Legal%","%Legal%","%Legal%"]
+RESULTS COUNT: 0
+
+--- DEBUG ---
+TIME: 2026-05-15T21:48:26.217Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Discover Hidden Talent","includeNonApplicants":"Applicants only"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%"]
+RESULTS COUNT: 5

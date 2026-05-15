@@ -23,35 +23,37 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
             formattedTo = "91" + formattedTo;
         }
 
-        // 2. Prepare the Message Body
-        let messageText = "";
-        if (customMessage) {
-            messageText = customMessage;
-        } else {
-            const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_NAME);
-            const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+        // 2. Prepare Template Parameters
+        const isFounder = !!(userName && matches.some(m => m.candidate_name));
+        
+        let waMatches = matches.map((m, i) => {
+            const title = isFounder ? `Talent: ${m.candidate_name}` : `Job: ${m.job_title}`;
+            const company = isFounder ? `(${m.role})` : `@ ${m.startup_name}`;
+            return `[${i+1}] ${title} ${company} - ${m.reason}`;
+        }).join(' | ');
 
-            messageText = `🎯 *FoundU Match Alert!*\nHi ${userName}, our AI found ${matches.length} new jobs that perfectly fit your skills:\n\n`;
-            matches.forEach((m, index) => {
-                messageText += `*${index + 1}. ${m.job_title} @ ${m.startup_name}*\n`;
-                messageText += `💡 _${m.reason}_\n`;
-                messageText += `🔗 Apply: ${baseUrl}/job/${m.job_id}\n\n`;
-            });
-            messageText += `_Don't want these alerts? Update preferences in your dashboard._`;
-        }
-
-        // 3. Send via Meta API
+        // 3. Send via Meta API (Template)
         const response = await axios.post(
             `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",
                 to: formattedTo,
-                type: "text",
-                text: {
-                    preview_url: true,
-                    body: messageText,
-                },
+                type: "template",
+                template: {
+                    name: "foundu_match_alert",
+                    language: { code: "en" },
+                    components: [
+                        {
+                            type: "body",
+                            parameters: [
+                                { type: "text", text: userName.split(" ")[0] }, // {{1}} - First Name
+                                { type: "text", text: isFounder ? "profiles" : "jobs" }, // {{2}} - Category
+                                { type: "text", text: waMatches } // {{3}} - Match List
+                            ]
+                        }
+                    ]
+                }
             },
             {
                 headers: {

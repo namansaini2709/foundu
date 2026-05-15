@@ -101,13 +101,21 @@ const IdeaLabPopup = ({ userId }) => {
         setReportData(response.data.data);
         setPhase("results");
         toast.success("Venture Analysis Complete!");
-        await api.post(`${API_BASE}/ideas/create`, {
-          user_id: userId,
-          title: customTitle || "New Analysis",
-          description: text,
-          report: response.data.data,
-        });
-        fetchHistory();
+
+        // Only create idea in DB if userId is available to avoid 400 errors
+        if (userId) {
+          try {
+            await api.post(`${API_BASE}/ideas/create`, {
+              user_id: userId,
+              title: customTitle || response.data.data?.title || "New Analysis",
+              description: text || "Discovery Mode",
+              report: response.data.data,
+            });
+            fetchHistory();
+          } catch (createErr) {
+            console.error("Error creating idea in DB:", createErr);
+          }
+        }
       }
     } catch (error) {
       toast.error("Analysis failed. Try again.");

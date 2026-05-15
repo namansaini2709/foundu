@@ -55,16 +55,55 @@ exports.chatSuggestions = async (req, res) => {
     let params = [];
 
     if (role === "founder") {
-      // Fetch Freelancers and Cofounders with filtering
+      // Fetch Freelancers and Cofounders with strict filtering
       let whereClauses = ["u.user_type IN ('freelancer', 'cofounder')"];
       
-      if (filters.domain && filters.domain !== "Other") {
-        whereClauses.push("(fp.freelancer_type LIKE ? OR cp.primary_identity LIKE ?)");
-        params.push(`%${filters.domain}%`, `%${filters.domain}%`);
+      // Strict Type Filtering - check multiple possible keys for robustness
+      const typeFilter = filters.type || filters.talentType || filters.talent_type;
+      if (typeFilter) {
+        const target = typeFilter.toLowerCase().replace(/[^a-z]/g, ""); 
+        if (target.includes("freelancer")) {
+          whereClauses = ["LOWER(u.user_type) = 'freelancer'"];
+        } else if (target.includes("founder")) {
+          whereClauses = ["(LOWER(u.user_type) = 'cofounder' OR LOWER(u.user_type) = 'co-founder')"];
+        }
       }
-      if (filters.experience && filters.experience !== "Any Level") {
-        whereClauses.push("(fp.experience LIKE ? OR cp.current_occupational_status LIKE ?)");
-        params.push(`%${filters.experience}%`, `%${filters.experience}%`);
+
+      if (filters.domain && filters.domain !== "Other") {
+        let domainTerms = [`%${filters.domain}%`];
+        
+        // Add more common terms for domains to improve match rate
+        if (filters.domain.toLowerCase() === "tech") {
+          domainTerms.push("%developer%", "%engineer%", "%code%", "%software%", "%programming%", "%web%", "%app%", "%ai%", "%ml%");
+        } else if (filters.domain.toLowerCase() === "finance") {
+          domainTerms.push("%account%", "%tax%", "%audit%", "%bank%", "%invest%", "%trading%", "%crypto%");
+        } else if (filters.domain.toLowerCase() === "design") {
+          domainTerms.push("%ui%", "%ux%", "%graphic%", "%art%", "%figma%", "%illustrat%");
+        } else if (filters.domain.toLowerCase() === "marketing") {
+          domainTerms.push("%seo%", "%social%", "%content%", "%ad%", "%sales%", "%growth%");
+        }
+        
+        const placeholders = domainTerms.map(() => "?").join(" OR fp.freelancer_type LIKE ");
+        const otherPlaceholders = domainTerms.map(() => "?").join(" OR fp.freelancer_type_other LIKE ");
+        const skillsPlaceholders = domainTerms.map(() => "?").join(" OR fp.skills_description LIKE ");
+        const cofounderPlaceholders = domainTerms.map(() => "?").join(" OR cp.primary_identity LIKE ");
+        const cofounderOtherPlaceholders = domainTerms.map(() => "?").join(" OR cp.primary_identity_other LIKE ");
+
+        whereClauses.push(`(
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ${placeholders} OR fp.freelancer_type_other LIKE ${otherPlaceholders} OR fp.skills_description LIKE ${skillsPlaceholders})) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ${cofounderPlaceholders} OR cp.primary_identity_other LIKE ${cofounderOtherPlaceholders}))
+        )`);
+        
+        // Push params for each placeholder set (5 sets now)
+        params.push(...domainTerms, ...domainTerms, ...domainTerms, ...domainTerms, ...domainTerms);
+      }
+
+      // Note: Experience filter removed from DB query to ensure more results. 
+      // Gemini will still prioritize based on experience in the AI ranking phase.
+
+      let orderBy = "u.credibility_score DESC";
+      if (filters.priority === "Highest Rating") {
+        orderBy = "avg_rating DESC, u.credibility_score DESC";
       }
 
       query = `
@@ -85,11 +124,11 @@ exports.chatSuggestions = async (req, res) => {
           GROUP BY user_id
         ) r_stats ON u.id = r_stats.user_id
         WHERE ${whereClauses.join(" AND ")}
-        ORDER BY u.credibility_score DESC
+        ORDER BY ${orderBy}
         LIMIT 50
       `;
     } else {
-      // Fetch Jobs with filtering
+      // Fetch Jobs with strict filtering
       let whereClauses = ["1=1"];
       if (filters.domain && filters.domain !== "Other") {
         whereClauses.push("domain LIKE ?");
@@ -112,14 +151,22 @@ exports.chatSuggestions = async (req, res) => {
     const [rows] = await db.promise().query(query, params);
     candidates = rows;
 
-    // If we have zero results with filters, fallback to general search
+    // DEBUG: Log the query and results to a file we can read
+    try {
+      const debugMsg = `\n--- DEBUG ---\nTIME: ${new Date().toISOString()}\nFILTERS: ${JSON.stringify(filters)}\nQUERY: ${query}\nPARAMS: ${JSON.stringify(params)}\nRESULTS COUNT: ${candidates.length}\n`;
+      fs.appendFileSync(path.join(__dirname, "../query_log.txt"), debugMsg);
+    } catch (logErr) {
+      console.error("Debug logging failed:", logErr);
+    }
+
+    // NO FALLBACK - if no candidates match, return empty to trigger the "No Suggestions" message in frontend
     if (candidates.length === 0) {
-      console.log("[AI CHAT] No filtered results, falling back to general search.");
-      const fallbackQuery = role === "founder" 
-        ? "SELECT u.id, u.full_name, u.user_type, u.credibility_score, u.blue_tick_verified, u.green_tick_verified, u.golden_tick_verified FROM users u WHERE u.user_type IN ('freelancer', 'cofounder') ORDER BY u.credibility_score DESC LIMIT 20"
-        : "SELECT job_id as id, job_title, domain, budget_range FROM foundu_jobs ORDER BY created_at DESC LIMIT 20";
-      const [fallbackRows] = await db.promise().query(fallbackQuery);
-      candidates = fallbackRows;
+      console.log("[AI CHAT] No strict matches found for these filters.");
+      return res.json({
+        success: true,
+        suggestions: [],
+        message: "No suggestions matching these criteria."
+      });
     }
 
     const aiMatches = await geminiService.getChatSuggestions(role, filters, candidates);

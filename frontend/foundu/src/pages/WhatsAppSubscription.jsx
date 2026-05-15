@@ -33,6 +33,7 @@ const WhatsAppSubscription = () => {
   const [couponLoading, setCouponLoading] = useState(false);
   const [subStatus, setSubStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const plan = PLANS.find(p => p.id === selectedPlan);
   const isActive = subStatus?.whatsapp_subscription === 1;
@@ -69,7 +70,21 @@ const WhatsAppSubscription = () => {
     }
   };
 
-  const handleBuySubscription = () => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleBuySubscription = async () => {
     if (!userId) { navigate("/login-signup"); return; }
     if (isActive) { toast.info("You already have an active subscription!"); return; }
     if (profileIncomplete) {
@@ -77,9 +92,81 @@ const WhatsAppSubscription = () => {
       navigate("/profile");
       return;
     }
-    toast.info("💳 Online payment is coming soon! Use a coupon code for free access.", {
-      autoClose: 5000,
-    });
+
+    setPaymentLoading(true);
+    
+    // 1. Load Razorpay SDK
+    const res = await loadRazorpayScript();
+    if (!res) {
+      toast.error("Razorpay SDK failed to load. Are you online?");
+      setPaymentLoading(false);
+      return;
+    }
+
+    try {
+      // 2. Create Order on Backend
+      const orderRes = await api.post("/api/payments/whatsapp/create-order", {
+        amount: plan.price
+      });
+
+      if (!orderRes.data.success) {
+        toast.error("Failed to create order");
+        setPaymentLoading(false);
+        return;
+      }
+
+      // 3. Open Razorpay Checkout Modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_So8xjAeHrh3cic", 
+        amount: orderRes.data.amount,
+        currency: orderRes.data.currency,
+        name: "FoundU",
+        description: `WhatsApp Subscription - ${plan.label}`,
+        order_id: orderRes.data.order_id,
+        handler: async function (response) {
+          try {
+            // 4. Verify Payment on Backend
+            const verifyRes = await api.post("/api/payments/whatsapp/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              user_id: userId,
+              amount: plan.price,
+              plan: plan.id,
+              duration_days: plan.days
+            });
+
+            if (verifyRes.data.success) {
+              toast.success("🎉 Payment Successful! WhatsApp Alerts Activated.");
+              // Reload subscription status to show the Active banner
+              const statusRes = await api.get(`/api/whatsapp/status/${userId}`);
+              if (statusRes.data.success) setSubStatus(statusRes.data.data);
+            } else {
+              toast.error("Payment verification failed.");
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error("Payment verification error.");
+          }
+        },
+        prefill: {
+          name: "",
+          email: "",
+          contact: ""
+        },
+        theme: {
+          color: "#25d366" // WhatsApp Green
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      console.error(err);
+      toast.error("Payment initiation failed.");
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   return (
@@ -244,9 +331,10 @@ const WhatsAppSubscription = () => {
               {/* Buy Button */}
               <button
                 onClick={handleBuySubscription}
-                className="w-full py-4 rounded-2xl font-extrabold text-[15px] flex items-center justify-center gap-2.5 mb-6 transition-all duration-200 bg-gradient-to-r from-[#25d366] to-[#16a34a] text-white hover:opacity-90 hover:-translate-y-0.5 shadow-lg shadow-green-500/20"
+                disabled={paymentLoading}
+                className="w-full py-4 rounded-2xl font-extrabold text-[15px] flex items-center justify-center gap-2.5 mb-6 transition-all duration-200 bg-gradient-to-r from-[#25d366] to-[#16a34a] text-white hover:opacity-90 hover:-translate-y-0.5 shadow-lg shadow-green-500/20 disabled:opacity-70 disabled:hover:translate-y-0"
               >
-                Buy Subscription <ArrowRight size={18} />
+                {paymentLoading ? <Loader2 size={18} className="animate-spin" /> : "Buy Subscription"} {!paymentLoading && <ArrowRight size={18} />}
               </button>
 
               {/* Divider */}

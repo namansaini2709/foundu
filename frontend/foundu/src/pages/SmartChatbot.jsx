@@ -109,6 +109,17 @@ const FLOWS = {
       },
     ],
   },
+  visitor: {
+    greeting:
+      "Welcome to FoundU! I'm Genie, your AI Assistant. To get started, please tell me what you're looking for.",
+    questions: [
+      {
+        key: "intent",
+        text: "What type of category are you looking for?",
+        options: ["Hire Talent (Founder)", "Find Jobs (Freelancer)", "Join Startup (Co-Founder)"],
+      },
+    ],
+  },
 };
 /* ================================================================
    MOCK SUGGESTION DATA — used until backend is connected
@@ -293,16 +304,40 @@ function SuggestionCard({ candidate, onInvite, userRole }) {
         ))}
       </div>
       {/* Action buttons */}
-      <div className="sc-card-actions">
+      <div className="sc-card-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
         <button
           className="sc-btn-explain"
           onClick={() => setShowExplain((p) => !p)}
         >
           {showExplain ? "▲ Hide" : "🔍 Why this match?"}
         </button>
-        <button className="sc-btn-invite" onClick={() => onInvite(candidate)}>
-          {userRole === "founder" ? "📨 Invite" : "✉️ Apply"}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className="sc-btn-contact" 
+            onClick={() => window.location.href = `/chatbox?userId=${candidate.id || candidate.user_id}`}
+            style={{
+              background: "rgba(255, 255, 255, 0.05)",
+              color: "white",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              padding: "8px 16px",
+              borderRadius: "100px",
+              cursor: "pointer",
+              fontWeight: "600",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "0.2s"
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)"; }}
+          >
+            💬 Contact
+          </button>
+          <button className="sc-btn-invite" onClick={() => onInvite(candidate)}>
+            {userRole === "founder" ? "📨 Invite" : "✉️ Apply"}
+          </button>
+        </div>
       </div>
       {/* Match explainer */}
       {showExplain && (
@@ -371,7 +406,7 @@ function InviteModal({ candidate, jobContext, onClose, onSend }) {
 /* ================================================================
    MAIN COMPONENT
    ================================================================ */
-export default function SmartChatbot({ userRole: propRole, userId, activePopup, setActivePopup }) {
+export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, activePopup, setActivePopup }) {
   const location = useLocation();
   /* ── Detect role from localStorage if not passed as prop ── */
   const userRole = propRole || getUserType() || "founder";
@@ -411,7 +446,7 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
   );
 
 
-  const flow = FLOWS[userRole] || FLOWS.founder;
+  const flow = !isLoggedIn ? FLOWS.visitor : (FLOWS[userRole] || FLOWS.founder);
   /* ── Auto-scroll to bottom on new messages ──────────────── */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -465,8 +500,24 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
   const handleOption = async (option) => {
     const currentQ = flow.questions[step - 1];
     if (!currentQ) return;
+    
     // Record user answer
     addUserMsg(option);
+
+    if (!isLoggedIn) {
+      await addBotMsg("Great! Redirecting you to login to continue your journey...");
+      
+      // Determine role from option
+      let targetRole = "founder";
+      if (option.includes("Freelancer")) targetRole = "freelancer";
+      if (option.includes("Co-Founder")) targetRole = "cofounder";
+
+      setTimeout(() => {
+        window.location.href = `/login-signup?role=${targetRole}`;
+      }, 1500);
+      return;
+    }
+
     const newFilters = { ...filters, [currentQ.key]: option };
     setFilters(newFilters);
     const nextStep = step + 1;
@@ -487,25 +538,33 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
         });
 
         if (res.data.success) {
-          const realSuggestions = res.data.suggestions.map(s => ({
-            ...s,
-            name: s.full_name || s.job_title,
-            role: s.user_type || s.domain,
-            initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
-            credibility: s.credibility_score ? s.credibility_score : "70-75",
-            skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Tech", "FoundU Verified"]
-          }));
+          const processedSuggestions = res.data.suggestions
+            .map(s => ({
+              ...s,
+              name: s.full_name || s.job_title,
+              role: s.user_type || s.domain,
+              initials: (s.full_name || s.job_title || "?").substring(0, 2).toUpperCase(),
+              credibility: s.credibility_score ? s.credibility_score : "70-75",
+              skills: s.skills_description ? s.skills_description.split(",").slice(0, 3) : ["Verified Member", "FoundU Verified"]
+            }))
+            .filter(s => s.matchScore >= 70);
 
-          setSuggestions(realSuggestions);
-          addCards(realSuggestions);
+          setSuggestions(processedSuggestions);
           setStep("results");
-          setMessages((prev) => [
-            ...prev,
-            {
-              type: "bot",
-              text: `✅ Found **${realSuggestions.length} top matches** for you! These are real platform members ranked by AI:`,
-            },
-          ]);
+
+          if (processedSuggestions.length === 0) {
+            await addBotMsg("I've carefully scanned all platform members, but **we don't have suggestions related to these specific criteria right now**.");
+            await addBotMsg("Don't worry! We've noted your requirements and **we will notify you soon** as soon as a matching profile is found or joins FoundU.");
+          } else {
+            addCards(processedSuggestions);
+            setMessages((prev) => [
+              ...prev,
+              {
+                type: "bot",
+                text: `✅ Found **${processedSuggestions.length} top matches** for you! These are real platform members ranked by AI:`,
+              },
+            ]);
+          }
         }
       } catch (err) {
         console.error("AI Assistant API Error:", err);
@@ -685,13 +744,15 @@ export default function SmartChatbot({ userRole: propRole, userId, activePopup, 
               </div>
             </div>
             <div className="sc-header-actions">
-              {/* <button
-                className="sc-icon-btn"
-                onClick={handleReset}
-                title="Restart chat"
-              >
-                🔄
-              </button> */}
+              {step > 0 && (
+                <button
+                  className="sc-icon-btn"
+                  onClick={handleReset}
+                  title="Restart chat"
+                >
+                  🔄
+                </button>
+              )}
               <button
                 className="sc-icon-btn"
                 onClick={() => setIsOpen(false)}

@@ -40,6 +40,7 @@ const runMatchmaker = async () => {
              WHERE u.is_profile_complete = 1 
                AND u.user_type = 'freelancer'
                AND u.whatsapp_subscription = 1
+               AND u.whatsapp_expires_at > NOW()
         `);
 
         // B. Fetch Co-founder Talent
@@ -50,6 +51,7 @@ const runMatchmaker = async () => {
              WHERE u.is_profile_complete = 1 
                AND u.user_type = 'cofounder'
                AND u.whatsapp_subscription = 1
+               AND u.whatsapp_expires_at > NOW()
         `);
 
         // C. Fetch Founders (to suggest talent to them)
@@ -58,6 +60,7 @@ const runMatchmaker = async () => {
              FROM users 
              WHERE user_type = 'founder' 
                AND whatsapp_subscription = 1
+               AND whatsapp_expires_at > NOW()
                AND is_profile_complete = 1
         `);
 
@@ -169,22 +172,11 @@ const runMatchmaker = async () => {
                      return `*${i+1}. ${title} ${company}*\n💡 ${m.reason}`;
                  }).join('\n\n');
 
-                 console.log(`📱 Triggering Meta WhatsApp Template for ${user.full_name} (${user.user_type})...`);
-                 
-                 /**
-                  * Using Template: foundu_match_alert
-                  * {{1}} = First Name
-                  * {{2}} = 'jobs' or 'profiles'
-                  * {{3}} = The match list
-                  */
-                 await whatsappService.sendWhatsAppTemplate(
+                 console.log(`📱 Triggering Meta WhatsApp Alert for ${user.full_name} (${user.user_type})...`);
+                 await whatsappService.sendWhatsAppMatchAlert(
                      user.whatsapp_number, 
-                     "foundu_match_alert", 
-                     [
-                        user.full_name.split(" ")[0],
-                        isFounder ? 'profiles' : 'jobs',
-                        waMatches
-                     ]
+                     user.full_name,
+                     userMatch.matches
                  ); 
             }
 

@@ -30,6 +30,10 @@ import {
   CheckCircle,
   Laptop,
   Megaphone,
+  Briefcase,
+  X,
+  Calendar,
+  MapPin,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
