@@ -2,6 +2,70 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const { generateJWT } = require('../utils/jwtUtils');
+const db = require('../config/db');
+const notificationService = require('../services/notificationService');
+
+// Helper to handle login post-processing (audit & notifications)
+const handleLoginPostProcessing = (user) => {
+  if (user && user.id && !user.isNewUser) {
+    // 1. Log Login Audit
+    db.query(
+      `INSERT IGNORE INTO login_audit (user_id, login_date) VALUES (?, CURDATE())`,
+      [user.id],
+      (auditErr) => {
+        if (auditErr) console.error("OAuth Login audit error:", auditErr);
+      }
+    );
+
+    // 2. Auto-Check Golden Tick
+    db.query(
+      `SELECT 
+        u.blue_tick_verified,
+        u.golden_tick_verified,
+        u.golden_tick_month,
+        DATE_FORMAT(CURDATE(), '%Y-%m') AS current_month,
+        COUNT(la.user_id) AS login_days_this_month
+       FROM users u
+       LEFT JOIN login_audit la 
+         ON la.user_id = u.id 
+         AND MONTH(la.login_date)  = MONTH(CURDATE())
+         AND YEAR(la.login_date)   = YEAR(CURDATE())
+       WHERE u.id = ?
+       GROUP BY u.id`,
+      [user.id],
+      (checkErr, checkRows) => {
+        if (!checkErr && checkRows.length) {
+          const row = checkRows[0];
+          const eligible = row.blue_tick_verified == 1 && row.login_days_this_month >= 20;
+          const alreadyAwarded = row.golden_tick_verified == 1 && row.golden_tick_month === row.current_month;
+
+          if (eligible && !alreadyAwarded) {
+            db.query(
+              `UPDATE users SET golden_tick_verified = 1, golden_tick_month = DATE_FORMAT(CURDATE(), '%Y-%m') WHERE id = ?`,
+              [user.id]
+            );
+            notificationService.sendNotification(
+              user.id,
+              "Golden Tick Awarded! 🟡",
+              "Amazing! You've logged in for 20 days this month and unlocked the Golden Tick.",
+              "badge",
+              "/dashboard"
+            );
+          }
+        }
+      }
+    );
+
+    // 3. Send Login Notification
+    notificationService.sendNotification(
+      user.id,
+      "New Login Detected",
+      "You successfully logged in to FoundU via OAuth.",
+      "security",
+      "/profile"
+    );
+  }
+};
 
 // Helper for cookie options (replicating userController logic)
 const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
@@ -52,6 +116,9 @@ router.get('/google/callback', (req, res, next) => {
     try {
       const token = generateJWT(user);
       res.cookie("jwt", token, getCookieOptions());
+
+      // Perform login audit and notifications
+      handleLoginPostProcessing(user);
 
       // If profile is incomplete, redirect to the specific onboarding page
       if (user.is_profile_complete === 0) {
@@ -122,6 +189,9 @@ router.get('/github/callback', (req, res, next) => {
     try {
       const token = generateJWT(user);
       res.cookie("jwt", token, getCookieOptions());
+
+      // Perform login audit and notifications
+      handleLoginPostProcessing(user);
 
       // If profile is incomplete, redirect to onboarding
       if (user.is_profile_complete === 0) {

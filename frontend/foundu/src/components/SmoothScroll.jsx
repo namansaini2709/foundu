@@ -13,10 +13,22 @@ const SmoothScroll = ({ children }) => {
 
     if (location.pathname.startsWith('/admin')) return;
 
+    // Detect touch devices and mobile screens
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Skip JS smooth scrolling entirely on mobile/touch for better native performance (fixes Safari/Mobile issues)
+    if (isMobile || isTouch) {
+      document.documentElement.style.scrollBehavior = 'smooth';
+      return;
+    }
+
     const lenis = new Lenis({
       lerp: 0.1, // Smooth scrolling
       smoothWheel: true,
-      autoRaf: true, // Let Lenis handle the requestAnimationFrame internally (default in 1.3+)
+      smoothTouch: false, // Ensure touch scrolling is native
+      syncTouch: false, // Do not sync touch events
+      autoRaf: true, // Let Lenis handle the requestAnimationFrame internally
     });
 
     // Initial scroll reset
@@ -27,14 +39,10 @@ const SmoothScroll = ({ children }) => {
     };
   }, []);
 
-  // Handle route change scroll reset separately to avoid re-initializing Lenis
+  // Handle route change scroll reset separately
   useEffect(() => {
-    // Small timeout ensures the DOM has updated before we scroll
     const timer = setTimeout(() => {
       window.scrollTo(0, 0);
-      // If lenis exists on the global scope or via a ref, we'd use it here. 
-      // Since it's destroyed/re-init in the other effect (which we fixed), 
-      // we can just use the native scroll reset which Lenis will pick up on next frame.
     }, 50);
     return () => clearTimeout(timer);
   }, [location.pathname]);

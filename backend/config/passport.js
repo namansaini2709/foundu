@@ -94,8 +94,36 @@ passport.use(new GoogleStrategy({
         freelancer_id: freelancerId,
         founder_id: founderId,
         cofounder_id: cofounderId,
-        is_profile_complete: 0
+        is_profile_complete: 0,
+        isNewUser: true // Mark as new user to trigger welcome later or just trigger it here
       };
+
+      // Send Welcome Notification & Email
+      try {
+        const notificationService = require('../services/notificationService');
+        const emailNotificationService = require('../services/emailNotificationService');
+        const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
+        const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+        const profilePath = userType === "founder" ? "/startup-profile" : (userType === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+
+        notificationService.sendNotification(
+          result.insertId,
+          "Welcome to FoundU! 🎉",
+          "Your account has been successfully created via Google. Complete your profile to get started.",
+          "welcome",
+          "/profile",
+        );
+
+        emailNotificationService.sendEmailNotification(
+          result.insertId,
+          "Welcome to FoundU! 🎉",
+          "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
+          "Complete Your Profile",
+          `${baseUrl}${profilePath}`,
+        );
+      } catch (err) {
+        console.error("Error sending welcome notifications:", err);
+      }
 
       return done(null, newUser);
     } catch (error) {
@@ -211,14 +239,45 @@ passport.use(new GitHubStrategy({
       );
 
       console.log("[GitHub] Step 9: New user created with ID:", result.insertId);
-      return done(null, {
+      
+      const newUser = {
         id: result.insertId,
         full_name: fullName,
         email: email,
         github_id: githubId,
         user_type: userType,
-        is_profile_complete: 0
-      });
+        is_profile_complete: 0,
+        isNewUser: true
+      };
+
+      // Send Welcome Notification & Email
+      try {
+        const notificationService = require('../services/notificationService');
+        const emailNotificationService = require('../services/emailNotificationService');
+        const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
+        const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+        const profilePath = userType === "founder" ? "/startup-profile" : (userType === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
+
+        notificationService.sendNotification(
+          result.insertId,
+          "Welcome to FoundU! 🎉",
+          "Your account has been successfully created via GitHub. Complete your profile to get started.",
+          "welcome",
+          "/profile",
+        );
+
+        emailNotificationService.sendEmailNotification(
+          result.insertId,
+          "Welcome to FoundU! 🎉",
+          "We're thrilled to have you on board. FoundU is the ultimate platform to connect top freelancers with the most innovative startups. Start by completing your profile to unlock all features!",
+          "Complete Your Profile",
+          `${baseUrl}${profilePath}`,
+        );
+      } catch (err) {
+        console.error("Error sending GitHub welcome notifications:", err);
+      }
+
+      return done(null, newUser);
     } catch (error) {
       console.error("[GitHub] FATAL ERROR in strategy:", error.message, error.stack);
       return done(error, null);
