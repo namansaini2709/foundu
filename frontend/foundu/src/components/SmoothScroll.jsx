@@ -6,22 +6,22 @@ const SmoothScroll = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Disable browser's automatic scroll restoration to prevent it fighting with Lenis
+    // Detect touch devices and mobile screens FIRST
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // If it's a mobile or touch device (Android/iOS), do absolutely nothing.
+    // Let the native browser handle scrolling perfectly.
+    if (isMobile || isTouch) {
+      return;
+    }
+
+    // Disable browser's automatic scroll restoration to prevent it fighting with Lenis (Desktop only)
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
 
     if (location.pathname.startsWith('/admin')) return;
-
-    // Detect touch devices and mobile screens
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-    // Skip JS smooth scrolling entirely on mobile/touch for better native performance (fixes Safari/Mobile issues)
-    if (isMobile || isTouch) {
-      document.documentElement.style.scrollBehavior = 'smooth';
-      return;
-    }
 
     const lenis = new Lenis({
       lerp: 0.1, // Smooth scrolling

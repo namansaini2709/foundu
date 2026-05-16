@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Briefcase, IndianRupee, Clock, MapPin } from "lucide-react";
+import { Search, Briefcase, IndianRupee, Clock, MapPin, Users } from "lucide-react";
 import Footer from "../components/Footer";
 
 // Gradient styles - same as HomePage
@@ -63,18 +63,29 @@ function FreelancerJobs() {
         // Filter only freelancer jobs and map with startup logos
         const jobsWithLogos = jobsData
           .filter((job) => job.job_type === "freelancer")
-          .map((job) => ({
-            id: job.job_id,
-            name: job.job_title,
-            info: job.full_job_description,
-            stipend: job.budget_range,
-            founderId: job.founder_id,
-            logoUrl: founderLogoMap[job.founder_id] || null,
-            domain: job.domain || "",
-            roleCategory: job.role_category || "",
-            jobLevel: job.job_level || "",
-            workType: job.work_type || "",
-          }));
+          .map((job) => {
+            let actualLogo = job.logoUrl;
+            if (actualLogo && actualLogo.startsWith("/")) {
+              actualLogo = `${API_BASE_URL}${actualLogo}`;
+            }
+            if (!actualLogo) {
+              actualLogo = founderLogoMap[job.founder_id] || null;
+            }
+
+            return {
+              id: job.job_id,
+              name: job.job_title,
+              info: job.full_job_description,
+              stipend: job.budget_range,
+              founderId: job.founder_id,
+              logoUrl: actualLogo,
+              domain: job.domain || "",
+              roleCategory: job.role_category || "",
+              jobLevel: job.job_level || "",
+              workType: job.work_type || "",
+              applicantCount: job.applicant_count || 0,
+            };
+          });
         setAvailableJobs(jobsWithLogos);
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -152,7 +163,7 @@ function FreelancerJobs() {
       <div className="flex items-start justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3 flex-1">
           {job.logoUrl ? (
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0 overflow-hidden">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border-2 border-blue-400/60 shadow-lg shadow-blue-400/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0 overflow-hidden bg-gray-800">
               <img
                 src={job.logoUrl}
                 alt={job.name}
@@ -179,14 +190,24 @@ function FreelancerJobs() {
       <p className="text-gray-300 text-xs mb-4 line-clamp-3 flex-grow relative z-10 leading-relaxed">
         {job.info}
       </p>
-      <div className="flex items-center gap-2 mb-4 text-blue-300 relative z-10">
-        <IndianRupee className="w-3.5 h-3.5" />
-        <span className="font-semibold text-xs">
-          {typeof job.stipend === "string"
-            ? job.stipend.replace(/₹/g, "").trim()
-            : job.stipend}
-        </span>
+      
+      <div className="flex flex-col gap-1 mb-4 relative z-10">
+        <div className="flex items-center gap-2 text-blue-300">
+          <IndianRupee className="w-3.5 h-3.5" />
+          <span className="font-semibold text-xs">
+            {typeof job.stipend === "string"
+              ? job.stipend.replace(/₹/g, "").trim()
+              : job.stipend}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-400 mt-1">
+          <Users className="w-3.5 h-3.5" />
+          <span className="font-medium text-xs">
+            {job.applicantCount} {job.applicantCount === 1 ? 'Applicant' : 'Applicants'} Applied
+          </span>
+        </div>
       </div>
+
       <button
         onClick={() => navigate(`/job-description?job_id=${job.id}`)}
         className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 mt-auto relative z-10 shadow-md hover:shadow-lg hover:shadow-blue-500/50"

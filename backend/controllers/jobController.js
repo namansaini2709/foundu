@@ -293,7 +293,13 @@ exports.createCofounderJob = (req, res) => {
 ================================ */
 exports.getAllJobs = (req, res) => {
   db.query(
-    "SELECT * FROM foundu_jobs WHERE (is_offline IS NULL OR is_offline = 0) ORDER BY created_at DESC",
+    `SELECT j.*, 
+            us.profile_picture_url AS logoUrl,
+            (SELECT COUNT(*) FROM job_applicants a WHERE a.job_id = j.job_id) AS applicant_count
+     FROM foundu_jobs j
+     LEFT JOIN users_socials us ON j.user_id = us.user_id
+     WHERE (j.is_offline IS NULL OR j.is_offline = 0) 
+     ORDER BY j.created_at DESC`,
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(rows);
@@ -306,7 +312,12 @@ exports.getAllJobs = (req, res) => {
 ================================ */
 exports.getJobById = (req, res) => {
   db.query(
-    "SELECT * FROM foundu_jobs WHERE job_id = ?",
+    `SELECT j.*, 
+            us.profile_picture_url AS logoUrl,
+            (SELECT COUNT(*) FROM job_applicants a WHERE a.job_id = j.job_id) AS applicant_count
+     FROM foundu_jobs j
+     LEFT JOIN users_socials us ON j.user_id = us.user_id
+     WHERE j.job_id = ?`,
     [req.params.id],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
