@@ -103,9 +103,8 @@ exports.signup = async (req, res) => {
         freelancer_id,
         founder_id,
         cofounder_id,
-        is_profile_complete,
-        used_referral_code
-      ) VALUES (?,?,?,?,?,?,?,false,?)`,
+        is_profile_complete
+      ) VALUES (?,?,?,?,?,?,?,false)`,
       [
         full_name,
         email,
@@ -114,8 +113,7 @@ exports.signup = async (req, res) => {
         freelancer_id,
         founder_id,
         cofounder_id,
-        valid_referral,
-      ],
+      ]
     );
 
     res.status(201).json({

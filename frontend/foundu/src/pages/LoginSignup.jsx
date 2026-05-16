@@ -531,22 +531,7 @@ function LoginSignup() {
                         </div>
                       </div>
                     )}
-                    {!isLogin && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-5">
-                        <label className="block text-gray-300 text-xs font-bold mb-2 uppercase tracking-wider">
-                          Referral / Coupon Code (Optional)
-                        </label>
-                        <div className="relative group">
-                          <input
-                            type="text"
-                            className="w-full px-4 py-3.5 rounded-xl bg-[#1A1F2C] border border-gray-700 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
-                            placeholder="Have a referral code?"
-                            value={referralCode}
-                            onChange={(e) => setReferralCode(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
+
                     {isLogin && (
                       <div className="flex items-center justify-between mt-2">
                         <label className="flex items-center cursor-pointer group">
