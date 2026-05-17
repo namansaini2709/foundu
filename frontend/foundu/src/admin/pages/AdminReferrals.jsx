@@ -19,19 +19,33 @@ const AdminReferrals = () => {
 
   useEffect(() => {
     fetchReferrals();
-  }, []);
+  }, [couponType]);
 
   const fetchReferrals = async () => {
+    setLoading(true);
     try {
-      const res = await api.get("/api/referrals");
-      // Also fetch WhatsApp coupons to show in the list if you want unified view
-      // For now, let's focus on creating them
-      if (res.data.success) {
-        setReferrals(res.data.data);
+      if (couponType === "referral") {
+        const res = await api.get("/api/referrals");
+        if (res.data.success) {
+          setReferrals(res.data.data);
+        }
+      } else {
+        const res = await api.get("/api/whatsapp/admin/coupons");
+        if (res.data.success) {
+          const normalized = res.data.coupons.map(c => ({
+            id: c.id,
+            code: c.code,
+            is_active: c.is_active,
+            created_at: c.created_at,
+            usage_count: `${c.used_count} / ${c.max_uses}`,
+            is_whatsapp: true
+          }));
+          setReferrals(normalized);
+        }
       }
     } catch (error) {
-      console.error("Error fetching referrals:", error);
-      toast.error("Failed to fetch referrals");
+      console.error("Error fetching data:", error);
+      toast.error(`Failed to fetch ${couponType === 'whatsapp' ? 'coupons' : 'referrals'}`);
     } finally {
       setLoading(false);
     }
@@ -64,25 +78,37 @@ const AdminReferrals = () => {
     }
   };
 
-  const handleToggleStatus = async (id, currentStatus) => {
+  const handleToggleStatus = async (id, currentStatus, isWhatsapp = false, code = "") => {
     try {
-      const res = await api.put(`/api/referrals/${id}`, { is_active: !currentStatus });
-      if (res.data.success) {
-        toast.success(`Code is now ${!currentStatus ? 'Live' : 'Offline'}`);
-        setReferrals(referrals.map(r => r.id === id ? { ...r, is_active: !currentStatus } : r));
+      if (isWhatsapp) {
+        if (currentStatus) {
+          const res = await api.post("/api/whatsapp/admin/deactivate-coupon", { code });
+          if (res.data.success) {
+            toast.success(`Coupon ${code} deactivated successfully.`);
+            fetchReferrals();
+          }
+        }
+      } else {
+        const res = await api.put(`/api/referrals/${id}`, { is_active: !currentStatus });
+        if (res.data.success) {
+          toast.success(`Code is now ${!currentStatus ? 'Live' : 'Offline'}`);
+          setReferrals(referrals.map(r => r.id === id ? { ...r, is_active: !currentStatus } : r));
+        }
       }
     } catch (error) {
       toast.error("Error toggling status");
     }
   };
 
-  const handleViewUsers = async (code) => {
+  const handleViewUsers = async (code, isWhatsapp = false) => {
     setSelectedReferral(code);
     setUsersLoading(true);
     setReferralUsers([]);
 
     try {
-      const res = await api.get(`/api/referrals/users/${code}`);
+      const res = isWhatsapp 
+        ? await api.get(`/api/whatsapp/admin/coupon-users/${code}`)
+        : await api.get(`/api/referrals/users/${code}`);
       if (res.data.success) {
         setReferralUsers(res.data.data);
       }
@@ -198,9 +224,9 @@ const AdminReferrals = () => {
             </thead>
             <tbody className="divide-y divide-gray-700/50">
               {loading ? (
-                <tr><td colSpan="5" className="text-center py-12 text-blue-300 animate-pulse">Loading referral data...</td></tr>
+                <tr><td colSpan="5" className="text-center py-12 text-blue-300 animate-pulse">Loading {couponType === 'whatsapp' ? 'coupon' : 'referral'} data...</td></tr>
               ) : referrals.length === 0 ? (
-                <tr><td colSpan="5" className="text-center py-12 text-gray-500">No referral codes found. Start by generating one above!</td></tr>
+                <tr><td colSpan="5" className="text-center py-12 text-gray-500">No {couponType === 'whatsapp' ? 'coupons' : 'referral codes'} found. Start by generating one above!</td></tr>
               ) : (
                 referrals.map((ref) => (
                   <tr key={ref.id} className="border-t border-gray-700/50 hover:bg-gray-700/20 transition-colors">
@@ -222,22 +248,35 @@ const AdminReferrals = () => {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => handleViewUsers(ref.code)}
+                        onClick={() => handleViewUsers(ref.code, ref.is_whatsapp)}
                         className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-black text-xs bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 transition-all hover:scale-105"
                       >
-                        <Users size={14} /> {ref.usage_count} Users
+                        <Users size={14} /> {ref.usage_count} {ref.is_whatsapp ? '' : 'Users'}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleToggleStatus(ref.id, ref.is_active)}
-                        className={`text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all active:scale-95 ${ref.is_active
-                          ? 'text-red-400 hover:text-red-300'
-                          : 'text-green-400 hover:text-green-300'
-                          }`}
-                      >
-                        {ref.is_active ? 'Stop' : 'Launch'}
-                      </button>
+                      {ref.is_whatsapp ? (
+                        ref.is_active ? (
+                          <button
+                            onClick={() => handleToggleStatus(ref.id, ref.is_active, true, ref.code)}
+                            className="text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all active:scale-95 text-red-400 hover:text-red-300 font-bold"
+                          >
+                            Stop
+                          </button>
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-600 uppercase px-3 py-1.5">Offline</span>
+                        )
+                      ) : (
+                        <button
+                          onClick={() => handleToggleStatus(ref.id, ref.is_active)}
+                          className={`text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all active:scale-95 ${ref.is_active
+                            ? 'text-red-400 hover:text-red-300'
+                            : 'text-green-400 hover:text-green-300'
+                            }`}
+                        >
+                          {ref.is_active ? 'Stop' : 'Launch'}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

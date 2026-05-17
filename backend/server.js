@@ -277,6 +277,29 @@ server.listen(PORT, () => {
     else console.log("[DB FIX] user_type column expanded successfully.");
   });
 
+  // // Create referrals table if it doesn't exist
+  // const createReferralsTable = `
+  //   CREATE TABLE IF NOT EXISTS referrals (
+  //     id INT AUTO_INCREMENT PRIMARY KEY,
+  //     code VARCHAR(50) UNIQUE NOT NULL,
+  //     is_active BOOLEAN DEFAULT TRUE,
+  //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  //   )
+  // `;
+  // db.query(createReferralsTable, (err) => {
+  //   if (err) console.warn("[DB FIX] Could not create referrals table: ", err.message);
+  //   else console.log("[DB FIX] referrals table verified/created successfully.");
+  // });
+
+  // // Add used_referral_code column to users table if it doesn't exist
+  // db.query("ALTER TABLE users ADD COLUMN used_referral_code VARCHAR(50) DEFAULT NULL", (err) => {
+  //   if (err && !err.message.includes("Duplicate column")) {
+  //     console.warn("[DB FIX] Could not add used_referral_code column: ", err.message);
+  //   } else {
+  //     console.log("[DB FIX] used_referral_code column verified/added successfully.");
+  //   }
+  // });
+
   // Add is_offline column to foundu_jobs if it doesn't exist
   db.query("ALTER TABLE foundu_jobs ADD COLUMN is_offline TINYINT(1) DEFAULT 0", (err) => {
     if (err && !err.message.includes("Duplicate column")) console.warn("[DB FIX] Could not add is_offline: ", err.message);

@@ -293,6 +293,7 @@ function App() {
           <Route path="/admin/queries" element={<AdminQueries />} />
           <Route path="/admin/meetings" element={<AdminMeetings />} />
           <Route path="/admin/referrals" element={<AdminReferrals />} />
+          <Route path="/admin/whatsapp" element={<AdminWhatsApp />} />
           <Route
             path="/idea-lab"
             element={
