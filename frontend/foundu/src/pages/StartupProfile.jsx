@@ -31,6 +31,7 @@ const StartupProfile = () => {
     ownerPhone: "+91",
     startupLogo: null,
     founderType: "",
+    founderRole: "",
     whyBuilding: "",
     superpower: "",
     superpowerOther: "",
@@ -112,7 +113,8 @@ const StartupProfile = () => {
         startupName: profile.startup_name || "",
         ownerPhone: profile.owner_phone || "+91",
         startupLogo: profile.startup_logo_url || null,
-        founderType: profile.founder_type || "",
+        founderType: profile.founder_type?.startsWith("any one working with startup") ? "any one working with startup" : profile.founder_type || "",
+        founderRole: profile.founder_type?.includes(" - ") ? profile.founder_type.split(" - ")[1] : "",
         whyBuilding: profile.why_building || "",
         superpower: profile.superpower || "",
         superpowerOther: profile.superpower_other || "",
@@ -186,77 +188,28 @@ const StartupProfile = () => {
   const validateCurrentStep = () => {
     const errors = [];
     switch (currentStep) {
-      case 1: // Founder DNA
-        if (!formData.startupName?.trim())
-          errors.push("Startup Name is required");
-        if (!formData.founderType?.trim())
-          errors.push("Founder type is required");
-        if (!formData.ownerPhone?.trim() || formData.ownerPhone === "+91")
-          errors.push("Owner Phone Number is required");
-        if (!formData.whyBuilding?.trim())
-          errors.push("Why are you building a startup is required");
-        if (!formData.superpower?.trim()) errors.push("Superpower is required");
-        if (
-          formData.superpower === "Other" &&
-          !formData.superpowerOther?.trim()
-        ) {
-          errors.push("Please specify your superpower");
-        }
-        if (formData.weaknesses.length === 0)
-          errors.push("At least one weakness is required");
-        if (!formData.hoursPerWeek?.trim())
-          errors.push("Hours per week is required");
-        if (formData.cofounderType.length === 0)
-          errors.push("At least one co-founder type is required");
+      case 1: // Basic Details
+        if (!formData.startupName?.trim()) errors.push("Startup Name is required");
+        if (!formData.founderType?.trim()) errors.push("Founder type is required");
+        if (formData.founderType === "any one working with startup" && !formData.founderRole?.trim()) errors.push("Role is required");
+        if (!formData.ownerPhone?.trim() || formData.ownerPhone === "+91") errors.push("Owner Phone Number is required");
+        if (!formData.problemSolving?.trim()) errors.push("Problem solving is required");
         break;
-      case 2: // Startup DNA
-        if (!formData.problemSolving?.trim())
-          errors.push("Problem solving is required");
-        if (!formData.whoHasProblem?.trim())
-          errors.push("Who has the problem is required");
-        if (!formData.problemImpact?.trim())
-          errors.push("Problem impact is required");
-        if (!formData.solutionBuilding?.trim())
-          errors.push("Solution building is required");
-        if (!formData.monetization?.trim())
-          errors.push("Monetization is required");
-        if (!formData.unfairAdvantage?.trim())
-          errors.push("Unfair advantage is required");
-        break;
-      case 3: // Burn Reality
-        if (!formData.monthlyInvestment?.trim())
-          errors.push("Monthly investment is required");
-        if (!formData.survivalWithoutRevenue?.trim())
-          errors.push("Survival without revenue is required");
-        if (!formData.biggestRisk?.trim())
-          errors.push("Biggest risk is required");
-        break;
-      case 4: // Hiring & Execution
-        if (!formData.currentNeed?.trim())
-          errors.push("Current need is required");
-        if (!formData.outcome30Days?.trim())
-          errors.push("30-day outcome is required");
-        if (!formData.executionFailures?.trim())
-          errors.push("Execution failures is required");
-        if (formData.trustFactors.length === 0)
-          errors.push("At least one trust factor is required");
-        break;
-      case 5: // Vendor Intelligence
-        if (!formData.useVendors?.trim())
-          errors.push("Vendor usage is required");
-        break;
-      case 6: // AI Idea & Strategy Engine
-        if (!formData.currentStage?.trim())
-          errors.push("Current stage is required");
-        if (!formData.growthBlocker?.trim())
-          errors.push("Growth blocker is required");
-        if (!formData.magicFix?.trim()) errors.push("Magic fix is required");
-        break;
-      case 7: // Dashboard Intelligence
-        if (formData.dashboards.length === 0)
-          errors.push("At least one dashboard is required");
-        if (!formData.currentTools?.trim())
-          errors.push("Current tools is required");
+      case 2: // Business Details
+        if (formData.cofounderType.length === 0) errors.push("At least one co-founder type is required");
+        if (!formData.whoHasProblem?.trim()) errors.push("Who has the problem is required");
+        if (!formData.solutionBuilding?.trim()) errors.push("Solution building is required");
+        if (!formData.monetization?.trim()) errors.push("Monetization is required");
+        if (!formData.unfairAdvantage?.trim()) errors.push("Unfair advantage is required");
+        if (!formData.survivalWithoutRevenue?.trim()) errors.push("Survival without revenue is required");
+        if (!formData.currentNeed?.trim()) errors.push("Current need is required");
+        if (!formData.outcome30Days?.trim()) errors.push("30-day outcome is required");
+        if (!formData.executionFailures?.trim()) errors.push("Execution failures is required");
+        if (formData.trustFactors.length === 0) errors.push("At least one trust factor is required");
+        if (!formData.useVendors?.trim()) errors.push("Vendor usage is required");
+        if (!formData.currentStage?.trim()) errors.push("Current stage is required");
+        if (!formData.growthBlocker?.trim()) errors.push("Growth blocker is required");
+        if (formData.dashboards.length === 0) errors.push("At least one dashboard is required");
         break;
       default:
         break;
@@ -272,7 +225,7 @@ const StartupProfile = () => {
       errors.forEach((error) => toast.error(error));
       return;
     }
-    if (currentStep < 7) {
+    if (currentStep < 2) {
       setCurrentStep((s) => s + 1);
       toast.success(`Step ${currentStep} completed!`);
     }
@@ -290,8 +243,8 @@ const StartupProfile = () => {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Safety check – submit only on step 7
-    if (currentStep !== 7) {
+    // Safety check – submit only on step 2
+    if (currentStep !== 2) {
       toast.error("Please complete all steps before submitting");
       return;
     }
@@ -318,7 +271,7 @@ const StartupProfile = () => {
       } else if (formData.startupLogo) {
         data.append("startup_logo_url", formData.startupLogo);
       }
-      data.append("founderType", formData.founderType);
+      data.append("founderType", formData.founderType === "any one working with startup" ? formData.founderType + " - " + formData.founderRole : formData.founderType);
       data.append("whyBuilding", formData.whyBuilding);
       data.append("superpower", formData.superpower);
       data.append("superpowerOther", formData.superpowerOther);
@@ -382,7 +335,7 @@ const StartupProfile = () => {
           {/* Step Indicator */}
           <div className="mb-6">
             <div className="flex items-center justify-center space-x-1 sm:space-x-2 mb-6 flex-wrap gap-y-2">
-              {[1, 2, 3, 4, 5, 6, 7].map((step) => (
+              {[1, 2].map((step) => (
                 <div key={step} className="flex items-center">
                   <div
                     className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-xs ${
@@ -393,7 +346,7 @@ const StartupProfile = () => {
                   >
                     {step}
                   </div>
-                  {step < 7 && (
+                  {step < 2 && (
                     <div
                       className={`w-4 sm:w-8 h-1 ${
                         currentStep > step ? "bg-blue-500" : "bg-gray-700/50"
@@ -407,12 +360,13 @@ const StartupProfile = () => {
               Complete Your Startup Profile
             </h1>
             <p className="text-blue-200 text-sm text-center">
-              Step {currentStep} of 7 - Fill in your details to connect with the
+              Step {currentStep} of 2 - Fill in your details to connect with the
               right talent
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Step 1: Founder DNA */}
+
+            {/* Step 1: Basic Details */}
             {currentStep === 1 && (
               <div className="flex justify-center">
                 <div className="w-full md:w-[85%] lg:w-[75%]">
@@ -421,9 +375,16 @@ const StartupProfile = () => {
                     style={gradientBlue}
                   >
                     <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 1-Founder DNA
-                      </h2>
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-blue-300">
+                          STEP 1 - Basic Details
+                        </h2>
+                        <p className="text-sm text-gray-400 italic mb-6">
+                          (these will be shown on your profile except the phone number)
+                        </p>
+                      </div>
+                      
+                      {/* Startup Name */}
                       <div>
                         <label
                           htmlFor="startupName"
@@ -441,26 +402,8 @@ const StartupProfile = () => {
                           placeholder="Enter your startup name"
                         />
                       </div>
-                      <div>
-                        <label
-                          htmlFor="ownerPhone"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          Owner Phone (Your Phone Number){" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            id="ownerPhone"
-                            name="ownerPhone"
-                            value={formData.ownerPhone}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
-                            placeholder="+91 XXXXX XXXXX"
-                          />
-                        </div>
-                      </div>
+
+                      {/* Startup Logo */}
                       <div>
                         <label
                           htmlFor="startupLogo"
@@ -497,15 +440,60 @@ const StartupProfile = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Owner Phone */}
+                      <div>
+                        <label
+                          htmlFor="ownerPhone"
+                          className="block text-sm font-medium text-white mb-2"
+                        >
+                          Owner Phone (Your Phone Number){" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            id="ownerPhone"
+                            name="ownerPhone"
+                            value={formData.ownerPhone}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400"
+                            placeholder="+91 XXXXX XXXXX"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Q7: What problem are you solving? */}
+                      <div>
+                        <label
+                          htmlFor="problemSolving"
+                          className="block text-sm font-medium text-white mb-2"
+                        >
+                          1. What problem are you solving?{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          id="problemSolving"
+                          name="problemSolving"
+                          value={formData.problemSolving}
+                          onChange={handleChange}
+                          rows="3"
+                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
+                          placeholder="Describe the problem..."
+                        />
+                      </div>
+
+                      {/* Q1: What best describes you right now? */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          1. What best describes you right now?{" "}
+                          2. What best describes you right now?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
                           {[
                             "Solo founder",
                             "Co-founder team",
+                            "any one working with startup",
                             "Aspiring founder (idea stage)",
                           ].map((option) => (
                             <label
@@ -527,130 +515,56 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <label
-                          htmlFor="whyBuilding"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          2. Why are you building a startup?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="whyBuilding"
-                          name="whyBuilding"
-                          value={formData.whyBuilding}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Explain your motivation..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          3. What is your superpower?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {[
-                            "Tech",
-                            "Business",
-                            "Product",
-                            "Marketing",
-                            "Operations",
-                            "Sales",
-                            "Other",
-                          ].map((option) => (
-                            <label
-                              key={option}
-                              className="flex items-center cursor-pointer"
-                            >
-                              <input
-                                type="radio"
-                                name="superpower"
-                                value={option}
-                                checked={formData.superpower === option}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                              />
-                              <span className="ml-2 text-sm text-white">
-                                {option}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                        {formData.superpower === "Other" && (
-                          <input
-                            type="text"
-                            name="superpowerOther"
-                            value={formData.superpowerOther}
+
+                      {/* Conditional Role Selection */}
+                      {formData.founderType === "any one working with startup" && (
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">
+                            What is your role? <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            name="founderRole"
+                            value={formData.founderRole}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-sm placeholder-gray-400 mt-3"
-                            placeholder="Specify your superpower"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          4. What are you weak at?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {[
-                            "Tech",
-                            "Business",
-                            "Product",
-                            "Marketing",
-                            "Operations",
-                            "Sales",
-                          ].map((option) => (
-                            <label
-                              key={option}
-                              className="flex items-center cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={formData.weaknesses.includes(option)}
-                                onChange={() =>
-                                  handleArrayChange("weaknesses", option)
-                                }
-                                className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500 border-gray-300"
-                              />
-                              <span className="ml-2 text-sm text-white">
-                                {option}
-                              </span>
-                            </label>
-                          ))}
+                            className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 cursor-pointer text-sm"
+                          >
+                            <option value="">Select your role</option>
+                            <option value="CTO">CTO</option>
+                            <option value="CMO">CMO</option>
+                            <option value="CFO">CFO</option>
+                            <option value="part of founding team">part of founding team</option>
+                            <option value="normal employee">normal employee</option>
+                          </select>
                         </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Step 2: Business Details */}
+            {currentStep === 2 && (
+              <div className="flex justify-center">
+                <div className="w-full md:w-[85%] lg:w-[75%]">
+                  <div
+                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
+                    style={gradientBlue}
+                  >
+                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-blue-300">
+                          STEP 2 - Business Details
+                        </h2>
+                        <p className="text-sm text-gray-400 italic mb-6">
+                          (these all details will not be shown on your profile just for our ai to matchmake)
+                        </p>
                       </div>
+
+                      {/* Moving Q6 here */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          5. How many hours can you realistically commit per
-                          week? <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-2">
-                          {["<10", "10–30", "30–60", "60+"].map((option) => (
-                            <label
-                              key={option}
-                              className="flex items-center cursor-pointer"
-                            >
-                              <input
-                                type="radio"
-                                name="hoursPerWeek"
-                                value={option}
-                                checked={formData.hoursPerWeek === option}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                              />
-                              <span className="ml-2 text-sm text-white">
-                                {option}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          6. What type of co-founder would you work best with?{" "}
+                          3. What type of co-founder would you work best with?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -667,9 +581,7 @@ const StartupProfile = () => {
                             >
                               <input
                                 type="checkbox"
-                                checked={formData.cofounderType.includes(
-                                  option,
-                                )}
+                                checked={formData.cofounderType.includes(option)}
                                 onChange={() =>
                                   handleArrayChange("cofounderType", option)
                                 }
@@ -682,47 +594,14 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 2: Startup DNA */}
-            {currentStep === 2 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 2 – Startup DNA
-                      </h2>
-                      <div>
-                        <label
-                          htmlFor="problemSolving"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          7. What problem are you solving?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="problemSolving"
-                          name="problemSolving"
-                          value={formData.problemSolving}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe the problem..."
-                        />
-                      </div>
+
+                      {/* Q8 -> 4 */}
                       <div>
                         <label
                           htmlFor="whoHasProblem"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          8. Who exactly has this problem?{" "}
+                          4. Who exactly has this problem?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -735,42 +614,14 @@ const StartupProfile = () => {
                           placeholder="Describe the target audience..."
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          9. What happens if this problem is not solved?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-2">
-                          {[
-                            "Mild inconvenience",
-                            "Serious pain",
-                            "Business critical",
-                          ].map((option) => (
-                            <label
-                              key={option}
-                              className="flex items-center cursor-pointer"
-                            >
-                              <input
-                                type="radio"
-                                name="problemImpact"
-                                value={option}
-                                checked={formData.problemImpact === option}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                              />
-                              <span className="ml-2 text-sm text-white">
-                                {option}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
+
+                      {/* Q10 -> 5 */}
                       <div>
                         <label
                           htmlFor="solutionBuilding"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          10. What solution are you building?{" "}
+                          5. What solution are you building?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -783,9 +634,11 @@ const StartupProfile = () => {
                           placeholder="Describe your solution..."
                         />
                       </div>
+
+                      {/* Q11 -> 6 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          11. How will you make money?{" "}
+                          6. How will you make money?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -802,12 +655,14 @@ const StartupProfile = () => {
                           <option value="Not sure">Not sure</option>
                         </select>
                       </div>
+
+                      {/* Q12 -> 7 */}
                       <div>
                         <label
                           htmlFor="unfairAdvantage"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          12. What is your unfair advantage?{" "}
+                          7. What is your unfair advantage?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -820,56 +675,11 @@ const StartupProfile = () => {
                           placeholder="Describe your unfair advantage..."
                         />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 3: Burn Reality */}
-            {currentStep === 3 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 3 – Burn Reality
-                      </h2>
+
+                      {/* Q14 -> 8 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          13. How much can you invest per month?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="space-y-2">
-                          {["₹0", "₹10k–50k", "₹50k–2L", "₹2L+"].map(
-                            (option) => (
-                              <label
-                                key={option}
-                                className="flex items-center cursor-pointer"
-                              >
-                                <input
-                                  type="radio"
-                                  name="monthlyInvestment"
-                                  value={option}
-                                  checked={
-                                    formData.monthlyInvestment === option
-                                  }
-                                  onChange={handleChange}
-                                  className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                                />
-                                <span className="ml-2 text-sm text-white">
-                                  {option}
-                                </span>
-                              </label>
-                            ),
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          14. How long can you survive without revenue?{" "}
+                          8. How long can you survive without revenue?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
@@ -900,58 +710,11 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
+
+                      {/* Q16 -> 9 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          15. What is your biggest risk right now?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {[
-                            "Tech execution",
-                            "Hiring",
-                            "Market",
-                            "Money",
-                            "Speed",
-                          ].map((option) => (
-                            <label
-                              key={option}
-                              className="flex items-center cursor-pointer"
-                            >
-                              <input
-                                type="radio"
-                                name="biggestRisk"
-                                value={option}
-                                checked={formData.biggestRisk === option}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300"
-                              />
-                              <span className="ml-2 text-sm text-white">
-                                {option}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 4: Hiring & Execution */}
-            {currentStep === 4 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 4 – Hiring & Execution
-                      </h2>
-                      <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                          16. What do you need right now?{" "}
+                          9. What do you need right now?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -981,12 +744,14 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
+
+                      {/* Q17 -> 10 */}
                       <div>
                         <label
                           htmlFor="outcome30Days"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          17. What outcome must be achieved in the next 30 days?{" "}
+                          10. What outcome must be achieved in the next 30 days?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -999,12 +764,14 @@ const StartupProfile = () => {
                           placeholder="Describe the required outcome..."
                         />
                       </div>
+
+                      {/* Q18 -> 11 */}
                       <div>
                         <label
                           htmlFor="executionFailures"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          18. What usually goes wrong when you try to execute?{" "}
+                          11. What usually goes wrong when you try to execute?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -1017,9 +784,11 @@ const StartupProfile = () => {
                           placeholder="Describe common execution issues..."
                         />
                       </div>
+
+                      {/* Q19 -> 12 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          19. What would make you trust an AI-recommended person
+                          12. What would make you trust an AI-recommended person
                           or vendor? <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1049,26 +818,11 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 5: Vendor Intelligence */}
-            {currentStep === 5 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 5 – Vendor Intelligence
-                      </h2>
+
+                      {/* Q20 -> 13 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          20. Do you use vendors today?{" "}
+                          13. Do you use vendors today?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-2">
@@ -1092,11 +846,13 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
+
+                      {/* Q21 & Q22 -> 14 & 15 */}
                       {formData.useVendors === "Yes" && (
                         <>
                           <div>
                             <label className="block text-sm font-medium text-white mb-2">
-                              21. If yes, which categories? (Multi-select)
+                              14. If yes, which categories? (Multi-select)
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                               {[
@@ -1134,7 +890,7 @@ const StartupProfile = () => {
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-white mb-2">
-                              22. When do you prefer a vendor over hiring?
+                              15. When do you prefer a vendor over hiring?
                               (Multi-select)
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1171,26 +927,11 @@ const StartupProfile = () => {
                           </div>
                         </>
                       )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 6: AI Idea & Strategy Engine */}
-            {currentStep === 6 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 6 – AI Idea & Strategy Engine
-                      </h2>
+
+                      {/* Q23 -> 16 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          23. What stage are you at?{" "}
+                          16. What stage are you at?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -1206,12 +947,14 @@ const StartupProfile = () => {
                           <option value="Scaling">Scaling</option>
                         </select>
                       </div>
+
+                      {/* Q24 -> 17 */}
                       <div>
                         <label
                           htmlFor="growthBlocker"
                           className="block text-sm font-medium text-white mb-2"
                         >
-                          24. What is blocking your growth today?{" "}
+                          17. What is blocking your growth today?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -1224,44 +967,11 @@ const StartupProfile = () => {
                           placeholder="Describe growth blockers..."
                         />
                       </div>
-                      <div>
-                        <label
-                          htmlFor="magicFix"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          25. If you could magically fix ONE thing today, what
-                          would it be? <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="magicFix"
-                          name="magicFix"
-                          value={formData.magicFix}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="Describe your priority fix..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Step 7: Dashboard Intelligence */}
-            {currentStep === 7 && (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[85%] lg:w-[75%]">
-                  <div
-                    className="rounded-xl p-[1px] md:p-[2px] transition-all duration-300"
-                    style={gradientBlue}
-                  >
-                    <div className="bg-gray-800/60 backdrop-blur-md rounded-xl p-5 sm:p-8 md:p-12 space-y-6 md:space-y-8 border border-white/10">
-                      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-blue-300">
-                        STEP 7 – Dashboard Intelligence
-                      </h2>
+
+                      {/* Q26 -> 18 */}
                       <div>
                         <label className="block text-sm font-medium text-white mb-2">
-                          26. Which dashboards would you use weekly?{" "}
+                          18. Which dashboards would you use weekly?{" "}
                           <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1291,29 +1001,13 @@ const StartupProfile = () => {
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <label
-                          htmlFor="currentTools"
-                          className="block text-sm font-medium text-white mb-2"
-                        >
-                          27. What tools do you currently use?{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          id="currentTools"
-                          name="currentTools"
-                          value={formData.currentTools}
-                          onChange={handleChange}
-                          rows="3"
-                          className="w-full px-3 py-2 border border-white/30 bg-gray-800/50 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 resize-none text-sm placeholder-gray-400"
-                          placeholder="List your current tools..."
-                        />
-                      </div>
+
                     </div>
                   </div>
                 </div>
               </div>
             )}
+
             {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row justify-between pt-6 gap-4">
               {currentStep > 1 && (
@@ -1326,23 +1020,23 @@ const StartupProfile = () => {
                 </button>
               )}
               <div className="hidden sm:block flex-1"></div>
-              {currentStep < 7 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="text-white px-10 py-4 rounded-xl font-bold text-base hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] bg-blue-600 hover:bg-blue-500 order-1 sm:order-2"
-                >
-                  Save and Next
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="text-white px-10 py-4 rounded-xl font-bold text-base hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-500 order-1 sm:order-2"
-                >
-                  {loading ? "Saving..." : "Save Details"}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentStep < 2) {
+                    handleNext();
+                  } else {
+                    handleSubmit(e);
+                  }
+                }}
+                disabled={loading}
+                className={`text-white px-10 py-4 rounded-xl font-bold text-base hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2 ${
+                  currentStep < 2 ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'
+                }`}
+              >
+                {currentStep < 2 ? 'Save and Next' : (loading ? 'Saving...' : 'Save Details')}
+              </button>
             </div>
           </form>
         </div>

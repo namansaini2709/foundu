@@ -297,7 +297,7 @@ function App() {
             path="/idea-lab"
             element={
               <ProtectedRoute>
-                <IdeaLabPopup />
+                <IdeaLabPopup userId={userId} />
               </ProtectedRoute>
             }
           />

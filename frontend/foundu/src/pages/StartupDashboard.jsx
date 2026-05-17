@@ -172,15 +172,16 @@ const StartupDashboard = () => {
       fetchUserJobs();
       fetchDashboardStats();
       fetchBadges();
+      fetchMarketplaceStats();
 
       const intervalId = setInterval(() => {
         fetchUserJobs(false);
         fetchDashboardStats();
         fetchBadges();
+        fetchMarketplaceStats();
       }, 10000);
 
       return () => clearInterval(intervalId);
-      fetchMarketplaceStats();
     }
   }, [userId]);
 
