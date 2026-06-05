@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserId, getFullName } from "../utils/authUtils";
 import api from "../utils/axiosConfig";
 import { toast } from "react-toastify";
-import { ArrowLeft, Briefcase } from "lucide-react";
+import { ArrowLeft, Briefcase, Wallet, Award } from "lucide-react";
 import Footer from "../components/Footer";
 import blueBadge from "../assets/bluebadge.png";
 import greenBadge from "../assets/greenbadge.png";
@@ -50,9 +50,9 @@ const FreelancerDashboard = () => {
   };
   // Tab config with icons
   const tabs = [
-    { key: "projects", label: "Projects", icon: "" },
-    { key: "payments", label: "Payments", icon: "" },
-    { key: "badges", label: "Badges", icon: "" },
+    { key: "projects", label: "Projects", icon: <Briefcase className="w-4 h-4" /> },
+    { key: "payments", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
+    { key: "badges", label: "Badges", icon: <Award className="w-4 h-4" /> },
   ];
   // Fetch applications when projects tab is active
   useEffect(() => {
@@ -226,25 +226,25 @@ const FreelancerDashboard = () => {
                         PREMIUM CENTER-ALIGNED TOGGLE BAR
                     ═══════════════════════════════════════════════ */}
           <div className="flex justify-center mt-8">
-            <div className="inline-flex items-center bg-gray-900/60 backdrop-blur-xl rounded-2xl p-1.5 border border-white/10 shadow-2xl shadow-blue-900/20">
+            <div className="inline-flex items-center bg-gray-900/60 backdrop-blur-xl rounded-2xl p-1 border border-white/10 shadow-2xl shadow-blue-900/20 max-w-full overflow-x-auto no-scrollbar">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   className={`
-                                        relative flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-semibold
-                                        transition-all duration-400 ease-out cursor-pointer
-                                        ${activeTab === tab.key
+                    relative flex items-center gap-1.5 px-3 sm:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold
+                    transition-all duration-400 ease-out cursor-pointer whitespace-nowrap
+                    ${activeTab === tab.key
                       ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
                       : "text-gray-400 hover:text-white hover:bg-white/5"
                     }
-                                    `}
+                  `}
                   style={{
                     transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 >
-                  <span className="text-lg">{tab.icon}</span>
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.icon && <span className="text-sm">{tab.icon}</span>}
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </div>

@@ -11,7 +11,10 @@ import {
     Star,
     Globe,
     MessageSquare,
-    TrendingUp
+    TrendingUp,
+    Mail,
+    Phone,
+    User
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -19,6 +22,7 @@ import api, { API_BASE } from '../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getUserId } from '../utils/authUtils';
+import { getImageUrl } from '../utils/imageUtils';
 
 const EventMarketplace = () => {
     const navigate = useNavigate();
@@ -140,7 +144,7 @@ const EventMarketplace = () => {
                             <div className="h-48 relative overflow-hidden">
                                 {event.flyer_url ? (
                                     <img 
-                                        src={`${API_BASE}${event.flyer_url}`} 
+                                        src={getImageUrl(event.flyer_url)} 
                                         alt={event.event_name} 
                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500" 
                                     />
@@ -166,10 +170,6 @@ const EventMarketplace = () => {
 
                                 <div className="space-y-4 mb-10 pt-6 border-t border-white/5">
                                     <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
-                                        <Users className="w-4 h-4 text-purple-500" />
-                                        {event.organizer_name || 'Verified Organizer'}
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
                                         <MapPin className="w-4 h-4 text-purple-500" />
                                         {event.location}
                                     </div>
@@ -182,6 +182,33 @@ const EventMarketplace = () => {
                                             {formattedDate}
                                         </span>
                                     </div>
+                                    {(event.organizer_name || event.organizer_email || event.organizer_number) && (
+                                        <div className="pt-4 border-t border-white/5 space-y-2">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-purple-400">
+                                                Contact Information
+                                            </div>
+                                            <div className="space-y-2 text-xs text-gray-300 font-bold">
+                                                {event.organizer_name && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <User className="w-4 h-4 text-purple-500" />
+                                                        <span>{event.organizer_name}</span>
+                                                    </div>
+                                                )}
+                                                {event.organizer_email && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Mail className="w-4 h-4 text-purple-500" />
+                                                        <span className="break-all">{event.organizer_email}</span>
+                                                    </div>
+                                                )}
+                                                {event.organizer_number && (
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Phone className="w-4 h-4 text-purple-500" />
+                                                        <span>{event.organizer_number}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button 

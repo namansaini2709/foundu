@@ -42,6 +42,7 @@ const gradientBlueToBlack = {
 
 const API_BASE_URL = API_BASE + "/api";
 
+// Antigravity Verification Comment: This comment verifies the interactive Accept/Reject diff feature in your environment!
 function HomePage() {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);

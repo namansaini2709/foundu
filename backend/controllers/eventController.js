@@ -23,7 +23,7 @@ exports.createPromotedEvent = async (req, res) => {
             location
         } = req.body;
 
-        const flyer_url = req.file ? `/uploads/${req.file.filename}` : null;
+        const flyer_url = req.file ? req.file.path : null;
 
         if (!flyer_url) {
             return res.status(400).json({ success: false, message: "Event flyer is required" });
@@ -116,7 +116,7 @@ exports.verifyEventPayment = async (req, res) => {
 exports.getLiveEvents = async (req, res) => {
     try {
         const [events] = await db.promise().query(
-            `SELECT id, event_name, target_audience, event_date, event_time, location, registration_deadline, registration_link, organizer_name, brief, flyer_url, created_at 
+            `SELECT id, event_name, target_audience, event_date, event_time, location, registration_deadline, registration_link, organizer_name, organizer_number, organizer_email, brief, flyer_url, created_at 
              FROM promoted_events 
              WHERE payment_status = 'completed' 
              ORDER BY created_at DESC`
