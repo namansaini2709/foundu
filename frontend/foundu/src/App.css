@@ -56,18 +56,23 @@ html.lenis body {
    =============================== */
 
 html,
-body,
-#root {
+body {
   min-height: 100%;
   background-color: #000;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Prevent horizontal jitter in Safari */
 }
 
-/* Prevent white overscroll bounce */
-body {
-  overscroll-behavior: none;
+#root {
+  min-height: 100%;
+  overflow-x: hidden; /* Prevent horizontal jitter in Safari safely */
+}
+
+/* Prevent white overscroll bounce on desktop only */
+@media (hover: hover) {
+  body {
+    overscroll-behavior: none;
+  }
 }
 
 /* ── GLOBAL PERFECT SCROLLBAR ────────────────────────────── */

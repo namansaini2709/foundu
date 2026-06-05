@@ -13,6 +13,9 @@ const SmoothScroll = ({ children }) => {
     // If it's a mobile or touch device (Android/iOS), do absolutely nothing.
     // Let the native browser handle scrolling perfectly.
     if (isMobile || isTouch) {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'auto';
+      }
       return;
     }
 
@@ -37,7 +40,7 @@ const SmoothScroll = ({ children }) => {
     return () => {
       lenis.destroy();
     };
-  }, []);
+  }, [location.pathname]);
 
   // Handle route change scroll reset separately
   useEffect(() => {
