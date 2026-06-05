@@ -127,3 +127,24 @@ exports.getLiveEvents = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to fetch events" });
     }
 };
+
+exports.getEventById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [events] = await db.promise().query(
+            `SELECT id, event_name, target_audience, event_date, event_time, location, registration_deadline, registration_link, organizer_name, organizer_number, organizer_email, brief, flyer_url, created_at 
+             FROM promoted_events 
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (events.length === 0) {
+            return res.status(404).json({ success: false, message: "Event not found" });
+        }
+
+        res.json({ success: true, event: events[0] });
+    } catch (error) {
+        console.error("Fetch Event By ID Error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch event details" });
+    }
+};

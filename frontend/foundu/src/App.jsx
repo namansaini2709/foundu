@@ -67,6 +67,7 @@ import FAQ from "./pages/FAQ";
 import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import EventPromotion from "./pages/EventPromotion";
 import EventMarketplace from "./pages/EventMarketplace";
+import EventDetail from "./pages/EventDetail";
 import StartupPortals from "./pages/StartupPortals";
 import WhatsAppSubscription from "./pages/WhatsAppSubscription";
 import WebDevelopment from "./pages/WebDevelopment";
@@ -329,6 +330,7 @@ function App() {
           />
           <Route path="/promote-event" element={<EventPromotion />} />
           <Route path="/event-marketplace" element={<EventMarketplace />} />
+          <Route path="/event-detail/:id" element={<EventDetail />} />
           <Route path="/investor-connect" element={<InvestorConnect />} />
           <Route path="/agencies" element={<Agencies />} />
           <Route path="/search" element={<SearchUsers />} />

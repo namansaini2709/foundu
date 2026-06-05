@@ -163,12 +163,7 @@ const EventMarketplace = () => {
                                 <h3 className="text-2xl font-black text-white mb-4 group-hover:text-purple-400 transition-colors uppercase tracking-tight line-clamp-2">
                                     {event.event_name}
                                 </h3>
-
-                                <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8 flex-grow">
-                                    {event.brief?.substring(0, 100)}{event.brief?.length > 100 ? '...' : ''}
-                                </p>
-
-                                <div className="space-y-4 mb-10 pt-6 border-t border-white/5">
+                                <div className="space-y-4 mb-8 pt-6 border-t border-white/5 flex-grow">
                                     <div className="flex items-center gap-3 text-xs font-bold text-gray-300">
                                         <MapPin className="w-4 h-4 text-purple-500" />
                                         {event.location}
@@ -182,39 +177,12 @@ const EventMarketplace = () => {
                                             {formattedDate}
                                         </span>
                                     </div>
-                                    {(event.organizer_name || event.organizer_email || event.organizer_number) && (
-                                        <div className="pt-4 border-t border-white/5 space-y-2">
-                                            <div className="text-[10px] font-black uppercase tracking-widest text-purple-400">
-                                                Contact Information
-                                            </div>
-                                            <div className="space-y-2 text-xs text-gray-300 font-bold">
-                                                {event.organizer_name && (
-                                                    <div className="flex items-center gap-2.5">
-                                                        <User className="w-4 h-4 text-purple-500" />
-                                                        <span>{event.organizer_name}</span>
-                                                    </div>
-                                                )}
-                                                {event.organizer_email && (
-                                                    <div className="flex items-center gap-2.5">
-                                                        <Mail className="w-4 h-4 text-purple-500" />
-                                                        <span className="break-all">{event.organizer_email}</span>
-                                                    </div>
-                                                )}
-                                                {event.organizer_number && (
-                                                    <div className="flex items-center gap-2.5">
-                                                        <Phone className="w-4 h-4 text-purple-500" />
-                                                        <span>{event.organizer_number}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
                                 <button 
-                                    onClick={() => window.open(event.registration_link, '_blank')}
+                                    onClick={() => navigate(`/event-detail/${event.id}`)}
                                     className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase group-hover:bg-purple-600 group-hover:border-purple-600 transition-all duration-300 flex items-center justify-center gap-2">
-                                    Register Now <ArrowRight className="w-4 h-4" />
+                                    View More Information <ArrowRight className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>

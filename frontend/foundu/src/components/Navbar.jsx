@@ -776,6 +776,34 @@ function Navbar() {
                 </Link>
               ))}
 
+              {isLoggedIn() && (
+                <>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-blue-400 mt-4 pt-4 border-t border-blue-700/20">
+                    Marketplaces
+                  </div>
+                  <Link
+                    to="/influencer-marketplace"
+                    className={`text-sm font-medium ${
+                      location.pathname === "/influencer-marketplace"
+                        ? "text-blue-300"
+                        : "text-white hover:text-blue-300"
+                    }`}
+                  >
+                    Influencer Marketplace
+                  </Link>
+                  <Link
+                    to="/event-marketplace"
+                    className={`text-sm font-medium ${
+                      location.pathname === "/event-marketplace"
+                        ? "text-blue-300"
+                        : "text-white hover:text-blue-300"
+                    }`}
+                  >
+                    Event Marketplace
+                  </Link>
+                </>
+              )}
+
               {isLoggedIn() || user ? (
                 // Mobile - Logged in user menu
                 <>
