@@ -1,6 +1,8 @@
 const db = require("../config/db");
 const crypto = require("crypto");
 const notificationService = require("../services/notificationService");
+const emailNotificationService = require("../services/emailNotificationService");
+
 
 exports.createPromotedEvent = async (req, res) => {
     try {
@@ -158,12 +160,11 @@ exports.createEventRegistration = async (req, res) => {
             email_id,
             role,
             startup_name,
-            startup_stage,
-            upi_id
+            startup_stage
         } = req.body;
         const user_id = req.user.id;
 
-        if (!event_id || !user_name || !phone_number || !email_id || !role || !upi_id) {
+        if (!event_id || !user_name || !phone_number || !email_id || !role) {
             return res.status(400).json({ success: false, message: "Missing required registration details" });
         }
 
@@ -177,7 +178,12 @@ exports.createEventRegistration = async (req, res) => {
             return res.status(400).json({ success: false, message: "You are already registered for this event" });
         }
 
-        // 2. Initialize Razorpay Order
+        // 2. Free registration (Razorpay payment logic commented out)
+        const amount = 0; 
+        const orderId = `free_reg_${event_id}_${user_id}_${Date.now()}`;
+        const upi_id = 'FREE'; 
+
+        /*
         const razorpay = require("../utils/razorpay");
         const amount = 200; // Rs. 200
         const options = {
@@ -185,14 +191,14 @@ exports.createEventRegistration = async (req, res) => {
             currency: "INR",
             receipt: `event_reg_${event_id}_${user_id}_${Date.now()}`
         };
-
         const order = await razorpay.orders.create(options);
+        */
 
-        // 3. Create or Update pending registration details in db
+        // 3. Create or Update registration details directly as 'completed'
         const query = `
             INSERT INTO event_registrations 
-            (event_id, user_id, user_name, phone_number, email_id, role, startup_name, startup_stage, upi_id, amount, razorpay_order_id, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            (event_id, user_id, user_name, phone_number, email_id, role, startup_name, startup_stage, upi_id, amount, razorpay_order_id, razorpay_payment_id, payment_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')
             ON DUPLICATE KEY UPDATE 
                 user_name = VALUES(user_name),
                 phone_number = VALUES(phone_number),
@@ -201,8 +207,10 @@ exports.createEventRegistration = async (req, res) => {
                 startup_name = VALUES(startup_name),
                 startup_stage = VALUES(startup_stage),
                 upi_id = VALUES(upi_id),
+                amount = VALUES(amount),
                 razorpay_order_id = VALUES(razorpay_order_id),
-                payment_status = 'pending'
+                razorpay_payment_id = VALUES(razorpay_payment_id),
+                payment_status = 'completed'
         `;
 
         const values = [
@@ -216,21 +224,49 @@ exports.createEventRegistration = async (req, res) => {
             startup_stage || null,
             upi_id,
             amount,
-            order.id
+            orderId,
+            'FREE'
         ];
 
         await db.promise().query(query, values);
 
+        // Fetch event details for notification and email
+        const [eventRows] = await db.promise().query(
+            "SELECT event_name, event_date, location FROM promoted_events WHERE id = ?",
+            [event_id]
+        );
+        const eventName = eventRows.length > 0 ? eventRows[0].event_name : "the event";
+        const eventDateStr = eventRows.length > 0 && eventRows[0].event_date 
+            ? new Date(eventRows[0].event_date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+            : 'TBA';
+        const eventLocation = eventRows.length > 0 ? eventRows[0].location : 'TBA';
+
+        // Send in-app notification
+        notificationService.sendNotification(
+            user_id,
+            "Event Registered! 🎟️",
+            `Your registration for "${eventName}" is complete.`,
+            "/event-detail/" + event_id
+        ).catch(err => console.error("Event registration notification error:", err));
+
+        // Send email confirmation
+        const baseUrl = process.env.FRONTEND_URL || "https://www.foundu.in";
+        emailNotificationService.sendEmailNotification(
+            user_id,
+            "Event Registration Confirmed! 🎟️",
+            `Congratulations! You have successfully registered for the event <b>${eventName}</b>.<br><br><b>Event Details:</b><br>📅 Date: ${eventDateStr}<br>📍 Location: ${eventLocation}<br><br>We look forward to seeing you at the venue. Please keep this email for reference.`,
+            "View Event Details",
+            `${baseUrl}/event-detail/${event_id}`
+        ).catch(err => console.error("Event registration email notification error:", err));
+
         res.json({
             success: true,
-            order_id: order.id,
-            amount: order.amount,
-            currency: order.currency
+            message: "Registration successful"
         });
 
     } catch (error) {
-        console.error("Create Event Registration Order Error:", error);
-        res.status(500).json({ success: false, message: "Failed to create registration order" });
+        console.error("Create Event Registration Error:", error);
+        res.status(500).json({ success: false, message: "Failed to process registration" });
     }
 };
 

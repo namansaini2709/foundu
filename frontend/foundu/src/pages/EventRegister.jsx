@@ -31,8 +31,7 @@ const EventRegister = () => {
         emailId: '',
         role: '',
         startupName: '',
-        startupStage: '',
-        upiId: ''
+        startupStage: ''
     });
 
     useEffect(() => {
@@ -113,89 +112,29 @@ const EventRegister = () => {
         if (formData.role !== 'investor' && !formData.startupStage) {
             return toast.error("Please select your Startup Stage");
         }
-        if (!formData.upiId.trim()) return toast.error("UPI ID is required");
 
         setSubmitting(true);
-        const loadToast = toast.loading('Initializing registration details...', { theme: 'dark' });
+        const loadToast = toast.loading('Confirming your registration...', { theme: 'dark' });
 
         try {
-            // 1. Create order and save pending details
-            const orderRes = await api.post('/api/events/register', {
+            // Call backend to save completed registration details directly (free of charge)
+            const registerRes = await api.post('/api/events/register', {
                 event_id: id,
                 user_name: formData.userName,
                 phone_number: formData.phoneNumber,
                 email_id: formData.emailId,
                 role: formData.role,
                 startup_name: formData.role === 'investor' ? null : formData.startupName,
-                startup_stage: formData.role === 'investor' ? 'Not Applicable' : formData.startupStage,
-                upi_id: formData.upiId
+                startup_stage: formData.role === 'investor' ? 'Not Applicable' : formData.startupStage
             });
 
-            if (!orderRes.data.success) {
-                throw new Error(orderRes.data.message || 'Failed to initialize registration order.');
+            if (registerRes.data.success) {
+                toast.dismiss(loadToast);
+                toast.success('🎉 Registration Confirmed! See you at the event.', { theme: 'dark', autoClose: 4000 });
+                navigate(`/event-detail/${id}`);
+            } else {
+                throw new Error(registerRes.data.message || 'Registration failed');
             }
-
-            toast.dismiss(loadToast);
-
-            // 2. Open Razorpay Checkout Modal
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: orderRes.data.amount,
-                currency: orderRes.data.currency,
-                name: 'FoundU',
-                description: `Event Registration: ${event.event_name}`,
-                order_id: orderRes.data.order_id,
-                prefill: {
-                    name: formData.userName,
-                    email: formData.emailId,
-                    contact: formData.phoneNumber
-                },
-                theme: {
-                    color: '#9333ea' // Purple matching events theme
-                },
-                handler: async function (response) {
-                    const verifyToast = toast.loading('Confirming event ticket payment...', { theme: 'dark' });
-                    try {
-                        const verifyRes = await api.post('/api/events/verify-registration', {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            event_id: id
-                        });
-
-                        if (verifyRes.data.success) {
-                            toast.update(verifyToast, {
-                                render: '🎉 Registration Confirmed! See you at the event.',
-                                type: 'success',
-                                isLoading: false,
-                                autoClose: 5000
-                            });
-                            navigate(`/event-detail/${id}`);
-                        } else {
-                            toast.update(verifyToast, {
-                                render: verifyRes.data.message || 'Verification failed.',
-                                type: 'error',
-                                isLoading: false,
-                                autoClose: 3000
-                            });
-                        }
-                    } catch (err) {
-                        console.error("Payment verification failed:", err);
-                        toast.update(verifyToast, {
-                            render: 'Database update or signature match failed.',
-                            type: 'error',
-                            isLoading: false,
-                            autoClose: 3000
-                        });
-                    }
-                }
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', function (response) {
-                toast.error('Payment cancelled or transaction failed.', { theme: 'dark' });
-            });
-            rzp.open();
 
         } catch (error) {
             console.error("Registration error:", error);
@@ -248,7 +187,7 @@ const EventRegister = () => {
                             Register for {event.event_name}
                         </h1>
                         <p className="text-xs text-gray-400 max-w-lg mx-auto">
-                            Fill in your attendee information. Complete the confirmation payment to secure your invite.
+                            Fill in your attendee information to secure your spot at the event.
                         </p>
                     </div>
 
@@ -380,38 +319,6 @@ const EventRegister = () => {
                             </div>
                         </div>
 
-                        {/* Payout & Refund section */}
-                        <div className="space-y-4 pt-4 border-t border-white/5">
-                            <h3 className="text-xs font-black uppercase tracking-widest text-purple-400/80 mb-2">Confirmation Payout (Refundable)</h3>
-                            
-                            <div className="bg-purple-950/20 border border-purple-800/20 rounded-2xl p-5 flex items-start gap-4">
-                                <Wallet className="w-6 h-6 text-purple-400 shrink-0 mt-0.5" />
-                                <div className="space-y-1">
-                                    <h4 className="text-sm font-bold text-gray-200">Confirmation Amount: ₹200</h4>
-                                    <p className="text-xs text-gray-400 leading-relaxed">
-                                        Registration is ₹200. This ₹200 is fully refundable—it is just for confirmation that you will attend the event and will be refunded hand-to-hand at the venue.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Your UPI ID (For Refund Tracking) *</label>
-                                <div className="relative group">
-                                    <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 group-focus-within:text-purple-400 transition-colors" />
-                                    <input 
-                                        type="text" 
-                                        name="upiId" 
-                                        value={formData.upiId} 
-                                        onChange={handleInputChange} 
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-11 text-white focus:outline-none focus:border-purple-500 transition-all font-medium text-sm" 
-                                        placeholder="e.g. name@upi" 
-                                        required
-                                    />
-                                </div>
-                                <span className="text-[10px] text-gray-500 mt-1 block">Specify the UPI address where you would like the confirmation deposit tracked.</span>
-                            </div>
-                        </div>
-
                         {/* Submit Button */}
                         <div className="pt-6">
                             <button
@@ -422,16 +329,16 @@ const EventRegister = () => {
                                 {submitting ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Processing Order...
+                                        Submitting...
                                     </>
                                 ) : (
                                     <>
-                                        Pay & Confirm Registration (₹200)
+                                        Confirm Registration
                                     </>
                                 )}
                             </button>
                             <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-gray-500 uppercase font-black tracking-wider">
-                                <ShieldCheck className="w-4 h-4 text-purple-500" /> Secured checkout powered by Razorpay
+                                <ShieldCheck className="w-4 h-4 text-purple-500" /> FREE Entry Verified
                             </div>
                         </div>
 
