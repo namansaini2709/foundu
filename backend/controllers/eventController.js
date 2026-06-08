@@ -148,3 +148,202 @@ exports.getEventById = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to fetch event details" });
     }
 };
+
+exports.createEventRegistration = async (req, res) => {
+    try {
+        const {
+            event_id,
+            user_name,
+            phone_number,
+            email_id,
+            role,
+            startup_name,
+            startup_stage,
+            upi_id
+        } = req.body;
+        const user_id = req.user.id;
+
+        if (!event_id || !user_name || !phone_number || !email_id || !role || !upi_id) {
+            return res.status(400).json({ success: false, message: "Missing required registration details" });
+        }
+
+        // 1. Check if user is already registered for this event
+        const [existing] = await db.promise().query(
+            "SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ? AND payment_status = 'completed'",
+            [event_id, user_id]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, message: "You are already registered for this event" });
+        }
+
+        // 2. Initialize Razorpay Order
+        const razorpay = require("../utils/razorpay");
+        const amount = 200; // Rs. 200
+        const options = {
+            amount: Math.round(amount * 100), // in paise
+            currency: "INR",
+            receipt: `event_reg_${event_id}_${user_id}_${Date.now()}`
+        };
+
+        const order = await razorpay.orders.create(options);
+
+        // 3. Create or Update pending registration details in db
+        const query = `
+            INSERT INTO event_registrations 
+            (event_id, user_id, user_name, phone_number, email_id, role, startup_name, startup_stage, upi_id, amount, razorpay_order_id, payment_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            ON DUPLICATE KEY UPDATE 
+                user_name = VALUES(user_name),
+                phone_number = VALUES(phone_number),
+                email_id = VALUES(email_id),
+                role = VALUES(role),
+                startup_name = VALUES(startup_name),
+                startup_stage = VALUES(startup_stage),
+                upi_id = VALUES(upi_id),
+                razorpay_order_id = VALUES(razorpay_order_id),
+                payment_status = 'pending'
+        `;
+
+        const values = [
+            event_id,
+            user_id,
+            user_name,
+            phone_number,
+            email_id,
+            role,
+            startup_name || null,
+            startup_stage || null,
+            upi_id,
+            amount,
+            order.id
+        ];
+
+        await db.promise().query(query, values);
+
+        res.json({
+            success: true,
+            order_id: order.id,
+            amount: order.amount,
+            currency: order.currency
+        });
+
+    } catch (error) {
+        console.error("Create Event Registration Order Error:", error);
+        res.status(500).json({ success: false, message: "Failed to create registration order" });
+    }
+};
+
+exports.verifyEventRegistration = async (req, res) => {
+    try {
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            event_id
+        } = req.body;
+        const user_id = req.user.id;
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !event_id) {
+            return res.status(400).json({ success: false, message: "Missing verification details" });
+        }
+
+        const body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "placeholder_secret")
+            .update(body.toString())
+            .digest("hex");
+
+        const isAuthentic = expectedSignature === razorpay_signature;
+
+        if (!isAuthentic) {
+            return res.status(400).json({ success: false, message: "Invalid signature" });
+        }
+
+        // Update database
+        const [updateResult] = await db.promise().query(
+            `UPDATE event_registrations 
+             SET payment_status = 'completed', 
+                 razorpay_payment_id = ?
+             WHERE razorpay_order_id = ? AND user_id = ? AND event_id = ?`,
+            [razorpay_payment_id, razorpay_order_id, user_id, event_id]
+        );
+
+        if (updateResult.affectedRows === 0) {
+            return res.status(400).json({ success: false, message: "Registration record not found or update failed" });
+        }
+
+        // Fetch event name for notification
+        const [eventRows] = await db.promise().query("SELECT event_name FROM promoted_events WHERE id = ?", [event_id]);
+        const eventName = eventRows.length > 0 ? eventRows[0].event_name : "the event";
+
+        // Send in-app notification
+        notificationService.sendNotification(
+            user_id,
+            "Event Registered! 🎟️",
+            `Your registration for "${eventName}" is complete. ₹200 refundable deposit received.`,
+            "/event-detail/" + event_id
+        ).catch(err => console.error("Event registration notification error:", err));
+
+        res.json({ success: true, message: "Registration successful" });
+
+    } catch (error) {
+        console.error("Verify Event Registration Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error during verification" });
+    }
+};
+
+exports.getEventRegistrationStatus = async (req, res) => {
+    try {
+        const { id } = req.params; // event_id
+        const user_id = req.user.id;
+
+        const [rows] = await db.promise().query(
+            "SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ? AND payment_status = 'completed'",
+            [id, user_id]
+        );
+
+        res.json({
+            success: true,
+            registered: rows.length > 0
+        });
+    } catch (error) {
+        console.error("Check Registration Status Error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch registration status" });
+    }
+};
+
+exports.getAdminEventRegistrations = async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                er.id,
+                er.event_id,
+                er.user_id,
+                er.user_name,
+                er.phone_number,
+                er.email_id,
+                er.role,
+                er.startup_name,
+                er.startup_stage,
+                er.upi_id,
+                er.amount,
+                er.razorpay_order_id,
+                er.razorpay_payment_id,
+                er.payment_status,
+                er.created_at,
+                pe.event_name,
+                pe.event_date
+            FROM event_registrations er
+            JOIN promoted_events pe ON er.event_id = pe.id
+            WHERE er.payment_status = 'completed'
+            ORDER BY er.created_at DESC
+        `;
+        const [rows] = await db.promise().query(query);
+        res.json({ success: true, registrations: rows });
+    } catch (error) {
+        console.error("Get Admin Event Registrations Error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch event registrations" });
+    }
+};
+

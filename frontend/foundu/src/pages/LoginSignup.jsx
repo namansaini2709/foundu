@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ChevronDown, Github } from "lucide-react";
 import Footer from "../components/Footer";
@@ -12,6 +12,7 @@ const gradientBlackToBlue = {
 };
 function LoginSignup() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [userType, setUserType] = useState(""); // Start empty to force selection
   const authStatus = searchParams.get("auth");
@@ -222,14 +223,18 @@ function LoginSignup() {
           theme: "dark",
         });
 
-        // Login always goes to Dashboard (unless profile is critically incomplete)
+        // Login goes to state.from if redirected, otherwise dashboard
         const type = userData.user_type.toLowerCase();
         let target = "/";
-
-        if (type === "freelancer") target = "/freelancer-dashboard";
-        else if (type === "cofounder") target = "/cofounder-dashboard";
-        else if (type === "founder") target = "/startup-dashboard";
-        else if (type === "influencer") target = "/influencer-marketplace";
+        const redirectFrom = location.state?.from?.pathname;
+        if (redirectFrom) {
+          target = redirectFrom;
+        } else {
+          if (type === "freelancer") target = "/freelancer-dashboard";
+          else if (type === "cofounder") target = "/cofounder-dashboard";
+          else if (type === "founder") target = "/startup-dashboard";
+          else if (type === "influencer") target = "/influencer-marketplace";
+        }
 
         // Full reload to target to ensure clean state and trigger sync
         window.location.href = target;
@@ -276,12 +281,17 @@ function LoginSignup() {
 
         toast.success("Signup successful", { theme: "dark" });
 
-        // New users always go to profile completion
+        // New users go to state.from if redirected, otherwise profile completion
         const type = userData.user_type.toLowerCase();
         let target = "/";
-        if (type === "freelancer") target = "/freelancer-profile";
-        else if (type === "cofounder") target = "/cofounder-profile";
-        else if (type === "founder") target = "/startup-profile";
+        const redirectFrom = location.state?.from?.pathname;
+        if (redirectFrom) {
+          target = redirectFrom;
+        } else {
+          if (type === "freelancer") target = "/freelancer-profile";
+          else if (type === "cofounder") target = "/cofounder-profile";
+          else if (type === "founder") target = "/startup-profile";
+        }
 
         window.location.href = target;
       }

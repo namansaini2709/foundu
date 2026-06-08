@@ -68,6 +68,8 @@ import PitchDeckPurchase from "./pages/PitchDeckPurchase";
 import EventPromotion from "./pages/EventPromotion";
 import EventMarketplace from "./pages/EventMarketplace";
 import EventDetail from "./pages/EventDetail";
+import EventRegister from "./pages/EventRegister";
+import AdminEvents from "./admin/pages/AdminEvents";
 import StartupPortals from "./pages/StartupPortals";
 import WhatsAppSubscription from "./pages/WhatsAppSubscription";
 import WebDevelopment from "./pages/WebDevelopment";
@@ -295,6 +297,7 @@ function App() {
           <Route path="/admin/meetings" element={<AdminMeetings />} />
           <Route path="/admin/referrals" element={<AdminReferrals />} />
           <Route path="/admin/whatsapp" element={<AdminWhatsApp />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
           <Route
             path="/idea-lab"
             element={
@@ -331,6 +334,14 @@ function App() {
           <Route path="/promote-event" element={<EventPromotion />} />
           <Route path="/event-marketplace" element={<EventMarketplace />} />
           <Route path="/event-detail/:id" element={<EventDetail />} />
+          <Route
+            path="/event-register/:id"
+            element={
+              <ProtectedRoute>
+                <EventRegister />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/investor-connect" element={<InvestorConnect />} />
           <Route path="/agencies" element={<Agencies />} />
           <Route path="/search" element={<SearchUsers />} />

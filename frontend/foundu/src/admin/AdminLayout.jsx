@@ -16,6 +16,7 @@ const navItems = [
   { label: "WhatsApp", icon: "📱", path: "/admin/whatsapp" },
   { label: "Meetings", icon: "🤝", path: "/admin/meetings" },
   { label: "Referrals", icon: "🎫", path: "/admin/referrals" },
+  { label: "FoundU Events", icon: "🎟️", path: "/admin/events" },
   { label: "Users", icon: "👥", path: "/admin/users", soon: true },
   { label: "Jobs", icon: "💼", path: "/admin/jobs", soon: true }
 ];

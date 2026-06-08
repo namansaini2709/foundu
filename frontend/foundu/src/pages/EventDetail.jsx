@@ -18,12 +18,14 @@ import api from '../utils/axiosConfig';
 import { getImageUrl } from '../utils/imageUtils';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
+import { getUserId } from '../utils/authUtils';
 
 const EventDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [registered, setRegistered] = useState(false);
 
     useEffect(() => {
         const fetchEventDetails = async () => {
@@ -44,7 +46,22 @@ const EventDetail = () => {
             }
         };
 
+        const checkRegistrationStatus = async () => {
+            try {
+                const userId = getUserId();
+                if (userId) {
+                    const res = await api.get(`/api/events/${id}/registration-status`);
+                    if (res.data.success && res.data.registered) {
+                        setRegistered(true);
+                    }
+                }
+            } catch (error) {
+                console.log("Check registration status failed:", error.message);
+            }
+        };
+
         fetchEventDetails();
+        checkRegistrationStatus();
     }, [id, navigate]);
 
     if (loading) {
@@ -140,12 +157,21 @@ const EventDetail = () => {
                                     ))}
                                 </div>
 
-                                <button 
-                                    onClick={() => window.open(event.registration_link, '_blank')}
-                                    className="px-8 py-5 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 w-full sm:w-auto hover:scale-[1.01] duration-300"
-                                >
-                                    Register Now <ExternalLink className="w-4 h-4" />
-                                </button>
+                                {registered ? (
+                                    <button 
+                                        disabled
+                                        className="px-8 py-5 bg-green-500/20 border border-green-500/40 text-green-400 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 w-full sm:w-auto cursor-not-allowed shadow-xl shadow-green-900/10"
+                                    >
+                                        Registered ✓
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => navigate(`/event-register/${event.id}`)}
+                                        className="px-8 py-5 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 w-full sm:w-auto hover:scale-[1.01] duration-300"
+                                    >
+                                        Register Now <ExternalLink className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
 
                             {/* About the Event */}
