@@ -5,7 +5,7 @@ dotenv.config();
 const genAI = new GoogleGenerativeAI((process.env.GEMINI_API_KEY || "").trim());
 
 // Priority list based on user discovery (using next-gen 2.0/2.5 models available to user)
-const MODELS = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-pro-latest"];
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest", "gemini-pro-latest"];
 
 /**
  * Robustly calls Gemini with model fallback.
