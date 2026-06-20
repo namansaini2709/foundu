@@ -166,7 +166,9 @@ const IdeaLabPopup = ({ userId }) => {
         {/* SIDEBAR */}
         <aside className="il-sidebar">
           <div className="il-brand">
-            <div className="il-brand-mark">IL</div>
+            <div className="il-brand-mark">
+              <Lightbulb size={20} />
+            </div>
             <span className="il-brand-name">Idea Lab</span>
           </div>
           <button className="il-new-btn" onClick={handleNewAnalysis}>
@@ -206,7 +208,7 @@ const IdeaLabPopup = ({ userId }) => {
             {/* START */}
             {phase === "start" && (
               <div className="il-start">
-                <div className="il-badge">Powered by Claude</div>
+                {/* <div className="il-badge">Powered by Claude</div> */}
                 <h1 className="il-h1">
                   The Future
                   <br />
