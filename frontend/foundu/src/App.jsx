@@ -58,6 +58,7 @@ import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 import OurTeam from "./pages/OurTeam";
+import FounderAI from "./pages/FounderAI";
 import ContactUs from "./pages/ContactUs";
 import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
@@ -226,6 +227,8 @@ function App() {
           <Route path="/agencies" element={<Agencies />} />
           <Route path="/search" element={<SearchUsers />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/founder-ai" element={<ProtectedRoute allowedRole="founder"><FounderAI /></ProtectedRoute>} />
+
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />

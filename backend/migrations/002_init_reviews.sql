@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS reviews (
+  review_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  reviewer_id INT NOT NULL,
+  freelancer_id INT DEFAULT NULL,
+  cofounder_id INT DEFAULT NULL,
+  review_text TEXT NOT NULL,
+  stars TINYINT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE
+);
