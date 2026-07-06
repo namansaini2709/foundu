@@ -11,7 +11,7 @@ const SmoothScroll = ({ children }) => {
       window.history.scrollRestoration = 'manual';
     }
 
-    if (location.pathname.startsWith('/admin')) return;
+    if (location.pathname.startsWith('/admin') || location.pathname === '/founder-ai') return;
 
     const lenis = new Lenis({
       lerp: 0.1, // Smooth scrolling

@@ -93,6 +93,24 @@ function NavbarWrapper({ setActivePopup }) {
   return <Navbar />;
 }
 
+function FloatingChatWrapper({ isLoggedIn, userId, userRole, activePopup, setActivePopup }) {
+  const location = useLocation();
+  const hideChatRoutes = ["/founder-ai"];
+
+  if (hideChatRoutes.includes(location.pathname)) {
+    return null;
+  }
+
+  if (!isLoggedIn) return null;
+
+  return (
+    <>
+      <GlobalChatOverlay userId={userId} />
+      <SmartChatbot userRole={userRole} userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />
+    </>
+  );
+}
+
 function App() {
   const [activePopup, setActivePopup] = useState(null);
   const [authState, setAuthState] = useState({
@@ -233,12 +251,13 @@ function App() {
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        {isLoggedIn && (
-          <>
-            <GlobalChatOverlay userId={userId} />
-            <SmartChatbot userRole={userRole} userId={userId} activePopup={activePopup} setActivePopup={setActivePopup} />
-          </>
-        )}
+        <FloatingChatWrapper
+          isLoggedIn={isLoggedIn}
+          userId={userId}
+          userRole={userRole}
+          activePopup={activePopup}
+          setActivePopup={setActivePopup}
+        />
       </SmoothScroll>
     </Router>
   );
