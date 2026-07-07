@@ -63,10 +63,11 @@ exports.chat = async (req, res) => {
   } catch (err) {
     console.error("[FounderGPT] Error:", err.message);
 
-    // Fallback to older model if needed
+    // Fallback to an alternate current model if the primary is unavailable.
+    // (Note: "gemini-pro" was removed from the v1beta API and returns 404.)
     try {
       const fallbackModel = genAI.getGenerativeModel({
-        model: "gemini-pro",
+        model: "gemini-2.0-flash-lite",
         systemInstruction: SYSTEM_PROMPT,
       });
       const result = await fallbackModel.generateContent(req.body.message);

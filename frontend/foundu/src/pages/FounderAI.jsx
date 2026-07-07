@@ -2,7 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
 import { getFullName } from "../utils/authUtils";
-import { Send, Zap, Plus, Trash2, Menu, X, ChevronLeft, MessageSquare } from "lucide-react";
+import {
+  ArrowUp,
+  Plus,
+  Trash2,
+  Menu,
+  X,
+  ChevronLeft,
+  MessageSquare,
+  Search,
+  PenLine,
+  Rocket,
+  Sparkles,
+} from "lucide-react";
 
 // Lightweight markdown renderer (no extra deps)
 const SimpleMarkdown = ({ children }) => {
@@ -10,15 +22,15 @@ const SimpleMarkdown = ({ children }) => {
   return (
     <div className="space-y-2">
       {lines.map((line, i) => {
-        if (line.startsWith("### ")) return <h3 key={i} className="font-black text-white mt-3">{line.slice(4)}</h3>;
-        if (line.startsWith("## ")) return <h2 key={i} className="font-black text-white text-lg mt-3">{line.slice(3)}</h2>;
-        if (line.startsWith("# ")) return <h1 key={i} className="font-black text-white text-xl mt-3">{line.slice(2)}</h1>;
-        if (line.startsWith("- ") || line.startsWith("* ")) return <div key={i} className="flex gap-2"><span className="text-blue-400 shrink-0">•</span><span>{line.slice(2)}</span></div>;
+        if (line.startsWith("### ")) return <h3 key={i} className="font-semibold text-white mt-3">{line.slice(4)}</h3>;
+        if (line.startsWith("## ")) return <h2 key={i} className="font-semibold text-white text-lg mt-3">{line.slice(3)}</h2>;
+        if (line.startsWith("# ")) return <h1 key={i} className="font-semibold text-white text-xl mt-3">{line.slice(2)}</h1>;
+        if (line.startsWith("- ") || line.startsWith("* ")) return <div key={i} className="flex gap-2"><span className="text-gray-500 shrink-0">•</span><span>{line.slice(2)}</span></div>;
         if (/^\d+\. /.test(line)) {
           const num = line.match(/^(\d+)\. /)[1];
-          return <div key={i} className="flex gap-2"><span className="text-blue-400 shrink-0 font-bold">{num}.</span><span>{line.replace(/^\d+\. /, "")}</span></div>;
+          return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-semibold">{num}.</span><span>{line.replace(/^\d+\. /, "")}</span></div>;
         }
-        if (line.startsWith("**") && line.endsWith("**")) return <p key={i} className="font-bold text-white">{line.slice(2, -2)}</p>;
+        if (line.startsWith("**") && line.endsWith("**")) return <p key={i} className="font-semibold text-white">{line.slice(2, -2)}</p>;
         if (line === "") return <div key={i} className="h-1" />;
         // Inline bold
         const parts = line.split(/(\*\*[^*]+\*\*)/g);
@@ -26,7 +38,7 @@ const SimpleMarkdown = ({ children }) => {
           <p key={i}>
             {parts.map((part, j) =>
               part.startsWith("**") && part.endsWith("**")
-                ? <strong key={j} className="text-white font-bold">{part.slice(2, -2)}</strong>
+                ? <strong key={j} className="text-white font-semibold">{part.slice(2, -2)}</strong>
                 : part
             )}
           </p>
@@ -37,12 +49,10 @@ const SimpleMarkdown = ({ children }) => {
 };
 
 const STARTERS = [
-  "How do I validate my startup idea without spending money?",
-  "What's the fastest way to find a technical co-founder?",
-  "Help me design a go-to-market strategy for India.",
-  "What should my MVP include?",
-  "How do I price my SaaS product?",
-  "What investors look for in a pre-seed startup?",
+  { icon: Sparkles, label: "Validate my idea", prompt: "How do I validate my startup idea without spending money?" },
+  { icon: Rocket, label: "Scope my MVP", prompt: "What should my MVP include and what should I cut?" },
+  { icon: PenLine, label: "GTM strategy", prompt: "Help me design a go-to-market strategy for India." },
+  { icon: Search, label: "What investors want", prompt: "What do investors look for in a pre-seed startup?" },
 ];
 
 const FounderAI = () => {
@@ -67,19 +77,12 @@ const FounderAI = () => {
     return cached ? cached.split(" ")[0] : "Founder";
   })();
 
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
-  };
-
   // Lock body scroll on mount to prevent double scrollbars
   useEffect(() => {
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
     document.body.setAttribute("data-lenis-prevent", "true");
-    
+
     return () => {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
@@ -137,7 +140,7 @@ const FounderAI = () => {
     e.stopPropagation();
     const updatedChats = chats.filter((c) => c.id !== id);
     setChats(updatedChats);
-    
+
     if (activeChatId === id) {
       if (updatedChats.length > 0) {
         setActiveChatId(updatedChats[0].id);
@@ -174,7 +177,7 @@ const FounderAI = () => {
     try {
       // Build history payload for Gemini context
       const historyPayload = messages.map((m) => ({ role: m.role, content: m.content }));
-      
+
       const res = await api.post("/api/founder-ai/chat", {
         message: userText,
         history: historyPayload,
@@ -195,7 +198,7 @@ const FounderAI = () => {
       } else {
         throw new Error(res.data.error || "Unknown error");
       }
-    } catch (err) {
+    } catch {
       setChats((prev) =>
         prev.map((c) => {
           if (c.id === activeChatId) {
@@ -229,15 +232,46 @@ const FounderAI = () => {
 
   const isEmpty = messages.length === 0;
 
-  return (
-    <div className="h-screen bg-[#020024] text-white flex pt-[80px] overflow-hidden relative">
-      {/* Ambient BG effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-600/5 rounded-full blur-[130px]" />
-        <div className="absolute top-[30%] right-[-5%] w-[35%] h-[35%] bg-purple-600/5 rounded-full blur-[110px]" />
-        <div className="absolute bottom-0 left-[30%] w-[30%] h-[30%] bg-indigo-600/5 rounded-full blur-[120px]" />
+  // Reusable ChatGPT-style composer — rendered centered when empty, docked when active
+  const Composer = ({ compact }) => (
+    <div className={`w-full ${compact ? "max-w-3xl mx-auto" : "max-w-2xl"}`}>
+      <div className="flex items-end gap-2 bg-[#2f2f2f] border border-white/10 focus-within:border-white/20 rounded-[26px] px-2.5 py-2 shadow-lg shadow-black/30 transition-all">
+        <button
+          type="button"
+          className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-gray-300 hover:bg-white/10 transition-all active:scale-95"
+          title="New chat"
+          onClick={handleNewChat}
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask anything about your startup"
+          rows={1}
+          className="flex-1 bg-transparent text-white placeholder:text-gray-500 text-[15px] resize-none outline-none px-1 py-2 max-h-44 overflow-y-auto custom-scrollbar"
+          style={{ minHeight: "24px" }}
+          onInput={(e) => {
+            e.target.style.height = "auto";
+            e.target.style.height = Math.min(e.target.scrollHeight, 176) + "px";
+          }}
+        />
+        <button
+          onClick={() => sendMessage()}
+          disabled={!input.trim() || loading}
+          className="w-9 h-9 shrink-0 bg-white text-black hover:bg-gray-200 disabled:bg-white/20 disabled:text-white/40 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-all active:scale-95"
+          title="Send"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
       </div>
+    </div>
+  );
 
+  return (
+    <div className="h-screen bg-[#212121] text-white flex pt-[80px] overflow-hidden relative">
       {/* Sidebar Overlay (Mobile only) */}
       {sidebarOpen && (
         <div
@@ -248,25 +282,25 @@ const FounderAI = () => {
 
       {/* Sidebar Panel */}
       <aside
-        className={`fixed lg:static top-[80px] bottom-0 left-0 z-40 w-64 bg-[#04022a]/95 lg:bg-[#04022a]/50 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:static top-[80px] bottom-0 left-0 z-40 w-64 bg-[#171717] border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* New Chat Button */}
-        <div className="p-4 shrink-0">
+        <div className="p-3 shrink-0">
           <button
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/10 hover:border-blue-500/30 hover:bg-white/5 transition-all text-sm font-bold text-white shadow-md active:scale-95"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all text-sm font-medium text-white active:scale-[0.98]"
           >
-            <Plus className="w-4 h-4 text-blue-400" />
-            New Chat
+            <PenLine className="w-4 h-4 text-gray-300" />
+            New chat
           </button>
         </div>
 
         {/* Scrollable Conversation List */}
-        <div className="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar pb-4" data-lenis-prevent>
-          <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 mb-3">
-            Conversations
+        <div className="flex-1 overflow-y-auto px-2 space-y-0.5 custom-scrollbar pb-4" data-lenis-prevent>
+          <div className="text-[11px] font-medium text-gray-500 px-3 mb-2 mt-2">
+            Chats
           </div>
           {chats.map((chat) => (
             <div
@@ -275,19 +309,19 @@ const FounderAI = () => {
                 setActiveChatId(chat.id);
                 setSidebarOpen(false);
               }}
-              className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+              className={`group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all cursor-pointer ${
                 chat.id === activeChatId
-                  ? "bg-white/10 text-white font-semibold shadow-inner border border-white/5"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-white/10 text-white"
+                  : "text-gray-300 hover:bg-white/5 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <MessageSquare className={`w-4 h-4 shrink-0 ${chat.id === activeChatId ? "text-blue-400" : "text-gray-600 group-hover:text-gray-400"}`} />
+                <MessageSquare className={`w-4 h-4 shrink-0 ${chat.id === activeChatId ? "text-gray-300" : "text-gray-600 group-hover:text-gray-400"}`} />
                 <span className="truncate">{chat.title}</span>
               </div>
               <button
                 onClick={(e) => handleDeleteChat(chat.id, e)}
-                className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 rounded-lg hover:bg-white/5 transition-all active:scale-90 ml-1"
+                className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 rounded-md hover:bg-white/5 transition-all active:scale-90 ml-1"
                 title="Delete chat"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -297,172 +331,135 @@ const FounderAI = () => {
         </div>
 
         {/* Sidebar Footer Link */}
-        <div className="p-3 border-t border-white/5 shrink-0">
+        <div className="p-2 border-t border-white/5 shrink-0">
           <button
             onClick={() => navigate("/startup-dashboard")}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-all text-sm font-bold active:scale-95"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all text-sm font-medium active:scale-[0.98]"
           >
             <ChevronLeft className="w-4 h-4" />
-            Exit Dashboard
+            Exit to dashboard
           </button>
         </div>
       </aside>
 
       {/* Main Chat Workspace */}
-      <main className="flex-1 flex flex-col h-full relative overflow-hidden bg-transparent z-10">
-        
+      <main className="flex-1 flex flex-col h-full relative overflow-hidden bg-[#212121] z-10">
+
         {/* Mobile Header Bar */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#020024]/80 backdrop-blur-md shrink-0">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#212121] shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all active:scale-95"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <div className="text-sm font-black tracking-tight text-white uppercase">FounderAI</div>
+          <div className="text-sm font-semibold tracking-tight text-white">FounderGPT</div>
           <button
             onClick={handleNewChat}
             className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all active:scale-95"
           >
-            <Plus className="w-5 h-5 text-blue-400" />
+            <PenLine className="w-5 h-5 text-gray-300" />
           </button>
         </div>
 
-        {/* Scrollable Conversation Content Area */}
-        <div className="flex-1 overflow-y-auto w-full custom-scrollbar" data-lenis-prevent>
-          <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6 pb-24">
-            {isEmpty ? (
-              // Empty State (GPT Landing Style)
-              <div className="flex flex-col items-center justify-center min-h-[65vh] text-center pt-8">
-                <p className="text-blue-400 font-black tracking-tight text-lg mb-2 uppercase animate-pulse">
-                  {getGreeting()}, {userName} 👋
-                </p>
-                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">
-                  What would you like<br />
-                  <span className="text-blue-500">to build today?</span>
-                </h1>
-                <p className="text-gray-500 text-sm mb-12 max-w-sm">
-                  Your AI advisor for validation, scoping MVPs, hiring advice, and GTM strategy.
-                </p>
+        {isEmpty ? (
+          // Empty State — centered composer (ChatGPT landing)
+          <div className="flex-1 flex flex-col items-center justify-center px-4 pb-10">
+            <h1 className="text-2xl md:text-[32px] font-semibold text-white tracking-tight mb-8 text-center">
+              What are we building, {userName}?
+            </h1>
 
-                {/* Starter Prompts Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
-                  {STARTERS.map((s, i) => (
-                    <button
-                      key={i}
-                      onClick={() => sendMessage(s)}
-                      className="text-left px-5 py-4 bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/30 rounded-2xl text-sm text-gray-300 hover:text-white transition-all font-medium group shadow-sm"
-                    >
-                      <span className="text-blue-500 mr-2 group-hover:text-blue-400 transition-colors">→</span>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              // Active Conversation Bubbles
-              <div className="flex flex-col gap-6 pb-4">
-                {messages.map((msg, i) => (
-                  <div
+            <Composer />
+
+            {/* Starter action chips */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-5 max-w-2xl">
+              {STARTERS.map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <button
                     key={i}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} gap-3`}
+                    onClick={() => sendMessage(s.prompt)}
+                    className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-white/5 border border-white/15 rounded-full text-sm text-gray-300 hover:text-white transition-all"
                   >
+                    <Icon className="w-4 h-4 text-gray-400" />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          // Active Conversation
+          <>
+            <div className="flex-1 overflow-y-auto w-full custom-scrollbar" data-lenis-prevent>
+              <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6 pb-10">
+                <div className="flex flex-col gap-6">
+                  {messages.map((msg, i) => (
                     <div
-                      className={`max-w-[85%] sm:max-w-[80%] rounded-3xl px-5 py-4 text-sm leading-relaxed ${
-                        msg.role === "user"
-                          ? "bg-blue-600 text-white rounded-br-lg font-medium shadow-md shadow-blue-500/10"
-                          : msg.isError
-                          ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                          : "bg-white/5 border border-white/5 text-gray-200 rounded-bl-lg shadow-sm"
-                      }`}
+                      key={i}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
-                      {msg.role === "assistant" ? (
-                        <div className="text-gray-200">
-                          <SimpleMarkdown>{msg.content}</SimpleMarkdown>
+                      {msg.role === "user" ? (
+                        <div className="max-w-[85%] sm:max-w-[75%] rounded-3xl px-5 py-2.5 text-[15px] leading-relaxed bg-[#2f2f2f] text-white">
+                          {msg.content}
                         </div>
                       ) : (
-                        msg.content
+                        <div
+                          className={`max-w-full text-[15px] leading-relaxed ${
+                            msg.isError ? "text-red-300" : "text-gray-100"
+                          }`}
+                        >
+                          <SimpleMarkdown>{msg.content}</SimpleMarkdown>
+                        </div>
                       )}
                     </div>
+                  ))}
 
-                    {msg.role === "user" && (
-                      <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0 mt-1 font-black text-xs text-white">
-                        {userName.charAt(0).toUpperCase()}
+                  {/* Loading Typing Indicator */}
+                  {loading && (
+                    <div className="flex justify-start">
+                      <div className="flex items-center gap-1.5 py-2">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* Loading Typing Indicator */}
-                {loading && (
-                  <div className="flex justify-start">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl rounded-bl-lg px-5 py-4 flex items-center gap-2 shadow-sm">
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div ref={messagesEndRef} />
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Input Dock */}
-        <div className="w-full border-t border-white/5 bg-[#020024]/40 backdrop-blur-xl shrink-0">
-          <div className="max-w-3xl mx-auto px-4 md:px-8 pb-8 pt-4">
-            <div className="flex items-end gap-3 bg-white/5 border border-white/10 focus-within:border-blue-500/40 rounded-2xl p-3 transition-all">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about your startup..."
-                rows={1}
-                className="flex-1 bg-transparent text-white placeholder:text-gray-600 text-sm resize-none outline-none px-2 py-1 max-h-40 overflow-y-auto"
-                style={{ minHeight: "36px" }}
-                onInput={(e) => {
-                  e.target.style.height = "auto";
-                  e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
-                }}
-              />
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || loading}
-                className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:bg-white/5 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-all shrink-0 shadow-lg shadow-blue-500/20 active:scale-95"
-              >
-                {loading ? (
-                  <Zap className="w-4 h-4 text-gray-400 animate-pulse" />
-                ) : (
-                  <Send className="w-4 h-4 text-white" />
-                )}
-              </button>
             </div>
-            <p className="text-center text-[10px] text-gray-600 mt-3 font-medium">
-              FounderGPT can make mistakes. Use critical thinking before acting on advice.
-            </p>
-          </div>
-        </div>
+
+            {/* Docked Composer */}
+            <div className="w-full bg-[#212121] shrink-0">
+              <div className="px-4 md:px-6 pb-4 pt-2">
+                <Composer compact />
+                <p className="text-center text-[11px] text-gray-500 mt-2">
+                  FounderGPT can make mistakes. Use critical thinking before acting on advice.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       <style
         dangerouslySetInnerHTML={{
           __html: `
         .custom-scrollbar::-webkit-scrollbar {
-          width: 5px;
-          height: 5px;
+          width: 6px;
+          height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 20px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.2);
         }
       `,
         }}
