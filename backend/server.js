@@ -121,6 +121,7 @@ const queryRoutes = require("./routes/queryRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const founderAIRoutes = require("./routes/founderAIRoutes");
 
 /* =========================
    ROUTES DEBUG (DO NOT REMOVE)
@@ -172,6 +173,7 @@ app.use("/api/referrals", referralRoutes);
 app.use("/api", whatsappRoutes);
 app.use("/api/meetings", meetingRoutes);
 app.use("/api", eventRoutes);
+app.use("/api/founder-ai", founderAIRoutes);
 
 /* =========================
    HEALTH CHECK

@@ -59,6 +59,7 @@ import Notifications from "./pages/Notifications";
 import GlobalChatOverlay from "./pages/GlobalChatOverlay";
 import InfluencerMarketplace from "./pages/InfluencerMarketplace";
 import OurTeam from "./pages/OurTeam";
+import FounderAI from "./pages/FounderAI";
 import ContactUs from "./pages/ContactUs";
 import CreatePost from "./pages/CreatePost";
 import Navbar from "./components/Navbar";
@@ -96,6 +97,35 @@ function NavbarWrapper({ setActivePopup }) {
     return null;
   }
   return <Navbar />;
+}
+
+function FloatingChatWrapper({
+  isLoggedIn,
+  userId,
+  userRole,
+  activePopup,
+  setActivePopup,
+}) {
+  const location = useLocation();
+  const hideChatRoutes = ["/founder-ai"];
+
+  if (hideChatRoutes.includes(location.pathname)) {
+    return null;
+  }
+
+  if (!isLoggedIn) return null;
+
+  return (
+    <>
+      <GlobalChatOverlay userId={userId} />
+      <SmartChatbot
+        userRole={userRole}
+        userId={userId}
+        activePopup={activePopup}
+        setActivePopup={setActivePopup}
+      />
+    </>
+  );
 }
 
 function App() {
@@ -346,6 +376,14 @@ function App() {
           <Route path="/agencies" element={<Agencies />} />
           <Route path="/search" element={<SearchUsers />} />
           <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/founder-ai"
+            element={
+              <ProtectedRoute allowedRole="founder">
+                <FounderAI />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />
@@ -355,6 +393,13 @@ function App() {
           userRole={userRole}
           userId={userId}
           isLoggedIn={isLoggedIn}
+          activePopup={activePopup}
+          setActivePopup={setActivePopup}
+        />
+        <FloatingChatWrapper
+          isLoggedIn={isLoggedIn}
+          userId={userId}
+          userRole={userRole}
           activePopup={activePopup}
           setActivePopup={setActivePopup}
         />
