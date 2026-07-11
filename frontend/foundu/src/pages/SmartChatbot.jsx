@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { toast } from "react-toastify";
-import api from "../utils/axiosConfig";
+import api, { API_BASE } from "../utils/axiosConfig";
 import { getUserId, getUserType } from "../utils/authUtils";
 import "./SmartChatbot.css";
 import blueBadge from "../assets/bluebadge.png";
@@ -439,18 +439,24 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
   const [hasNotif, setHasNotif] = useState(true);
   const messagesEndRef = useRef(null);
 
+  // Conversational AI States
+  const [chatMode, setChatMode] = useState("matcher"); // "matcher" or "chat"
+  const [inputText, setInputText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [conversationalMessages, setConversationalMessages] = useState([]);
+
   /* ── Pages where chatbot should be HIDDEN ───────────────── */
   const hiddenPaths = ["/login-signup", "/signup"];
   const shouldHide = hiddenPaths.some(
     (p) => location.pathname === p || location.pathname.startsWith("/login-signup")
   );
 
-
   const flow = !isLoggedIn ? FLOWS.visitor : (FLOWS[userRole] || FLOWS.founder);
   /* ── Auto-scroll to bottom on new messages ──────────────── */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, conversationalMessages, isTyping]);
+
   /* ── Initialize chat when opened ───────────────────────── */
   useEffect(() => {
     if (isOpen && messages.length === 0) {
@@ -458,7 +464,159 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
       startGreeting();
     }
   }, [isOpen]);
-  /* ── Reset ONLY when role changes ───────────────────── */
+  /* ── Load chat history when conversational mode is active ── */
+  useEffect(() => {
+    if (isOpen && chatMode === "chat" && conversationalMessages.length === 0) {
+      loadChatHistory();
+    }
+  }, [isOpen, chatMode]);
+
+  const loadChatHistory = async () => {
+    setIsTyping(true);
+    try {
+      const currentUserId = getUserId();
+      const res = await api.get(`/api/ai/chat/history`, {
+        params: { sessionId: `session-${currentUserId}` }
+      });
+      if (res.data.success && res.data.messages && res.data.messages.length > 0) {
+        setConversationalMessages(res.data.messages.map(m => ({
+          type: m.sender === 'user' ? 'user' : 'bot',
+          text: m.message
+        })));
+      } else {
+        setConversationalMessages([
+          {
+            type: "bot",
+            text: `Hi there! I am **Ginnie**, your personalized FoundU Assistant. 
+            
+Ask me anything about your startup idea, competitor research, or let me know what kind of freelancers you need!`
+          }
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to load chat history:", err);
+      setConversationalMessages([
+        {
+          type: "bot",
+          text: `Hi there! I am **Ginnie**, your personalized FoundU Assistant. How can I help you today?`
+        }
+      ]);
+    }
+    setIsTyping(false);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim() || isSending) return;
+
+    const userMsg = inputText.trim();
+    setInputText("");
+    setIsSending(true);
+
+    setConversationalMessages(prev => [...prev, { type: "user", text: userMsg }]);
+    setIsTyping(true);
+
+    try {
+      const currentUserId = getUserId();
+      const response = await fetch(`${API_BASE}/api/ai/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
+        },
+        body: JSON.stringify({
+          message: userMsg,
+          sessionId: `session-${currentUserId}`
+        })
+      });
+
+      setIsTyping(false);
+
+      if (!response.ok) {
+        throw new Error("API returned an error response.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let partialText = "";
+
+      setConversationalMessages(prev => [...prev, { type: "bot", text: "" }]);
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        const chunkText = decoder.decode(value, { stream: !done });
+
+        const lines = chunkText.split("\n\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const content = line.substring(6).trim();
+            if (content === "[DONE]") {
+              break;
+            }
+            try {
+              const parsed = JSON.parse(content);
+              if (parsed.text) {
+                partialText += parsed.text;
+                setConversationalMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = { type: "bot", text: partialText };
+                  return updated;
+                });
+              } else if (parsed.toolCall) {
+                const { name, args } = parsed.toolCall;
+                let statusMsg = "";
+                if (name === "search_freelancers") {
+                  statusMsg = `\n\n*(Ginnie is searching the database for freelancers matching: ${args.skills.join(", ")})*\n\n`;
+                } else if (name === "web_search") {
+                  statusMsg = `\n\n*(Ginnie is scanning market intelligence for: "${args.query}")*\n\n`;
+                } else if (name === "analyze_startup_idea") {
+                  statusMsg = `\n\n*(Ginnie is initiating venture valuation diagnostics...)*\n\n`;
+                }
+                if (statusMsg) {
+                  partialText += statusMsg;
+                  setConversationalMessages(prev => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { type: "bot", text: partialText };
+                    return updated;
+                  });
+                }
+              }
+            } catch (jsonErr) {
+              // Ignore boundary errors
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Conversational streaming error:", error);
+      toast.error("Failed to connect to Ginnie's AI core.");
+      setConversationalMessages(prev => [
+        ...prev,
+        { type: "bot", text: "❌ Connection error. Please try again later." }
+      ]);
+    } finally {
+      setIsSending(false);
+      setIsTyping(false);
+    }
+  };
+
+  const handleResetConversationalChat = async () => {
+    if (isSending) return;
+    try {
+      const currentUserId = getUserId();
+      await api.post(`/api/ai/chat/reset`, { sessionId: `session-${currentUserId}` });
+      setConversationalMessages([]);
+      loadChatHistory();
+      toast.success("Conversation reset successfully.");
+    } catch (err) {
+      console.error("Failed to reset chat:", err);
+      toast.error("Failed to reset conversation.");
+    }
+  };
+
+  /* ── Reset when role/location changes ───────────────────── */
   useEffect(() => {
     const savedRole = sessionStorage.getItem("ginnie_role");
     if (savedRole && savedRole !== userRole) {
@@ -744,10 +902,10 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
               </div>
             </div>
             <div className="sc-header-actions">
-              {step > 0 && (
+              {(chatMode === "chat" || step > 0) && (
                 <button
                   className="sc-icon-btn"
-                  onClick={handleReset}
+                  onClick={chatMode === "chat" ? handleResetConversationalChat : handleReset}
                   title="Restart chat"
                 >
                   🔄
@@ -762,9 +920,25 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
               </button>
             </div>
           </div>
+
+          <div className="sc-modes-tab">
+            <button
+              className={`sc-tab-btn ${chatMode === 'matcher' ? 'active' : ''}`}
+              onClick={() => setChatMode('matcher')}
+            >
+              ⚡ Quick Matcher
+            </button>
+            <button
+              className={`sc-tab-btn ${chatMode === 'chat' ? 'active' : ''}`}
+              onClick={() => setChatMode('chat')}
+            >
+              💬 Chat with Ginnie
+            </button>
+          </div>
+
           {/* Messages */}
           <div className="sc-messages">
-            {step === 0 && messages.length === 0 && (
+            {chatMode === "matcher" && step === 0 && messages.length === 0 && (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "#4b5563" }}>
                 <div style={{ fontSize: 40, marginBottom: 10 }}>
                   <DotLottieReact
@@ -777,11 +951,11 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
                 <p style={{ fontSize: 13 }}>Starting AI Assistant...</p>
               </div>
             )}
-            {messages.map((msg, idx) => renderMessage(msg, idx))}
+            {(chatMode === "chat" ? conversationalMessages : messages).map((msg, idx) => renderMessage(msg, idx))}
             {isTyping && (
               <TypingIndicator />
             )}
-            {step === "loading" && !isTyping && (
+            {chatMode === "matcher" && step === "loading" && !isTyping && (
               <div style={{ textAlign: "center", padding: "16px", color: "#3b82f6", fontSize: 12 }}>
                 <div style={{ marginBottom: 8 }}>🔍 Scanning profiles...</div>
                 <div style={{ fontSize: 11, color: "#93c5fd", marginBottom: 10 }}>
@@ -802,23 +976,39 @@ export default function SmartChatbot({ userRole: propRole, userId, isLoggedIn, a
             )}
             <div ref={messagesEndRef} />
           </div>
-          {/* Option buttons */}
-          {currentOptions().length > 0 && !isTyping && step !== "loading" && (
-            <div className="sc-options">
-              {currentOptions().map((opt) => (
-                <button
-                  key={opt}
-                  className={
-                    opt === "Start Over" || opt === "Refine Filters"
-                      ? "sc-reset-btn"
-                      : "sc-option-btn"
-                  }
-                  onClick={() => handleOptionClickWrapper(opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
+
+          {/* Option buttons or Chat Input form */}
+          {chatMode === "matcher" ? (
+            currentOptions().length > 0 && !isTyping && step !== "loading" && (
+              <div className="sc-options">
+                {currentOptions().map((opt) => (
+                  <button
+                    key={opt}
+                    className={
+                      opt === "Start Over" || opt === "Refine Filters"
+                        ? "sc-reset-btn"
+                        : "sc-option-btn"
+                    }
+                    onClick={() => handleOptionClickWrapper(opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )
+          ) : (
+            <form onSubmit={handleSendMessage} className="sc-input-form">
+              <input
+                type="text"
+                placeholder="Ask Ginnie anything..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                disabled={isSending}
+              />
+              <button type="submit" disabled={isSending || !inputText.trim()}>
+                {isSending ? "..." : "Send"}
+              </button>
+            </form>
           )}
         </div>
       )}

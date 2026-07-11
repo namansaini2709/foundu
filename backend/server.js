@@ -168,12 +168,14 @@ app.use("/api/influencers", influencerRoutes);
 app.use("/api/queries", queryRoutes);
 const submissionRoutes = require("./routes/submissionRoutes");
 const referralRoutes = require("./routes/referralRoutes");
+const aiChatRoutes = require("./routes/aiChatRoutes");
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api", whatsappRoutes);
 app.use("/api/meetings", meetingRoutes);
 app.use("/api", eventRoutes);
 app.use("/api/founder-ai", founderAIRoutes);
+app.use("/api/ai", aiChatRoutes);
 
 /* =========================
    HEALTH CHECK

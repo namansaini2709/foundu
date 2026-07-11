@@ -340,3 +340,365 @@ exports.analyzeStartupIdea = async (mode, text, context = {}) => {
   }
 };
 
+/* ================================================================
+   FOUNDER AI INTEGRATION FUNCTIONS
+   ================================================================ */
+
+const searchFreelancersDeclaration = {
+  name: "search_freelancers",
+  description: "Searches the database of freelancers or cofounders based on required skills.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      skills: {
+        type: "ARRAY",
+        items: { type: "STRING" },
+        description: "List of core skills needed (e.g., ['React', 'Python', 'Node.js'])"
+      },
+      maxBudget: {
+        type: "NUMBER",
+        description: "Maximum budget per project or hour"
+      }
+    },
+    required: ["skills"]
+  }
+};
+
+const webSearchDeclaration = {
+  name: "web_search",
+  description: "Searches the web for direct competitors, pricing models, and market sizing trends.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      query: {
+        type: "STRING",
+        description: "Competitor or market search query (e.g., 'camera rental startup competitors Delhi')"
+      }
+    },
+    required: ["query"]
+  }
+};
+
+const analyzeStartupIdeaDeclaration = {
+  name: "analyze_startup_idea",
+  description: "Runs venture evaluation and analysis on a startup idea concept.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      text: {
+        type: "STRING",
+        description: "The startup idea text to analyze"
+      },
+      mode: {
+        type: "STRING",
+        description: "Mode: 'discover' or 'validate'"
+      }
+    },
+    required: ["text", "mode"]
+  }
+};
+
+exports.localSearchFreelancers = async ({ skills, maxBudget }) => {
+  const db = require("../config/db");
+  try {
+    let query = `
+      SELECT u.id, u.full_name, u.user_type, 
+             COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+             COALESCE(fp.experience, cp.current_occupational_status) as experience,
+             u.credibility_score,
+             COALESCE(fp.hourly_rate, 0) as budget
+      FROM users u
+      LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+      LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+      WHERE u.user_type IN ('freelancer', 'cofounder')
+    `;
+    const params = [];
+    if (skills && skills.length > 0) {
+      const likeClauses = skills.map(skill => {
+        params.push(`%${skill}%`);
+        return `(fp.skills_description LIKE ? OR cp.primary_identity LIKE ?)`;
+      });
+      query += ` AND (${likeClauses.join(" OR ")})`;
+    }
+    
+    if (maxBudget) {
+      query += ` AND (fp.hourly_rate <= ? OR fp.hourly_rate IS NULL)`;
+      params.push(maxBudget);
+    }
+    
+    query += ` ORDER BY u.credibility_score DESC LIMIT 5`;
+    const [rows] = await db.promise().query(query, params);
+    return rows;
+  } catch (error) {
+    console.error("[AI Tools] localSearchFreelancers error:", error);
+    return [];
+  }
+};
+
+exports.localWebSearch = async ({ query }) => {
+  console.log(`[AI Tools] Web Search simulated for query: "${query}"`);
+  const lower = query.toLowerCase();
+  let competitors = [];
+  let marketInfo = {};
+
+  if (lower.includes("camera") || lower.includes("rent")) {
+    competitors = [
+      { name: "SharePal", strength: "Wide inventory, fast delivery in major cities", weakness: "High security deposit requirements", yourEdge: "Zero-deposit models or micro-rentals" },
+      { name: "Rentoclick", strength: "Corporate rentals and bulky packages", weakness: "Slow customer onboarding and KYC process", yourEdge: "Instant automated WhatsApp verification" },
+      { name: "Toko", strength: "Peer-to-peer sharing", weakness: "Inconsistent equipment maintenance and quality checks", yourEdge: "FoundU certified quality check protocol" }
+    ];
+    marketInfo = { tam: "$4.5B (India Rental Economy)", sam: "$300M (Camera & AV Gear)", som: "$15M (NCR & Metro Hubs)", growth: "18% CAGR" };
+  } else if (lower.includes("edtech") || lower.includes("education") || lower.includes("course")) {
+    competitors = [
+      { name: "Udemy", strength: "Massive library, dirt cheap pricing", weakness: "Extremely low completion rates, lack of community", yourEdge: "Cohort-based cohorts with real-time peer groups" },
+      { name: "GrowthSchool", strength: "High profile creators, live bootcamps", weakness: "Expensive pricing, lack of personalized feedback", yourEdge: "One-on-one AI coaching integration" }
+    ];
+    marketInfo = { tam: "$10B (Indian Edtech Sector)", sam: "$1.5B (Upskilling market)", som: "$50M (Tech cohort-based courses)", growth: "22% CAGR" };
+  } else {
+    competitors = [
+      { name: "Competitor Alpha", strength: "Early market capture", weakness: "Static interface, high commission fee", yourEdge: "Dynamic community features, zero processing fee" },
+      { name: "Competitor Beta", strength: "Strong B2B client base", weakness: "Unfriendly mobile experience, manual operations", yourEdge: "Fully mobile responsive and AI matchmaker" }
+    ];
+    marketInfo = { tam: "$50B (Global Market)", sam: "$10B (APAC Region)", som: "$100M (Niche Vertical)", growth: "14% CAGR" };
+  }
+
+  return { query, competitors, marketInfo };
+};
+
+exports.localAnalyzeStartupIdea = async ({ text, mode }) => {
+  return await exports.analyzeStartupIdea(mode || "validate", text);
+};
+
+exports.streamChatCompletion = async ({ systemInstruction, history, message, onChunk, onToolCall }) => {
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction });
+  
+  const formattedHistory = (history || []).map(msg => ({
+    role: msg.sender === 'user' ? 'user' : 'model',
+    parts: [{ text: msg.message }]
+  }));
+
+  const chat = model.startChat({
+    history: formattedHistory,
+    tools: [{
+      functionDeclarations: [
+        searchFreelancersDeclaration,
+        webSearchDeclaration,
+        analyzeStartupIdeaDeclaration
+      ]
+    }]
+  });
+
+  let responseStream = await chat.sendMessageStream(message);
+
+  let functionCalls = [];
+  for await (const chunk of responseStream.stream) {
+    if (chunk.functionCalls) {
+      functionCalls = [...functionCalls, ...chunk.functionCalls];
+    }
+    let textChunk = "";
+    try {
+      textChunk = chunk.text();
+    } catch (e) {}
+    if (textChunk && onChunk) {
+      onChunk(textChunk);
+    }
+  }
+
+  if (functionCalls.length > 0) {
+    const functionResponses = [];
+    for (const call of functionCalls) {
+      if (onToolCall) {
+        onToolCall(call.name, call.args);
+      }
+      
+      let resultData;
+      if (call.name === "search_freelancers") {
+        resultData = await exports.localSearchFreelancers(call.args);
+      } else if (call.name === "web_search") {
+        resultData = await exports.localWebSearch(call.args);
+      } else if (call.name === "analyze_startup_idea") {
+        resultData = await exports.localAnalyzeStartupIdea(call.args);
+      }
+      
+      functionResponses.push({
+        functionResponse: {
+          name: call.name,
+          response: { result: resultData }
+        }
+      });
+    }
+
+    const followUpStream = await chat.sendMessageStream(functionResponses);
+    for await (const chunk of followUpStream.stream) {
+      let textChunk = "";
+      try {
+        textChunk = chunk.text();
+      } catch (e) {}
+      if (textChunk && onChunk) {
+        onChunk(textChunk);
+      }
+    }
+  }
+};
+
+let pineconeIndex = null;
+try {
+  if (process.env.PINECONE_API_KEY) {
+    const { Pinecone } = require("@pinecone-database/pinecone");
+    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+    pineconeIndex = pc.index(process.env.PINECONE_INDEX || "foundu-memories");
+    console.log("[AI Pinecone] Client connection configured.");
+  }
+} catch (err) {
+  console.warn("[AI Pinecone Init Warning]: Could not initialize Pinecone client.", err.message);
+}
+
+exports.generateEmbedding = async (text) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const result = await model.embedContent(text);
+    return result.embedding.values;
+  } catch (err) {
+    console.error("[AI Embedding Error]:", err);
+    return null;
+  }
+};
+
+exports.queryPineconeMemories = async (userId, queryText) => {
+  if (!pineconeIndex) {
+    console.warn("[AI Pinecone Query Warning]: Pinecone index not initialized.");
+    return [];
+  }
+  try {
+    const queryVector = await exports.generateEmbedding(queryText);
+    if (!queryVector) return [];
+
+    const queryResponse = await pineconeIndex.query({
+      vector: queryVector,
+      filter: { userId: { "$eq": String(userId) } },
+      topK: 3,
+      includeMetadata: true
+    });
+
+    if (queryResponse && queryResponse.matches) {
+      return queryResponse.matches
+        .filter(m => m.score >= 0.55 && m.metadata)
+        .map(m => m.metadata.fact);
+    }
+    return [];
+  } catch (err) {
+    console.error("[AI Pinecone Query Error]:", err);
+    return [];
+  }
+};
+
+exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
+  const db = require("../config/db");
+  const recentTexts = chatHistory.slice(-6).map(h => `${h.sender}: ${h.message}`).join("\n");
+  const prompt = `
+    Analyze this conversation history between a startup founder and an AI assistant.
+    Extract key information about the founder's startup and needs if available.
+    
+    CONVERSATION:
+    ${recentTexts}
+    
+    Return ONLY a JSON object with any fields you can extract. If you cannot extract a field, omit it.
+    Format:
+    {
+      "startupName": "Extracted startup name",
+      "stage": "Idea / MVP / Early Revenue / Growth",
+      "hiringBudget": "Description of budget constraints",
+      "preferredTech": ["List", "of", "technologies"],
+      "facts": ["List of other 2-3 important facts about the business or hiring goals"]
+    }
+  `;
+
+  try {
+    const text = await generateWithFallback(prompt);
+    const facts = extractAndParseJSON(text);
+
+    if (facts.facts && facts.facts.length > 0) {
+      for (const fact of facts.facts) {
+        await db.promise().query(
+          "INSERT INTO founder_memories (user_id, extracted_fact, category) VALUES (?, ?, ?)",
+          [userId, fact, "profile_auto"]
+        );
+
+        // Asynchronously upsert vectors to Pinecone
+        if (pineconeIndex) {
+          const vector = await exports.generateEmbedding(fact);
+          if (vector) {
+            try {
+              await pineconeIndex.upsert([{
+                id: `fact-${userId}-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+                values: vector,
+                metadata: { userId: String(userId), fact, category: "profile_auto" }
+              }]);
+              console.log(`[AI Pinecone] Saved fact vector for user ${userId}.`);
+            } catch (pErr) {
+              console.error("[AI Pinecone Upsert Error]:", pErr);
+            }
+          }
+        }
+      }
+    }
+
+    if (facts.startupName || facts.stage || facts.hiringBudget) {
+      const [profiles] = await db.promise().query("SELECT id FROM startup_profiles WHERE user_id = ?", [userId]);
+      if (profiles.length > 0) {
+        let updateQuery = "UPDATE startup_profiles SET ";
+        const fields = [];
+        const params = [];
+        if (facts.startupName) {
+          fields.push("startup_name = ?");
+          params.push(facts.startupName);
+        }
+        if (facts.stage) {
+          fields.push("current_stage = ?");
+          params.push(facts.stage);
+        }
+        if (facts.hiringBudget) {
+          fields.push("monthly_investment = ?");
+          params.push(facts.hiringBudget);
+        }
+        if (fields.length > 0) {
+          updateQuery += fields.join(", ") + " WHERE user_id = ?";
+          params.push(userId);
+          await db.promise().query(updateQuery, params);
+          console.log(`[AI Worker] Updated startup profile details for user ${userId}.`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("[AI Worker] extractProfileFactsAndSave failed:", error);
+  }
+};
+
+exports.updateSessionSummary = async (sessionId) => {
+  const db = require("../config/db");
+  try {
+    const [messages] = await db.promise().query(
+      "SELECT sender, message FROM ai_messages WHERE session_id = ? ORDER BY id ASC LIMIT 20",
+      [sessionId]
+    );
+    if (messages.length < 15) return;
+
+    const chatText = messages.map(m => `${m.sender === "user" ? "Founder" : "AI"}: ${m.message}`).join("\n");
+    const prompt = `
+      Summarize the following conversation history between a founder and the AI assistant into a concise, detailed paragraph.
+      Focus on what the founder's project is, what they have discussed, and what their immediate actions are.
+      
+      CONVERSATION:
+      ${chatText}
+      
+      Summary:
+    `;
+
+    const summary = await generateWithFallback(prompt);
+    await db.promise().query("UPDATE ai_conversations SET summary = ? WHERE session_id = ?", [summary, sessionId]);
+    console.log(`[AI Worker] Updated summary for session ${sessionId}.`);
+  } catch (error) {
+    console.error("[AI Worker] updateSessionSummary failed:", error);
+  }
+};
+
