@@ -15,4 +15,8 @@ router.post("/whatsapp/admin/send-alerts",    isAdminAuthenticated, ctrl.sendWha
 router.get("/whatsapp/admin/stats",           isAdminAuthenticated, ctrl.getAdminStats);
 router.get("/whatsapp/admin/coupon-users/:code", isAdminAuthenticated, ctrl.getCouponUsers);
 
+// Webhook configuration (Meta Cloud API integration)
+router.get("/whatsapp/webhook",  ctrl.verifyWebhook);
+router.post("/whatsapp/webhook", ctrl.handleIncomingMessage);
+
 module.exports = router;

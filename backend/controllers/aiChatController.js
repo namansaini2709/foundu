@@ -93,6 +93,13 @@ exports.chatStream = async (req, res) => {
 
     let fullReply = "";
 
+    const context = {
+      startupName: profile.startup_name || "",
+      startupDesc: profile.startup_idea || "",
+      hiringNeeds: profile.current_need || "",
+      budget: profile.monthly_investment || ""
+    };
+
     // 6. Run Streaming
     await geminiService.streamChatCompletion({
       systemInstruction,
@@ -104,7 +111,8 @@ exports.chatStream = async (req, res) => {
       },
       onToolCall: (name, args) => {
         res.write(`data: ${JSON.stringify({ toolCall: { name, args } })}\n\n`);
-      }
+      },
+      context
     });
 
     // 7. Write history to DB

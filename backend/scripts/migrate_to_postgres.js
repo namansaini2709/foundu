@@ -10,13 +10,19 @@ const mysqlConfig = {
   database: process.env.DB_NAME || "foundu",
 };
 
-const postgresConfig = {
-  host: process.env.PG_HOST || "localhost",
-  user: process.env.PG_USER || "postgres",
-  password: process.env.PG_PASS || "Gandhi@2005",
-  database: process.env.PG_NAME || "foundu_local",
-  port: parseInt(process.env.PG_PORT || "5432"),
-};
+const postgresConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    }
+  : {
+      host: process.env.PG_HOST || "localhost",
+      user: process.env.PG_USER || "postgres",
+      password: process.env.PG_PASS || "Gandhi@2005",
+      database: process.env.PG_NAME || "foundu_local",
+      port: parseInt(process.env.PG_PORT || "5432"),
+      ssl: false
+    };
 
 // Helper: Map MySQL types to PostgreSQL types
 function mapType(mysqlType, extra, defaultValue) {
@@ -53,7 +59,7 @@ function mapType(mysqlType, extra, defaultValue) {
 async function runMigration() {
   console.log("Starting Migration from MySQL to PostgreSQL...");
   console.log("MySQL Source:", mysqlConfig.database);
-  console.log("PostgreSQL Destination:", postgresConfig.database);
+  console.log("PostgreSQL Destination:", postgresConfig.connectionString ? "Neon Cloud DB" : postgresConfig.database);
 
   let mysqlConn;
   let pgClient;

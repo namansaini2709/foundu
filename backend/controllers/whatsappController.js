@@ -324,3 +324,78 @@ exports.getCouponUsers = async (req, res) => {
   }
 };
 
+/* =============================================================
+   9. WEBHOOK VERIFICATION (META CLOUD API)
+   GET /api/whatsapp/webhook
+============================================================= */
+exports.verifyWebhook = (req, res) => {
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "foundu_verify_token_123";
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token) {
+    if (mode === "subscribe" && token === verifyToken) {
+      console.log("✅ Meta Webhook verified successfully!");
+      return res.status(200).send(challenge);
+    } else {
+      console.warn("❌ Webhook verification token mismatch.");
+      return res.sendStatus(403);
+    }
+  }
+  return res.sendStatus(400);
+};
+
+/* =============================================================
+   10. HANDLE INCOMING MESSAGE
+   POST /api/whatsapp/webhook
+============================================================= */
+exports.handleIncomingMessage = async (req, res) => {
+  // Respond immediately to prevent Meta from retrying
+  res.sendStatus(200);
+
+  const body = req.body;
+  try {
+    if (!body.object || !body.entry) return;
+
+    const entries = body.entry;
+    for (const entry of entries) {
+      if (!entry.changes) continue;
+      for (const change of entry.changes) {
+        if (change.field !== "messages") continue;
+        
+        const value = change.value;
+        if (!value.messages || !value.messages.length) continue;
+
+        const messageObj = value.messages[0];
+        const senderPhone = messageObj.from;
+        const profileName = value.contacts?.[0]?.profile?.name || "Member";
+
+        let messageText = "";
+        if (messageObj.type === "text") {
+          messageText = messageObj.text.body;
+        } else if (messageObj.type === "button") {
+          messageText = messageObj.button.text;
+        } else if (messageObj.type === "interactive") {
+          const interactiveType = messageObj.interactive.type;
+          if (interactiveType === "button_reply") {
+            messageText = messageObj.interactive.button_reply.title;
+          } else if (interactiveType === "list_reply") {
+            messageText = messageObj.interactive.list_reply.title;
+          }
+        } else if (messageObj.type === "document") {
+          messageText = `[DOCUMENT_UPLOAD] id: ${messageObj.document.id} filename: ${messageObj.document.filename || "resume.pdf"}`;
+        }
+
+        if (messageText.trim()) {
+          console.log(`[WhatsApp Webhook] Received message from ${senderPhone} (${profileName}): "${messageText}"`);
+          const onboardingService = require("../services/whatsappOnboardingService");
+          await onboardingService.processMessage(senderPhone, profileName, messageText.trim());
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[WhatsApp Webhook Processing Error]:", err);
+  }
+};
+

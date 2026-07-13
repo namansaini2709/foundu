@@ -398,37 +398,73 @@ const analyzeStartupIdeaDeclaration = {
   }
 };
 
-exports.localSearchFreelancers = async ({ skills, maxBudget }) => {
+exports.localSearchFreelancers = async ({ skills, maxBudget, founderNeeds }) => {
   const db = require("../config/db");
   try {
-    let query = `
-      SELECT u.id, u.full_name, u.user_type, 
-             COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
-             COALESCE(fp.experience, cp.current_occupational_status) as experience,
-             u.credibility_score,
-             COALESCE(fp.hourly_rate, 0) as budget
+    const [rows] = await db.promise().query(`
+      SELECT u.id, u.full_name, u.user_type, u.credibility_score,
+             fp.skills_description, fp.experience, fp.stipend_expectations, fp.github, fp.other_links, fp.freelancer_type, fp.describe_best,
+             cp.primary_identity, cp.anti_portfolio, cp.equity_minimum
       FROM users u
       LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
       LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
       WHERE u.user_type IN ('freelancer', 'cofounder')
+    `);
+
+    if (!rows.length) return [];
+
+    const candidatesText = rows.map((c, i) => {
+      if (c.user_type === 'cofounder') {
+        return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Co-founder | Expertise: ${c.primary_identity || 'N/A'} | Superpowers: ${c.anti_portfolio || 'N/A'} | Equity: ${c.equity_minimum || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+      } else {
+        return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Freelancer | Skills: ${c.skills_description || 'N/A'} | Tech Stack: ${c.describe_best || 'N/A'} | Domain: ${c.freelancer_type || 'N/A'} | Experience: ${c.experience || 'N/A'} | Budget: ${c.stipend_expectations || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+      }
+    }).join("\n---\n");
+
+    const prompt = `
+      You are the FoundU AI talent matchmaker.
+      Your task is to select the best matching professionals from our candidates list for the founder's hiring requirements.
+      
+      Hiring Requirements:
+      - Preferred Skills/Roles: ${skills ? skills.join(", ") : "Any"}
+      - Max Budget: ${maxBudget || "Not Specified"}
+      - Founder Startup Needs: ${founderNeeds || "Not Specified"}
+      
+      CANDIDATES:
+      ${candidatesText}
+      
+      Select the top 3-5 candidates who best fit these requirements. Recommend candidates across diverse, relevant categories (e.g. 1 Developer, 1 Designer, 1 Co-founder, 1 Marketer) depending on the startup needs.
+      For each selected candidate, assign a match score (0-100%) and write a brief explanation showing why they fit.
+      
+      Return ONLY a JSON array format (no markdown blocks or other text):
+      [
+        {
+          "id": 123,
+          "score": 94,
+          "category": "Frontend Developer",
+          "reason": "Text explanation referencing their skills, experience, and budget fit."
+        }
+      ]
     `;
-    const params = [];
-    if (skills && skills.length > 0) {
-      const likeClauses = skills.map(skill => {
-        params.push(`%${skill}%`);
-        return `(fp.skills_description LIKE ? OR cp.primary_identity LIKE ?)`;
-      });
-      query += ` AND (${likeClauses.join(" OR ")})`;
-    }
-    
-    if (maxBudget) {
-      query += ` AND (fp.hourly_rate <= ? OR fp.hourly_rate IS NULL)`;
-      params.push(maxBudget);
-    }
-    
-    query += ` ORDER BY u.credibility_score DESC LIMIT 5`;
-    const [rows] = await db.promise().query(query, params);
-    return rows;
+
+    const text = await generateWithFallback(prompt);
+    const results = extractAndParseJSON(text);
+    if (!Array.isArray(results)) return [];
+
+    return results.map(r => {
+      const match = rows.find(row => String(row.id) === String(r.id));
+      if (!match) return null;
+      return {
+        id: match.id,
+        full_name: match.full_name,
+        user_type: match.user_type,
+        match_score: r.score,
+        category: r.category,
+        reason: r.reason,
+        credibility_score: match.credibility_score
+      };
+    }).filter(Boolean);
+
   } catch (error) {
     console.error("[AI Tools] localSearchFreelancers error:", error);
     return [];
@@ -469,7 +505,7 @@ exports.localAnalyzeStartupIdea = async ({ text, mode }) => {
   return await exports.analyzeStartupIdea(mode || "validate", text);
 };
 
-exports.streamChatCompletion = async ({ systemInstruction, history, message, onChunk, onToolCall }) => {
+exports.streamChatCompletion = async ({ systemInstruction, history, message, onChunk, onToolCall, context }) => {
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction });
   
   const formattedHistory = (history || []).map(msg => ({
@@ -513,7 +549,10 @@ exports.streamChatCompletion = async ({ systemInstruction, history, message, onC
       
       let resultData;
       if (call.name === "search_freelancers") {
-        resultData = await exports.localSearchFreelancers(call.args);
+        resultData = await exports.localSearchFreelancers({
+          ...call.args,
+          founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
+        });
       } else if (call.name === "web_search") {
         resultData = await exports.localWebSearch(call.args);
       } else if (call.name === "analyze_startup_idea") {
@@ -699,6 +738,151 @@ exports.updateSessionSummary = async (sessionId) => {
     console.log(`[AI Worker] Updated summary for session ${sessionId}.`);
   } catch (error) {
     console.error("[AI Worker] updateSessionSummary failed:", error);
+  }
+};
+
+exports.getSemanticJobRecommendations = async (profile, jobs) => {
+  const jobsListText = jobs.map(j => `ID: ${j.job_id} | Title: ${j.job_title} | Startup: ${j.startup_name} | Requirements: ${j.job_requirements} | Description: ${j.full_job_description} | Budget: ${j.budget_range}`).join("\n---\n");
+  const profileText = `Name: ${profile.name} | Skills: ${profile.skills} | Experience: ${profile.experience} | Budget: ${profile.budget} | Bio/Portfolio: ${profile.portfolio}`;
+
+  const prompt = `
+    Analyze this freelancer profile and matching them against the list of available jobs.
+    Select the top 3 best matching jobs. For each selected job, compute a match score (0 to 100%) and explain in 1 sentence why it matches.
+    
+    FREELANCER PROFILE:
+    ${profileText}
+    
+    JOBS LIST:
+    ${jobsListText}
+    
+    Return ONLY a JSON array of objects format (do not include markdown wrapping or other text):
+    [
+      {
+        "job_id": 123,
+        "score": 92,
+        "reason": "Text reason explaining why it matches"
+      }
+    ]
+  `;
+
+  try {
+    const text = await generateWithFallback(prompt);
+    const results = extractAndParseJSON(text);
+    if (!Array.isArray(results)) return [];
+
+    const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+
+    return results.map(r => {
+      const job = jobs.find(j => String(j.job_id) === String(r.job_id));
+      if (!job) return null;
+      return {
+        title: `${job.job_title} @ ${job.startup_name}`,
+        score: r.score,
+        reason: r.reason,
+        link: `${baseUrl}/job-posting/${job.job_id}`
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error("[AI Semantic Job Recommendations Failed]", err);
+    return [];
+  }
+};
+
+exports.getSemanticStartupRecommendations = async (profile, startups) => {
+  const startupsListText = startups.map(s => `ID: ${s.id} | Startup: ${s.startup_name} | Idea: ${s.startup_idea} | Needs: ${s.current_need} | Budget: ${s.monthly_investment}`).join("\n---\n");
+  const profileText = `Name: ${profile.name} | Expertise: ${profile.expertise} | Stage Interest: ${profile.stage} | Equity Expected: ${profile.equity} | Bio/Superpowers: ${profile.superpowers}`;
+
+  const prompt = `
+    Analyze this co-founder candidate profile and matching them against the list of available startups.
+    Select the top 3 best matching startups. For each selected startup, compute a match score (0 to 100%) and explain in 1 sentence why it matches.
+    
+    CO-FOUNDER PROFILE:
+    ${profileText}
+    
+    STARTUPS LIST:
+    ${startupsListText}
+    
+    Return ONLY a JSON array of objects format (do not include markdown wrapping or other text):
+    [
+      {
+        "id": 123,
+        "score": 88,
+        "reason": "Text reason explaining why it matches"
+      }
+    ]
+  `;
+
+  try {
+    const text = await generateWithFallback(prompt);
+    const results = extractAndParseJSON(text);
+    if (!Array.isArray(results)) return [];
+
+    const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+
+    return results.map(r => {
+      const startup = startups.find(s => String(s.id) === String(r.id));
+      if (!startup) return null;
+      return {
+        title: startup.startup_name,
+        score: r.score,
+        reason: r.reason,
+        link: `${baseUrl}/startup-profile/${startup.id}`
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error("[AI Semantic Startup Recommendations Failed]", err);
+    return [];
+  }
+};
+
+exports.getSemanticTalentRecommendations = async (profile, talents) => {
+  const talentsListText = talents.map(t => `ID: ${t.id} | Name: ${t.full_name} | Type: ${t.user_type} | Skills: ${t.skills_description} | Experience: ${t.years_experience} | Rate: ${t.hourly_rate}`).join("\n---\n");
+  const profileText = `Startup: ${profile.startupName} | Idea: ${profile.startupDesc} | Hiring Needs: ${profile.hiringNeeds} | Budget: ${profile.budget}`;
+
+  const prompt = `
+    Analyze this startup founder's needs and matching them against the list of available candidates (freelancers/co-founders).
+    Select the top 3-5 best matching candidates across multiple categories if requested. For each selected candidate, compute a match score (0 to 100%) and explain in 1 sentence why they match.
+    
+    FOUNDER NEEDS:
+    ${profileText}
+    
+    CANDIDATES LIST:
+    ${talentsListText}
+    
+    Return ONLY a JSON array of objects format (do not include markdown wrapping or other text):
+    [
+      {
+        "id": 123,
+        "score": 95,
+        "reason": "Text reason explaining why they match"
+      }
+    ]
+  `;
+
+  try {
+    const text = await generateWithFallback(prompt);
+    const results = extractAndParseJSON(text);
+    if (!Array.isArray(results)) return [];
+
+    const isProduction = !!(process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT);
+    const baseUrl = process.env.FRONTEND_URL || (isProduction ? "https://www.foundu.in" : "http://localhost:5173");
+
+    return results.map(r => {
+      const talent = talents.find(t => String(t.id) === String(r.id));
+      if (!talent) return null;
+      const typePath = talent.user_type === "cofounder" ? "cofounder-profile" : "freelancer-profile";
+      return {
+        title: `${talent.full_name} (${talent.user_type === 'cofounder' ? 'Co-founder' : 'Freelancer'})`,
+        score: r.score,
+        reason: r.reason,
+        link: `${baseUrl}/${typePath}/${talent.id}`
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error("[AI Semantic Talent Recommendations Failed]", err);
+    return [];
   }
 };
 

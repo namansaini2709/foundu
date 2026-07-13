@@ -310,6 +310,22 @@ server.listen(PORT, () => {
     else if (!err) console.log("[DB FIX] is_offline column added to foundu_jobs.");
   });
 
+  // Verify and create whatsapp_onboarding_sessions table
+  db.query(`
+    CREATE TABLE IF NOT EXISTS whatsapp_onboarding_sessions (
+      id SERIAL PRIMARY KEY,
+      phone_number VARCHAR(30) NOT NULL UNIQUE,
+      role VARCHAR(20) NULL,
+      current_step INTEGER DEFAULT 0,
+      collected_data JSONB NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) console.error("[DB Init] Error creating whatsapp_onboarding_sessions:", err.message);
+    else console.log("[DB Init] whatsapp_onboarding_sessions table verified.");
+  });
+
   // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
   const { checkUnreadMessages } = require("./services/unreadMessageService");
   const scheduleNoonCheck = () => {
