@@ -10,7 +10,7 @@ const handleLoginPostProcessing = (user) => {
   if (user && user.id && !user.isNewUser) {
     // 1. Log Login Audit
     db.query(
-      `INSERT IGNORE INTO login_audit (user_id, login_date) VALUES (?, CURDATE())`,
+      `INSERT INTO login_audit (user_id, login_date) VALUES (?, CURRENT_DATE) ON CONFLICT DO NOTHING`,
       [user.id],
       (auditErr) => {
         if (auditErr) console.error("OAuth Login audit error:", auditErr);
@@ -23,25 +23,24 @@ const handleLoginPostProcessing = (user) => {
         u.blue_tick_verified,
         u.golden_tick_verified,
         u.golden_tick_month,
-        DATE_FORMAT(CURDATE(), '%Y-%m') AS current_month,
+        to_char(CURRENT_DATE, 'YYYY-MM') AS current_month,
         COUNT(la.user_id) AS login_days_this_month
        FROM users u
        LEFT JOIN login_audit la 
          ON la.user_id = u.id 
-         AND MONTH(la.login_date)  = MONTH(CURDATE())
-         AND YEAR(la.login_date)   = YEAR(CURDATE())
+         AND to_char(la.login_date, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
        WHERE u.id = ?
        GROUP BY u.id`,
       [user.id],
       (checkErr, checkRows) => {
         if (!checkErr && checkRows.length) {
           const row = checkRows[0];
-          const eligible = row.blue_tick_verified == 1 && row.login_days_this_month >= 20;
-          const alreadyAwarded = row.golden_tick_verified == 1 && row.golden_tick_month === row.current_month;
+          const eligible = row.blue_tick_verified && row.login_days_this_month >= 20;
+          const alreadyAwarded = row.golden_tick_verified && row.golden_tick_month === row.current_month;
 
           if (eligible && !alreadyAwarded) {
             db.query(
-              `UPDATE users SET golden_tick_verified = 1, golden_tick_month = DATE_FORMAT(CURDATE(), '%Y-%m') WHERE id = ?`,
+              `UPDATE users SET golden_tick_verified = true, golden_tick_month = to_char(CURRENT_DATE, 'YYYY-MM') WHERE id = ?`,
               [user.id]
             );
             notificationService.sendNotification(

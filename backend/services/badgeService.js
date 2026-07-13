@@ -146,8 +146,7 @@ exports.evaluateGoldenTick = (user_id) => {
         `SELECT COUNT(*) as cnt 
          FROM login_audit 
          WHERE user_id = ? 
-         AND MONTH(login_date) = MONTH(CURRENT_DATE())
-         AND YEAR(login_date) = YEAR(CURRENT_DATE())`,
+         AND to_char(login_date, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')`,
         [user_id],
         (err, res) => {
           if (!err && res[0] && res[0].cnt >= 20) {

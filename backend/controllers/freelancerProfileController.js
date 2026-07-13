@@ -66,15 +66,15 @@ exports.createProfile = (req, res) => {
             stipend_expectations, stipend_other,
             linkedin, github, other_links
           ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-          ON DUPLICATE KEY UPDATE 
-            first_name=VALUES(first_name), last_name=VALUES(last_name), phone_number=VALUES(phone_number),
-            degree_type=VALUES(degree_type), education_level=VALUES(education_level), graduation_year=VALUES(graduation_year),
-            college=VALUES(college), university=VALUES(university),
-            freelancer_type=VALUES(freelancer_type), freelancer_type_other=VALUES(freelancer_type_other),
-            skills_description=VALUES(skills_description), describe_best=VALUES(describe_best), experience=VALUES(experience),
-            job_profile=VALUES(job_profile), working_environment=VALUES(working_environment),
-            stipend_expectations=VALUES(stipend_expectations), stipend_other=VALUES(stipend_other),
-            linkedin=VALUES(linkedin), github=VALUES(github), other_links=VALUES(other_links)`,
+          ON CONFLICT (user_id) DO UPDATE SET 
+            first_name=EXCLUDED.first_name, last_name=EXCLUDED.last_name, phone_number=EXCLUDED.phone_number,
+            degree_type=EXCLUDED.degree_type, education_level=EXCLUDED.education_level, graduation_year=EXCLUDED.graduation_year,
+            college=EXCLUDED.college, university=EXCLUDED.university,
+            freelancer_type=EXCLUDED.freelancer_type, freelancer_type_other=EXCLUDED.freelancer_type_other,
+            skills_description=EXCLUDED.skills_description, describe_best=EXCLUDED.describe_best, experience=EXCLUDED.experience,
+            job_profile=EXCLUDED.job_profile, working_environment=EXCLUDED.working_environment,
+            stipend_expectations=EXCLUDED.stipend_expectations, stipend_other=EXCLUDED.stipend_other,
+            linkedin=EXCLUDED.linkedin, github=EXCLUDED.github, other_links=EXCLUDED.other_links`,
           [
             user_id, fid,
             first_name, last_name, email, phone_number,

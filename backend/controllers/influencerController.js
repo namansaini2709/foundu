@@ -114,14 +114,14 @@ exports.updateStatus = async (req, res) => {
             if (existing.length) {
                 // Update existing user to influencer and reset password
                 await db.promise().query(
-                    "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = 1 WHERE email = ?",
+                    "UPDATE users SET user_type = 'influencer', password_hash = ?, is_profile_complete = true WHERE email = ?",
                     [hashedPassword, app.email]
                 );
             } else {
                 // Create new user
                 await db.promise().query(
                     `INSERT INTO users (full_name, email, password_hash, user_type, is_profile_complete) 
-                     VALUES (?, ?, ?, 'influencer', 1)`,
+                     VALUES (?, ?, ?, 'influencer', true)`,
                     [app.full_name, app.email, hashedPassword]
                 );
             }

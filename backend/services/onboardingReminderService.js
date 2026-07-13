@@ -17,9 +17,9 @@ const initOnboardingReminders = () => {
       const [firstReminders] = await db.promise().query(`
         SELECT id, full_name, user_type 
         FROM users 
-        WHERE is_profile_complete = 0 
+        WHERE is_profile_complete = false 
         AND onboarding_reminder_count = 0
-        AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 1
+        AND created_at <= NOW() - INTERVAL '1 hour'
       `);
 
       for (const user of firstReminders) {
@@ -30,9 +30,9 @@ const initOnboardingReminders = () => {
       const [repeatReminders] = await db.promise().query(`
         SELECT id, full_name, user_type 
         FROM users 
-        WHERE is_profile_complete = 0 
+        WHERE is_profile_complete = false 
         AND onboarding_reminder_count >= 1
-        AND TIMESTAMPDIFF(HOUR, last_onboarding_reminder_at, NOW()) >= 96
+        AND last_onboarding_reminder_at <= NOW() - INTERVAL '96 hours'
       `);
 
       for (const user of repeatReminders) {

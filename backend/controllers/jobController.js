@@ -298,7 +298,7 @@ exports.getAllJobs = (req, res) => {
             (SELECT COUNT(*) FROM job_applicants a WHERE a.job_id = j.job_id) AS applicant_count
      FROM foundu_jobs j
      LEFT JOIN users_socials us ON j.user_id = us.user_id
-     WHERE (j.is_offline IS NULL OR j.is_offline = 0) 
+     WHERE (j.is_offline IS NULL OR j.is_offline = false) 
      ORDER BY j.created_at DESC`,
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -391,7 +391,7 @@ exports.getDashboardStats = (req, res) => {
   `;
 
   // 5. Live Jobs (Paid and not completed)
-  const q5 = "SELECT COUNT(*) as total FROM foundu_jobs WHERE user_id = ? AND payment_status = 'paid' AND is_completed = 0";
+  const q5 = "SELECT COUNT(*) as total FROM foundu_jobs WHERE user_id = ? AND payment_status = 'paid' AND is_completed = false";
 
   // 6. Selected Jobs (Accepted applicants)
   const q6 = `
@@ -445,7 +445,7 @@ exports.endJob = (req, res) => {
 
   db.query(
     "UPDATE foundu_jobs SET is_offline = ? WHERE job_id = ?",
-    [is_offline ? 1 : 0, id],
+    [is_offline, id],
     (err) => {
       if (err) {
         console.error("Error updating job status:", err);

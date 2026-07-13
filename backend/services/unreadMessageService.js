@@ -21,7 +21,7 @@ async function checkUnreadMessages() {
         SUM(
           (SELECT COUNT(*) FROM messages m 
            WHERE m.chat_id = cp.chat_id 
-           AND m.is_seen = 0 
+           AND m.is_seen = false 
            AND m.sender_id != cp.user_id)
         ) AS total_unread
       FROM chat_participants cp
