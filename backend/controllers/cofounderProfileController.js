@@ -132,7 +132,7 @@ exports.createProfile = (req, res) => {
 
         // 3️⃣ Mark profile complete
         db.query(
-          "UPDATE users SET is_profile_complete = 1 WHERE id = ?",
+          "UPDATE users SET is_profile_complete = true WHERE id = ?",
           [user_id]
         );
 

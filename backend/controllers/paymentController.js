@@ -350,10 +350,10 @@ exports.verifyWhatsAppPayment = async (req, res) => {
             // 2. Update user's whatsapp_subscription flag AND set expiration date
             await db.promise().query(
                 `UPDATE users 
-                 SET whatsapp_subscription = 1,
+                 SET whatsapp_subscription = true,
                      whatsapp_plan = ?,
                      whatsapp_activated_via = 'Razorpay',
-                     whatsapp_expires_at = DATE_ADD(NOW(), INTERVAL ? DAY)
+                     whatsapp_expires_at = NOW() + (? * INTERVAL '1 day')
                  WHERE id = ?`,
                 [plan, duration_days, user_id]
             );

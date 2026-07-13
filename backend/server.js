@@ -194,8 +194,8 @@ app.get("/api/debug-auth", async (req, res) => {
     const [[userCount]] = await db
       .promise()
       .query("SELECT COUNT(*) as count FROM users");
-    const [adminCols] = await db.promise().query("DESCRIBE admin_users");
-    const [userCols] = await db.promise().query("DESCRIBE users");
+    const [adminCols] = await db.promise().query("SELECT column_name AS \"Field\" FROM information_schema.columns WHERE table_name = 'admin_users'");
+    const [userCols] = await db.promise().query("SELECT column_name AS \"Field\" FROM information_schema.columns WHERE table_name = 'users'");
 
     res.json({
       success: true,
@@ -274,7 +274,7 @@ server.listen(PORT, () => {
   console.log(`🚀 FoundU backend running on ${PORT}`);
 
   // 🛠️ DATABASE FIX: Expand user_type column to allow 'influencer' and others
-  db.query("ALTER TABLE users MODIFY COLUMN user_type VARCHAR(50)", (err) => {
+  db.query("ALTER TABLE users ALTER COLUMN user_type TYPE VARCHAR(50)", (err) => {
     if (err) console.warn("[DB FIX] Could not alter user_type: ", err.message);
     else console.log("[DB FIX] user_type column expanded successfully.");
   });
@@ -303,7 +303,7 @@ server.listen(PORT, () => {
   // });
 
   // Add is_offline column to foundu_jobs if it doesn't exist
-  db.query("ALTER TABLE foundu_jobs ADD COLUMN is_offline TINYINT(1) DEFAULT 0", (err) => {
+  db.query("ALTER TABLE foundu_jobs ADD COLUMN is_offline BOOLEAN DEFAULT FALSE", (err) => {
     if (err && !err.message.includes("Duplicate column")) console.warn("[DB FIX] Could not add is_offline: ", err.message);
     else if (!err) console.log("[DB FIX] is_offline column added to foundu_jobs.");
   });

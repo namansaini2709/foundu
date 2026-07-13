@@ -199,17 +199,17 @@ exports.createEventRegistration = async (req, res) => {
             INSERT INTO event_registrations 
             (event_id, user_id, user_name, phone_number, email_id, role, startup_name, startup_stage, upi_id, amount, razorpay_order_id, razorpay_payment_id, payment_status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')
-            ON DUPLICATE KEY UPDATE 
-                user_name = VALUES(user_name),
-                phone_number = VALUES(phone_number),
-                email_id = VALUES(email_id),
-                role = VALUES(role),
-                startup_name = VALUES(startup_name),
-                startup_stage = VALUES(startup_stage),
-                upi_id = VALUES(upi_id),
-                amount = VALUES(amount),
-                razorpay_order_id = VALUES(razorpay_order_id),
-                razorpay_payment_id = VALUES(razorpay_payment_id),
+            ON CONFLICT (event_id, user_id) DO UPDATE SET 
+                user_name = EXCLUDED.user_name,
+                phone_number = EXCLUDED.phone_number,
+                email_id = EXCLUDED.email_id,
+                role = EXCLUDED.role,
+                startup_name = EXCLUDED.startup_name,
+                startup_stage = EXCLUDED.startup_stage,
+                upi_id = EXCLUDED.upi_id,
+                amount = EXCLUDED.amount,
+                razorpay_order_id = EXCLUDED.razorpay_order_id,
+                razorpay_payment_id = EXCLUDED.razorpay_payment_id,
                 payment_status = 'completed'
         `;
 

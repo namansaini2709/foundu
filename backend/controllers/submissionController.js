@@ -14,11 +14,11 @@ exports.setupProject = (req, res) => {
     db.query(
         `INSERT INTO foundu_submissions (job_id, freelancer_id, founder_id, instructions, expectations, deadline, founder_files, status, progress) 
          VALUES (?, ?, ?, ?, ?, ?, ?, 'pending_setup', 0)
-         ON DUPLICATE KEY UPDATE 
-         instructions = VALUES(instructions),
-         expectations = VALUES(expectations),
-         deadline = VALUES(deadline),
-         founder_files = VALUES(founder_files)`,
+         ON CONFLICT (job_id, freelancer_id) DO UPDATE SET 
+         instructions = EXCLUDED.instructions,
+         expectations = EXCLUDED.expectations,
+         deadline = EXCLUDED.deadline,
+         founder_files = EXCLUDED.founder_files`,
         [job_id, freelancer_id, founder_id, instructions, expectations, deadline, JSON.stringify(founder_files || [])],
         (err, result) => {
             if (err) return res.status(500).json({ error: err.message });

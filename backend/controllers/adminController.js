@@ -234,7 +234,7 @@ exports.approveBlueTick = async (req, res) => {
   try {
     await db.promise().query(
       `UPDATE users 
-       SET blue_tick_verified = 1, blue_tick_status = 'approved'
+       SET blue_tick_verified = true, blue_tick_status = 'approved'
        WHERE id = ?`,
       [user_id]
     );
@@ -280,7 +280,7 @@ exports.rejectBlueTick = async (req, res) => {
   try {
     await db.promise().query(
       `UPDATE users 
-       SET blue_tick_status = 'rejected', blue_tick_verified = 0
+       SET blue_tick_status = 'rejected', blue_tick_verified = false
        WHERE id = ?`,
       [user_id]
     );

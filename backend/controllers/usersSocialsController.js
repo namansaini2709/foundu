@@ -63,15 +63,15 @@ exports.addUserSocials = (req, res) => {
           past_work_proof,
           profile_picture_url
         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-        ON DUPLICATE KEY UPDATE
-          linkedin_url                 = VALUES(linkedin_url),
-          github_url                   = VALUES(github_url),
-          portfolio_url                = VALUES(portfolio_url),
-          company_linkedin_url         = VALUES(company_linkedin_url),
-          company_social_url           = VALUES(company_social_url),
-          company_registration_number  = VALUES(company_registration_number),
-          past_work_proof              = VALUES(past_work_proof),
-          profile_picture_url          = VALUES(profile_picture_url)`,
+        ON CONFLICT (user_id) DO UPDATE SET
+          linkedin_url                 = EXCLUDED.linkedin_url,
+          github_url                   = EXCLUDED.github_url,
+          portfolio_url                = EXCLUDED.portfolio_url,
+          company_linkedin_url         = EXCLUDED.company_linkedin_url,
+          company_social_url           = EXCLUDED.company_social_url,
+          company_registration_number  = EXCLUDED.company_registration_number,
+          past_work_proof              = EXCLUDED.past_work_proof,
+          profile_picture_url          = EXCLUDED.profile_picture_url`,
         [
           user_id,
           user.full_name,

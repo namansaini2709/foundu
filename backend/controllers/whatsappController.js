@@ -50,15 +50,15 @@ exports.applyCoupon = async (req, res) => {
       });
     }
 
-    if (userRows[0].whatsapp_subscription === 1) {
+    if (userRows[0].whatsapp_subscription) {
       return res.status(400).json({ success: false, message: "You already have an active WhatsApp subscription." });
     }
 
     // 2. Validate coupon
     const [couponRows] = await db.promise().query(
       `SELECT * FROM coupon_codes 
-       WHERE code = ? AND is_active = 1 AND benefit = 'whatsapp_free'
-       AND (expires_at IS NULL OR expires_at >= CURDATE())
+       WHERE code = ? AND is_active = true AND benefit = 'whatsapp_free'
+       AND (expires_at IS NULL OR expires_at >= CURRENT_DATE)
        AND used_count < max_uses`,
       [coupon_code.trim().toUpperCase()]
     );
@@ -91,7 +91,7 @@ exports.applyCoupon = async (req, res) => {
     try {
       await db.promise().query(
         `UPDATE users SET 
-           whatsapp_subscription = 1,
+           whatsapp_subscription = true,
            whatsapp_plan = ?,
            whatsapp_activated_via = 'coupon',
            whatsapp_expires_at = ?,
@@ -182,7 +182,7 @@ exports.getAllCoupons = async (req, res) => {
 exports.deactivateCoupon = async (req, res) => {
   const { code } = req.body;
   try {
-    await db.promise().query("UPDATE coupon_codes SET is_active = 0 WHERE code = ?", [code]);
+    await db.promise().query("UPDATE coupon_codes SET is_active = false WHERE code = ?", [code]);
     res.json({ success: true, message: `Coupon ${code} deactivated.` });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -199,10 +199,10 @@ exports.sendWhatsAppAlerts = async (req, res) => {
     const [eligibleUsers] = await db.promise().query(
       `SELECT u.id, u.full_name, u.whatsapp_number, u.user_type
        FROM users u
-       WHERE u.whatsapp_subscription = 1
-         AND u.is_profile_complete = 1
+       WHERE u.whatsapp_subscription = true
+         AND u.is_profile_complete = true
          AND u.whatsapp_number IS NOT NULL
-         AND (u.whatsapp_expires_at IS NULL OR u.whatsapp_expires_at >= CURDATE())`
+         AND (u.whatsapp_expires_at IS NULL OR u.whatsapp_expires_at >= CURRENT_DATE)`
     );
 
     if (!eligibleUsers.length) {
@@ -272,10 +272,10 @@ exports.sendWhatsAppAlerts = async (req, res) => {
 exports.getAdminStats = async (req, res) => {
   try {
     const [[total]] = await db.promise().query(
-      "SELECT COUNT(*) as count FROM users WHERE whatsapp_subscription = 1"
+      "SELECT COUNT(*) as count FROM users WHERE whatsapp_subscription = true"
     );
     const [[eligible]] = await db.promise().query(
-      "SELECT COUNT(*) as count FROM users WHERE whatsapp_subscription = 1 AND is_profile_complete = 1"
+      "SELECT COUNT(*) as count FROM users WHERE whatsapp_subscription = true AND is_profile_complete = true"
     );
     const [[viaCoupon]] = await db.promise().query(
       "SELECT COUNT(*) as count FROM users WHERE whatsapp_activated_via = 'coupon'"
