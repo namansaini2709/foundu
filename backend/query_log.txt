@@ -727,3 +727,33 @@ QUERY:
       
 PARAMS: ["%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%"]
 RESULTS COUNT: 5
+
+--- DEBUG ---
+TIME: 2026-07-14T09:20:08.915Z
+FILTERS: {"type":"Freelancer","domain":"Tech","experience":"Any Level","priority":"Best Credibility","includeNonApplicants":"Yes, show hidden talent"}
+QUERY: 
+        SELECT u.id, u.full_name, u.user_type, 
+               COALESCE(fp.skills_description, cp.primary_identity) as skills_description,
+               COALESCE(fp.experience, cp.current_occupational_status) as experience,
+               u.credibility_score,
+               u.blue_tick_verified,
+               u.green_tick_verified,
+               u.golden_tick_verified,
+               COALESCE(r_stats.avg_stars, 0) as avg_rating
+        FROM users u
+        LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
+        LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
+        LEFT JOIN (
+          SELECT user_id, AVG(stars) as avg_stars 
+          FROM reviews 
+          GROUP BY user_id
+        ) r_stats ON u.id = r_stats.user_id
+        WHERE LOWER(u.user_type) = 'freelancer' AND (
+          (LOWER(u.user_type) = 'freelancer' AND (fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.freelancer_type_other LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ? OR fp.skills_description LIKE ?)) OR 
+          (LOWER(u.user_type) IN ('cofounder', 'co-founder') AND (cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ? OR cp.primary_identity_other LIKE ?))
+        )
+        ORDER BY u.credibility_score DESC
+        LIMIT 50
+      
+PARAMS: ["%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%","%Tech%","%developer%","%engineer%","%code%","%software%","%programming%","%web%","%app%","%ai%","%ml%"]
+RESULTS COUNT: 5

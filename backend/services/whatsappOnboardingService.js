@@ -190,38 +190,51 @@ async function saveProfileToDatabase(role, phone, data) {
   // Retrieve user ID
   const [userRows] = await db.promise().query("SELECT id FROM users WHERE email = ?", [data.email]);
   const userId = userRows[0].id;
-
   // Insert profile details mapping to actual database schema columns
   if (role === "freelancer") {
     const firstName = data.name.split(" ")[0];
     const lastName = data.name.split(" ").slice(1).join(" ") || "";
+    
+    // Generate profile embedding
+    const profileText = `Name: ${data.name} | Skills: ${data.skills} | Stack: ${data.preferred_tech} | Expertise: ${data.domain_expertise} | Experience: ${data.experience} | Budget: ${data.budget} | Resume: ${data.resume}`;
+    const embedding = await geminiService.generateEmbedding(profileText);
+    
     await db.promise().query(
       `INSERT INTO freelancer_profiles (
         user_id, freelancer_id, first_name, last_name, email, phone_number,
-        skills_description, experience, stipend_expectations, github, other_links, freelancer_type, describe_best
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        skills_description, experience, stipend_expectations, github, other_links, freelancer_type, describe_best, embedding
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId, freelancer_id, firstName, lastName, data.email, phone,
-        data.skills, data.experience, data.budget, data.portfolio, data.resume, data.domain_expertise, data.preferred_tech
+        data.skills, data.experience, data.budget, data.portfolio, data.resume, data.domain_expertise, data.preferred_tech,
+        embedding ? JSON.stringify(embedding) : null
       ]
     );
   } else if (role === "founder") {
+    // Generate profile embedding
+    const profileText = `Name: ${data.name} | Startup: ${data.startupName} | Description: ${data.startupDesc} | Needs: ${data.hiringNeeds} | Budget: ${data.budget}`;
+    const embedding = await geminiService.generateEmbedding(profileText);
+
     await db.promise().query(
       `INSERT INTO startup_profiles (
-        user_id, founder_id, startup_name, current_stage, current_need, monthly_investment, solution_building
-      ) VALUES (?, ?, ?, 'Idea Stage', ?, ?, ?)`,
-      [userId, founder_id, data.startupName, data.hiringNeeds, data.budget, data.startupDesc]
+        user_id, founder_id, startup_name, current_stage, current_need, monthly_investment, solution_building, embedding
+      ) VALUES (?, ?, ?, 'Idea Stage', ?, ?, ?, ?)`,
+      [userId, founder_id, data.startupName, data.hiringNeeds, data.budget, data.startupDesc, embedding ? JSON.stringify(embedding) : null]
     );
   } else if (role === "cofounder") {
     const superpowerText = `${data.superpowers} (Preferred Stage: ${data.stage})`;
+    
+    // Generate profile embedding
+    const profileText = `Name: ${data.name} | Expertise: ${data.expertise} | Stage: ${data.stage} | Equity: ${data.equity} | Superpowers: ${data.superpowers}`;
+    const embedding = await geminiService.generateEmbedding(profileText);
+
     await db.promise().query(
       `INSERT INTO cofounder_profiles (
-        user_id, cofounder_id, full_legal_name, primary_identity, anti_portfolio, equity_minimum
-      ) VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, cofounder_id, data.name, data.expertise, superpowerText, data.equity]
+        user_id, cofounder_id, full_legal_name, primary_identity, anti_portfolio, equity_minimum, embedding
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userId, cofounder_id, data.name, data.expertise, superpowerText, data.equity, embedding ? JSON.stringify(embedding) : null]
     );
   }
-}
 
 // Dynamic recommendations notifier
 async function triggerRecommendationsAndAlerts(role, phone, data) {

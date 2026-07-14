@@ -403,25 +403,59 @@ exports.localSearchFreelancers = async ({ skills, maxBudget, founderNeeds }) => 
   try {
     const [rows] = await db.promise().query(`
       SELECT u.id, u.full_name, u.user_type, u.credibility_score,
-             fp.skills_description, fp.experience, fp.stipend_expectations, fp.github, fp.other_links, fp.freelancer_type, fp.describe_best,
-             cp.primary_identity, cp.anti_portfolio, cp.equity_minimum
+             fp.skills_description, fp.experience, fp.stipend_expectations, fp.github, fp.other_links, fp.freelancer_type, fp.describe_best, fp.embedding AS free_emb,
+             cp.primary_identity, cp.anti_portfolio, cp.equity_minimum, cp.embedding AS co_emb
       FROM users u
       LEFT JOIN freelancer_profiles fp ON u.id = fp.user_id
       LEFT JOIN cofounder_profiles cp ON u.id = cp.user_id
       WHERE u.user_type IN ('freelancer', 'cofounder')
     `);
 
-    if (!rows.length) return [];
+  if (!rows.length) return [];
 
-    const candidatesText = rows.map((c, i) => {
-      if (c.user_type === 'cofounder') {
-        return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Co-founder | Expertise: ${c.primary_identity || 'N/A'} | Superpowers: ${c.anti_portfolio || 'N/A'} | Equity: ${c.equity_minimum || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
-      } else {
-        return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Freelancer | Skills: ${c.skills_description || 'N/A'} | Tech Stack: ${c.describe_best || 'N/A'} | Domain: ${c.freelancer_type || 'N/A'} | Experience: ${c.experience || 'N/A'} | Budget: ${c.stipend_expectations || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+  // Optimize with local vector similarity:
+  const queryText = `Skills: ${skills ? skills.join(", ") : ""} | Needs: ${founderNeeds || ""} | Budget: ${maxBudget || ""}`;
+  const queryVector = await exports.generateEmbedding(queryText);
+
+  let candidatesToMatch = rows;
+
+  if (queryVector) {
+    // Calculate scores
+    const scoredCandidates = rows.map(c => {
+      const rawEmb = c.user_type === 'cofounder' ? c.co_emb : c.free_emb;
+      let vec = null;
+      if (rawEmb) {
+        try {
+          vec = typeof rawEmb === "string" ? JSON.parse(rawEmb) : rawEmb;
+        } catch (e) {
+          vec = null;
+        }
       }
-    }).join("\n---\n");
+      const score = vec ? cosineSimilarity(queryVector, vec) : 0;
+      return { c, score };
+    });
 
-    const prompt = `
+    // If we have candidates with vectors, filter and sort by similarity
+    const hasEmbeddings = scoredCandidates.some(sc => sc.score > 0);
+    if (hasEmbeddings) {
+      // Sort and select top 6 candidates to pass to Gemini
+      candidatesToMatch = scoredCandidates
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6)
+        .map(sc => sc.c);
+      console.log(`[AI Tools] Vector search matched top ${candidatesToMatch.length} candidates.`);
+    }
+  }
+
+  const candidatesText = candidatesToMatch.map((c, i) => {
+    if (c.user_type === 'cofounder') {
+      return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Co-founder | Expertise: ${c.primary_identity || 'N/A'} | Superpowers: ${c.anti_portfolio || 'N/A'} | Equity: ${c.equity_minimum || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+    } else {
+      return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Freelancer | Skills: ${c.skills_description || 'N/A'} | Tech Stack: ${c.describe_best || 'N/A'} | Domain: ${c.freelancer_type || 'N/A'} | Experience: ${c.experience || 'N/A'} | Budget: ${c.stipend_expectations || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+    }
+  }).join("\n---\n");
+
+  const prompt = `
       You are the FoundU AI talent matchmaker.
       Your task is to select the best matching professionals from our candidates list for the founder's hiring requirements.
       
@@ -580,53 +614,73 @@ exports.streamChatCompletion = async ({ systemInstruction, history, message, onC
   }
 };
 
-let pineconeIndex = null;
-try {
-  if (process.env.PINECONE_API_KEY) {
-    const { Pinecone } = require("@pinecone-database/pinecone");
-    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-    pineconeIndex = pc.index(process.env.PINECONE_INDEX || "foundu-memories");
-    console.log("[AI Pinecone] Client connection configured.");
+// Helper: Calculate cosine similarity between two float arrays
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+  let dotProduct = 0.0;
+  let normA = 0.0;
+  let normB = 0.0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
   }
-} catch (err) {
-  console.warn("[AI Pinecone Init Warning]: Could not initialize Pinecone client.", err.message);
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+exports.cosineSimilarity = cosineSimilarity;
+
 exports.generateEmbedding = async (text) => {
-  try {
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
-    const result = await model.embedContent(text);
-    return result.embedding.values;
-  } catch (err) {
-    console.error("[AI Embedding Error]:", err);
-    return null;
+  let lastErr = null;
+  for (const modelName of ["gemini-embedding-2", "gemini-embedding-001"]) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.embedContent(text);
+      return result.embedding.values;
+    } catch (err) {
+      console.warn(`[AI Embedding Warning] Model ${modelName} failed:`, err.message);
+      lastErr = err;
+    }
   }
+  console.error("[AI Embedding Error] All embedding models failed:", lastErr);
+  return null;
 };
 
 exports.queryPineconeMemories = async (userId, queryText) => {
-  if (!pineconeIndex) {
-    console.warn("[AI Pinecone Query Warning]: Pinecone index not initialized.");
-    return [];
-  }
+  const db = require("../config/db");
   try {
     const queryVector = await exports.generateEmbedding(queryText);
     if (!queryVector) return [];
 
-    const queryResponse = await pineconeIndex.query({
-      vector: queryVector,
-      filter: { userId: { "$eq": String(userId) } },
-      topK: 3,
-      includeMetadata: true
-    });
+    // Fetch all memories for the user that have embeddings
+    const [rows] = await db.promise().query(
+      "SELECT extracted_fact, embedding FROM founder_memories WHERE user_id = ? AND embedding IS NOT NULL",
+      [userId]
+    );
 
-    if (queryResponse && queryResponse.matches) {
-      return queryResponse.matches
-        .filter(m => m.score >= 0.55 && m.metadata)
-        .map(m => m.metadata.fact);
-    }
-    return [];
+    if (rows.length === 0) return [];
+
+    // Calculate similarity, filter, and sort
+    const matches = rows
+      .map(row => {
+        let vec;
+        try {
+          vec = typeof row.embedding === "string" ? JSON.parse(row.embedding) : row.embedding;
+        } catch (e) {
+          vec = null;
+        }
+        const score = vec ? cosineSimilarity(queryVector, vec) : 0;
+        return { fact: row.extracted_fact, score };
+      })
+      .filter(m => m.score >= 0.55)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(m => m.fact);
+
+    return matches;
   } catch (err) {
-    console.error("[AI Pinecone Query Error]:", err);
+    console.error("[AI Local Memory Query Error]:", err);
     return [];
   }
 };
@@ -658,27 +712,12 @@ exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
 
     if (facts.facts && facts.facts.length > 0) {
       for (const fact of facts.facts) {
+        const vector = await exports.generateEmbedding(fact);
         await db.promise().query(
-          "INSERT INTO founder_memories (user_id, extracted_fact, category) VALUES (?, ?, ?)",
-          [userId, fact, "profile_auto"]
+          "INSERT INTO founder_memories (user_id, extracted_fact, category, embedding) VALUES (?, ?, ?, ?)",
+          [userId, fact, "profile_auto", vector ? JSON.stringify(vector) : null]
         );
-
-        // Asynchronously upsert vectors to Pinecone
-        if (pineconeIndex) {
-          const vector = await exports.generateEmbedding(fact);
-          if (vector) {
-            try {
-              await pineconeIndex.upsert([{
-                id: `fact-${userId}-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-                values: vector,
-                metadata: { userId: String(userId), fact, category: "profile_auto" }
-              }]);
-              console.log(`[AI Pinecone] Saved fact vector for user ${userId}.`);
-            } catch (pErr) {
-              console.error("[AI Pinecone Upsert Error]:", pErr);
-            }
-          }
-        }
+        console.log(`[AI Memory Worker] Saved memory and local embedding for user ${userId}.`);
       }
     }
 
@@ -883,6 +922,74 @@ exports.getSemanticTalentRecommendations = async (profile, talents) => {
   } catch (err) {
     console.error("[AI Semantic Talent Recommendations Failed]", err);
     return [];
+  }
+};
+
+exports.autoBackfillEmbeddings = async () => {
+  const db = require("../config/db");
+  try {
+    // 1. Freelancers
+    const [freelancers] = await db.promise().query(
+      "SELECT f.user_id, f.first_name, f.last_name, f.skills_description, f.experience, f.stipend_expectations, f.github, f.other_links, f.freelancer_type, f.describe_best FROM freelancer_profiles f WHERE f.embedding IS NULL LIMIT 20"
+    );
+    if (freelancers.length > 0) {
+      console.log(`[Auto-Backfill] Generating vector embeddings for ${freelancers.length} freelancers in the background...`);
+      for (const f of freelancers) {
+        const name = `${f.first_name || ""} ${f.last_name || ""}`.trim();
+        const profileText = `Name: ${name} | Skills: ${f.skills_description || ""} | Stack: ${f.describe_best || ""} | Expertise: ${f.freelancer_type || ""} | Experience: ${f.experience || ""} | Budget: ${f.stipend_expectations || ""} | Portfolio: ${f.github || ""} | Resume: ${f.other_links || ""}`;
+        const embedding = await exports.generateEmbedding(profileText);
+        if (embedding) {
+          await db.promise().query("UPDATE freelancer_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), f.user_id]);
+        }
+      }
+    }
+
+    // 2. Co-founders
+    const [cofounders] = await db.promise().query(
+      "SELECT c.user_id, c.full_legal_name, c.primary_identity, c.anti_portfolio, c.equity_minimum FROM cofounder_profiles c WHERE c.embedding IS NULL LIMIT 20"
+    );
+    if (cofounders.length > 0) {
+      console.log(`[Auto-Backfill] Generating vector embeddings for ${cofounders.length} co-founders in the background...`);
+      for (const c of cofounders) {
+        const profileText = `Name: ${c.full_legal_name || ""} | Expertise: ${c.primary_identity || ""} | Superpowers: ${c.anti_portfolio || ""} | Equity: ${c.equity_minimum || ""}`;
+        const embedding = await exports.generateEmbedding(profileText);
+        if (embedding) {
+          await db.promise().query("UPDATE cofounder_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), c.user_id]);
+        }
+      }
+    }
+
+    // 3. Startups
+    const [startups] = await db.promise().query(
+      "SELECT s.user_id, s.startup_name, s.current_stage, s.current_need, s.monthly_investment, s.solution_building FROM startup_profiles s WHERE s.embedding IS NULL LIMIT 20"
+    );
+    if (startups.length > 0) {
+      console.log(`[Auto-Backfill] Generating vector embeddings for ${startups.length} startups in the background...`);
+      for (const s of startups) {
+        const profileText = `Name: ${s.startup_name || ""} | Stage: ${s.current_stage || ""} | Needs: ${s.current_need || ""} | Budget: ${s.monthly_investment || ""} | Description: ${s.solution_building || ""}`;
+        const embedding = await exports.generateEmbedding(profileText);
+        if (embedding) {
+          await db.promise().query("UPDATE startup_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), s.user_id]);
+        }
+      }
+    }
+
+    // 4. Jobs
+    const [jobs] = await db.promise().query(
+      "SELECT j.job_id, j.job_title, j.startup_name, j.job_requirements, j.budget_range, j.job_type FROM foundu_jobs j WHERE j.embedding IS NULL LIMIT 20"
+    );
+    if (jobs.length > 0) {
+      console.log(`[Auto-Backfill] Generating vector embeddings for ${jobs.length} jobs in the background...`);
+      for (const j of jobs) {
+        const profileText = `Job Title: ${j.job_title || ""} | Startup: ${j.startup_name || ""} | Requirements: ${j.job_requirements || ""} | Budget: ${j.budget_range || ""} | Type: ${j.job_type || ""}`;
+        const embedding = await exports.generateEmbedding(profileText);
+        if (embedding) {
+          await db.promise().query("UPDATE foundu_jobs SET embedding = ? WHERE job_id = ?", [JSON.stringify(embedding), j.job_id]);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[Auto-Backfill Error]:", err.message);
   }
 };
 

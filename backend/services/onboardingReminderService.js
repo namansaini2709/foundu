@@ -55,6 +55,7 @@ const sendOnboardingReminder = async (user, type) => {
   const message = `Hey ${full_name}, it looks like you haven't completed your ${user_type} profile yet. Profiles with details get 5x more visibility. Complete yours now to unlock all features!`;
   const profilePath = user_type === "founder" ? "/startup-profile" : (user_type === "cofounder" ? "/cofounder-profile" : "/freelancer-profile");
   const actionLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}${profilePath}`;
+  const actionText = "Complete Profile";
 
   try {
     // Send Platform Notification

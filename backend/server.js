@@ -326,6 +326,72 @@ server.listen(PORT, () => {
     else console.log("[DB Init] whatsapp_onboarding_sessions table verified.");
   });
 
+  // Verify and create ai_conversations table
+  db.query(`
+    CREATE TABLE IF NOT EXISTS ai_conversations (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      session_id VARCHAR(255) NOT NULL UNIQUE,
+      summary TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) console.error("[DB Init] Error creating ai_conversations:", err.message);
+    else console.log("[DB Init] ai_conversations table verified.");
+  });
+
+  // Verify and create ai_messages table
+  db.query(`
+    CREATE TABLE IF NOT EXISTS ai_messages (
+      id SERIAL PRIMARY KEY,
+      session_id VARCHAR(255) NOT NULL,
+      sender VARCHAR(20) CHECK (sender IN ('user', 'assistant')) NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (session_id) REFERENCES ai_conversations(session_id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) console.error("[DB Init] Error creating ai_messages:", err.message);
+    else console.log("[DB Init] ai_messages table verified.");
+  });
+
+  // Verify and create founder_memories table
+  db.query(`
+    CREATE TABLE IF NOT EXISTS founder_memories (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      extracted_fact TEXT NOT NULL,
+      embedding JSONB NULL,
+      category VARCHAR(50) NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) console.error("[DB Init] Error creating founder_memories:", err.message);
+    else console.log("[DB Init] founder_memories table verified.");
+  });
+
+  // Verify and alter profiles/jobs to add embedding JSONB columns
+  const alterQueries = [
+    "ALTER TABLE freelancer_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
+    "ALTER TABLE cofounder_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
+    "ALTER TABLE startup_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
+    "ALTER TABLE foundu_jobs ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL"
+  ];
+
+  alterQueries.forEach((q) => {
+    db.query(q, (err) => {
+      if (err) {
+        console.error(`[DB Init] Error altering column: ${q}`, err.message);
+      } else {
+        const tableName = q.split(" ")[2];
+        console.log(`[DB Init] Column "embedding" verified for table "${tableName}".`);
+      }
+    });
+  });
+
   // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
   const { checkUnreadMessages } = require("./services/unreadMessageService");
   const scheduleNoonCheck = () => {
@@ -341,6 +407,13 @@ server.listen(PORT, () => {
       checkUnreadMessages();
       setInterval(checkUnreadMessages, 24 * 60 * 60 * 1000); // Then every 24 hours
     }, msUntilNoon);
-  };
   scheduleNoonCheck();
+
+  // 🚀 Auto-Backfill missing embeddings in the background (DX Optimization)
+  const { autoBackfillEmbeddings } = require("./services/geminiService");
+  setTimeout(() => {
+    autoBackfillEmbeddings()
+      .then(() => console.log("[Auto-Backfill] All vector embeddings verified and backfilled successfully."))
+      .catch((err) => console.error("[Auto-Backfill Error]:", err.message));
+  }, 5000);
 });

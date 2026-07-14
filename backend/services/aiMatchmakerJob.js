@@ -1,7 +1,7 @@
 const db = require("../config/db");
 const emailNotificationService = require("./emailNotificationService");
 const whatsappService = require("./whatsappService");
-const { generateWithFallback, extractAndParseJSON } = require("./geminiService");
+const { generateWithFallback, extractAndParseJSON, cosineSimilarity } = require("./geminiService");
 
 // Helper function to execute queries with Promises (since the db block uses callbacks)
 const queryAsync = (sql, params = []) => {
@@ -35,7 +35,7 @@ const runMatchmaker = async () => {
         // A. Fetch Freelancer Talent
         const freelancers = await queryAsync(`
              SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
-                    f.freelancer_type, f.skills_description, f.experience, f.job_profile 
+                    f.freelancer_type, f.skills_description, f.experience, f.job_profile, f.embedding 
              FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id 
              WHERE u.is_profile_complete = true 
                AND u.user_type = 'freelancer'
@@ -46,7 +46,7 @@ const runMatchmaker = async () => {
         // B. Fetch Co-founder Talent
         const cofounders = await queryAsync(`
              SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
-                    c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq
+                    c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq, c.embedding
              FROM users u LEFT JOIN cofounder_profiles c ON u.id = c.user_id 
              WHERE u.is_profile_complete = true 
                AND u.user_type = 'cofounder'
@@ -66,8 +66,8 @@ const runMatchmaker = async () => {
 
         // D. Fetch ALL Open Jobs & MAP founder_id TO NOTIFY_ID (user_id)
         const rawJobs = await queryAsync(`
-            SELECT job_id, founder_id, startup_name, job_title, domain, role_category, job_requirements, budget_range, job_type
-            FROM foundu_jobs ORDER BY created_at DESC
+             SELECT job_id, founder_id, startup_name, job_title, domain, role_category, job_requirements, budget_range, job_type, embedding
+             FROM foundu_jobs ORDER BY created_at DESC
         `);
 
         // 🔗 MAP IDs: Change founder_id in jobs to the ACTUAL NOTIFY_ID (user_id) of the founder
@@ -85,53 +85,228 @@ const runMatchmaker = async () => {
         }
 
         // ---------------------------------------------------------
-        // 2️⃣ THE BRAIN: Gemini Analysis
+        // 2️⃣ THE BRAIN: Local Vector Matching + Gemini Refinement
         // ---------------------------------------------------------
+        console.log("🧠 Performing local vector similarity matching...");
+        const matchResults = [];
 
-        const prompt = `
-        You are FoundU's highly intelligent AI Talent Matchmaker. 
+        // Helper: safe JSON parse for embeddings
+        const parseEmbedding = (emb) => {
+            if (!emb) return null;
+            try {
+                return typeof emb === "string" ? JSON.parse(emb) : emb;
+            } catch (e) {
+                return null;
+            }
+        };
 
-        CRITICAL INSTRUCTION: You must use the 'NOTIFY_ID' provided in the lists for your final output.
+        // A. Match Freelancers to Jobs
+        for (const free of freelancers) {
+            const freeVec = parseEmbedding(free.embedding);
+            if (!freeVec) continue;
 
-        CONTEXT:
-        - Freelancers/Cofounders: Find matching Jobs from 'ALL OPEN JOBS'.
-        - Founders: Scan 'ALL OPEN JOBS' for jobs where 'NOTIFY_ID' matches their own. Then find top Candidates from TALENT pools for those jobs.
+            // Calculate similarity to all jobs
+            const jobScores = allJobs
+                .map(job => {
+                    const jobVec = parseEmbedding(job.embedding);
+                    const score = jobVec ? cosineSimilarity(freeVec, jobVec) : 0;
+                    return { job, score };
+                })
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5); // Pick top 5
 
-        DATA:
-        - TALENT (Freelancers): ${JSON.stringify(freelancers)}
-        - TALENT (Co-founders): ${JSON.stringify(cofounders)}
-        - ALL OPEN JOBS: ${JSON.stringify(allJobs)}
-        - FOUNDERS: ${JSON.stringify(founders)}
+            if (jobScores.length === 0) continue;
 
-        GOALS:
-        1. For each Freelancer/Co-founder (NOTIFY_ID), find their top 3 matching Jobs.
-        2. For each Founder (NOTIFY_ID), find top 3 Candidates from TALENT pools for the jobs they own.
+            // Refine top matches using Gemini Flash
+            const prompt = `
+                You are FoundU's AI talent matchmaker.
+                Analyze this freelancer profile and rank the top 3 best matching jobs from the candidates list.
+                
+                FREELANCER:
+                Name: ${free.full_name}
+                Skills: ${free.skills_description}
+                Experience: ${free.experience}
+                Job Profile: ${free.job_profile || "N/A"}
 
-        OUTPUT FORMAT: 
-        A single JSON array of objects.
-        [
-          {
-            "NOTIFY_ID": 25,
-            "user_type": "freelancer",
-            "matches": [
-               { "job_id": 1, "job_title": "React Dev", "startup_name": "T-Corp", "reason": "Reason" }
-            ]
-          },
-          {
-            "NOTIFY_ID": 24,
-            "user_type": "founder",
-            "matches": [
-               { "candidate_id": 25, "candidate_name": "Hardick", "role": "Dev", "reason": "Reason" }
-            ]
-          }
-        ]
+                CANDIDATE JOBS:
+                ${JSON.stringify(jobScores.map(js => ({
+                    job_id: js.job.job_id,
+                    job_title: js.job.job_title,
+                    startup_name: js.job.startup_name,
+                    job_requirements: js.job.job_requirements,
+                    budget_range: js.job.budget_range
+                })))}
 
-        STRICT RULES: Valid JSON only. Do NOT use founder_id. Use NOTIFY_ID.
-        `;
+                Return ONLY a JSON array format (do not include markdown wrapping or other text):
+                [
+                  {
+                    "job_id": number,
+                    "job_title": "React Dev",
+                    "startup_name": "T-Corp",
+                    "reason": "1-sentence suitability reason",
+                    "score": number (0-100 match percentage)
+                  }
+                ]
+            `;
 
-        console.log("🧠 Sending Triple-Match context to Gemini...");
-        const responseText = await generateWithFallback(prompt);
-        const matchResults = extractAndParseJSON(responseText);
+            try {
+                const text = await generateWithFallback(prompt);
+                const refinedMatches = extractAndParseJSON(text);
+                if (refinedMatches && refinedMatches.length > 0) {
+                    matchResults.push({
+                        NOTIFY_ID: free.NOTIFY_ID,
+                        user_type: "freelancer",
+                        matches: refinedMatches
+                    });
+                }
+            } catch (e) {
+                console.warn(`[Matchmaker] Failed to refine matches for freelancer ${free.full_name}:`, e.message);
+            }
+        }
+
+        // B. Match Co-founders to Startups
+        for (const co of cofounders) {
+            const coVec = parseEmbedding(co.embedding);
+            if (!coVec) continue;
+
+            // Retrieve startup profiles (which have cofounder needs)
+            const startupProfiles = await queryAsync(`
+                SELECT user_id, founder_id, startup_name, current_stage, current_need, monthly_investment, solution_building, embedding
+                FROM startup_profiles
+            `);
+
+            const startupScores = startupProfiles
+                .map(s => {
+                    const startupVec = parseEmbedding(s.embedding);
+                    const score = startupVec ? cosineSimilarity(coVec, startupVec) : 0;
+                    return { startup: s, score };
+                })
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+
+            if (startupScores.length === 0) continue;
+
+            const prompt = `
+                You are FoundU's AI co-founder matchmaker.
+                Analyze this co-founder candidate profile and rank the top 3 best matching startups from the candidates list.
+                
+                CO-FOUNDER:
+                Name: ${co.full_name}
+                Expertise: ${co.primary_identity}
+                Superpowers: ${co.superpower1 || co.anti_portfolio || "N/A"}
+
+                CANDIDATE STARTUPS:
+                ${JSON.stringify(startupScores.map(ss => ({
+                    id: ss.startup.user_id,
+                    startup_name: ss.startup.startup_name,
+                    idea: ss.startup.solution_building,
+                    needs: ss.startup.current_need
+                })))}
+
+                Return ONLY a JSON array format (do not include markdown wrapping or other text):
+                [
+                  {
+                    "job_id": number, // Use the startup's user_id as job_id here
+                    "job_title": "Co-founder Needs",
+                    "startup_name": "T-Corp",
+                    "reason": "1-sentence suitability reason",
+                    "score": number (0-100 match percentage)
+                  }
+                ]
+            `;
+
+            try {
+                const text = await generateWithFallback(prompt);
+                const refinedMatches = extractAndParseJSON(text);
+                if (refinedMatches && refinedMatches.length > 0) {
+                    matchResults.push({
+                        NOTIFY_ID: co.NOTIFY_ID,
+                        user_type: "cofounder",
+                        matches: refinedMatches
+                    });
+                }
+            } catch (e) {
+                console.warn(`[Matchmaker] Failed to refine matches for co-founder ${co.full_name}:`, e.message);
+            }
+        }
+
+        // C. Match Founders to Candidates (Freelancers + Co-founders)
+        for (const founder of founders) {
+            // Find active jobs posted by this founder
+            const founderJobs = allJobs.filter(j => String(j.NOTIFY_ID) === String(founder.NOTIFY_ID));
+            if (founderJobs.length === 0) continue;
+
+            const founderMatches = [];
+
+            for (const job of founderJobs) {
+                const jobVec = parseEmbedding(job.embedding);
+                if (!jobVec) continue;
+
+                // Merge freelancers and co-founders as potential candidates
+                const candidates = [
+                    ...freelancers.map(f => ({ ...f, type: "freelancer" })),
+                    ...cofounders.map(c => ({ ...c, type: "cofounder" }))
+                ];
+
+                const candidateScores = candidates
+                    .map(cand => {
+                        const candVec = parseEmbedding(cand.embedding);
+                        const score = candVec ? cosineSimilarity(jobVec, candVec) : 0;
+                        return { cand, score };
+                    })
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 5);
+
+                if (candidateScores.length === 0) continue;
+
+                const prompt = `
+                    You are FoundU's AI talent matchmaker.
+                    Analyze this job posting and rank the top 3 best matching candidates from the candidates list.
+                    
+                    JOB POSTING:
+                    Title: ${job.job_title}
+                    Requirements: ${job.job_requirements}
+
+                    CANDIDATES list:
+                    ${JSON.stringify(candidateScores.map(cs => ({
+                        id: cs.cand.NOTIFY_ID,
+                        name: cs.cand.full_name,
+                        role: cs.cand.user_type,
+                        skills: cs.cand.skills_description || cs.cand.primary_identity || "N/A",
+                        experience: cs.cand.experience || "N/A"
+                    })))}
+
+                    Return ONLY a JSON array format:
+                    [
+                      {
+                        "candidate_id": number,
+                        "candidate_name": "Hardick",
+                        "role": "Developer",
+                        "reason": "1-sentence suitability reason",
+                        "score": number (0-100 match percentage)
+                      }
+                    ]
+                `;
+
+                try {
+                    const text = await generateWithFallback(prompt);
+                    const refinedMatches = extractAndParseJSON(text);
+                    if (refinedMatches && refinedMatches.length > 0) {
+                        founderMatches.push(...refinedMatches);
+                    }
+                } catch (e) {
+                    console.warn(`[Matchmaker] Failed to match candidates for job ${job.job_title}:`, e.message);
+                }
+            }
+
+            if (founderMatches.length > 0) {
+                matchResults.push({
+                    NOTIFY_ID: founder.NOTIFY_ID,
+                    user_type: "founder",
+                    matches: founderMatches.slice(0, 3) // Pick top 3 total
+                });
+            }
+        }
         
         // ---------------------------------------------------------
         // 3️⃣ NOTIFICATION ENGINE (EMAIL + WHATSAPP)
