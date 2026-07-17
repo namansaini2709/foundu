@@ -1,45 +1,126 @@
-# Walkthrough - PostgreSQL Restore, Embedding Backfill & Matchmaker Verification
+# 📖 WhatsApp-First Onboarding & Matchmaker Testing Guide
 
-All data from the 44MB MySQL dump `railway_backup.sql` has been parsed, translated, and restored into PostgreSQL (Neon DB). All user, co-founder, startup, and job profiles have been vectorized via the Gemini API and successfully backfilled. All local database similarity search and semantic matchmaking tests are passing successfully!
-
----
-
-## 🛠️ Restoration & Conversion Details
-
-### 1. Database Parsing & Migration (`import_mysql_dump_to_pg.js`)
-MySQL dump formats differ significantly from PostgreSQL. We created a custom robust parsing and translation script in [import_mysql_dump_to_pg.js](file:///c:/Users/Naman Saini/OneDrive/Desktop/foundu/foundu/backend/scripts/import_mysql_dump_to_pg.js):
-*   **Schema Translation**: Drops and re-creates PG tables on the fly. Maps types safely (e.g. MySQL `tinyint` -> PG `SMALLINT` so positional row values `1` and `0` insert smoothly without casting errors).
-*   **Double-Escaped JSON String Unwrapping**: Cleans MySQL double-escaped JSON column values (`'\"[\\\"Operations\\\"]\"'` -> `'["Operations"]'`) so they insert into PostgreSQL JSONB columns with perfect JSON syntax.
-*   **System/AI Tables creation**: Automatically creates and verifies tables (`whatsapp_onboarding_sessions`, `ai_conversations`, `ai_messages`, `founder_memories`) if they are missing from the backup.
-*   **Sequence Alignment**: Updates all PG SERIAL sequence caches after inserts to synchronize IDs and prevent duplicate key violations.
-*   **Pool-based execution**: Runs imports over a robust connection pool to prevent connection timeouts/drops on massive inserts (like `notifications` containing **160,985 rows**!).
+This guide is designed for **beginners and testers** to walk through and verify the WhatsApp-First Onboarding & Semantic Matchmaking features. It contains two testing methods:
+*   **Method A: Mock Local Simulation** (Quickest, runs locally in seconds, no configuration or accounts needed).
+*   **Method B: Real WhatsApp Meta Cloud API Integration** (End-to-end testing with a real phone and WhatsApp messages).
 
 ---
 
-## 🧪 Verification & Test Results
+## 🚀 What is WhatsApp-First Onboarding?
+Instead of forcing users to visit the website and fill out lengthy forms, FoundU automates onboarding directly through a conversational chat on WhatsApp.
+1.  **Welcome & Role Selection**: The user sends any message to start. The AI welcomes them and asks them to reply with a number to select their role:
+    *   `1` for **Freelancer**
+    *   `2` for **Co-Founder**
+    *   `3` for **Founder**
+2.  **Conversational Data Collection**: The AI dynamically asks sequential questions based on the role.
+3.  **Automatic DB Creation**: When complete, the backend registers a new user in the PostgreSQL database and populates their profile.
+4.  **Semantic Match Alerts**: The AI immediately compares the new profile against active opportunities and sends the top 3 matches with match scores and suitabilities directly to the user's WhatsApp chat with direct web links!
 
-### 1. Embedding Backfill
-We ran the backfill script to query all restored profiles and generate 768-dimension vector embeddings using the Gemini Embedding API:
-*   **Freelancers**: 43 profiles successfully embedded.
-*   **Co-founders**: 2 profiles successfully embedded.
-*   **Startups**: 12 profiles successfully embedded.
-*   **Jobs**: 10 postings successfully embedded.
-*   *Command run*: `node backend/scripts/backfill_embeddings.js`
+---
 
-### 2. Local Database Vector Tests (`test_local_vectors.js`)
-*   Verified generating 1536-dimensional mock vector coordinates.
-*   Verified cosine similarity comparison mathematical helpers.
-*   Verified storing, reading, and performing a cosine similarity search on vector data inside Neon PostgreSQL (using `founder_memories` table).
-*   *Command run*: `node backend/scripts/test_local_vectors.js`
-*   *Result*: **✅ Success: Local database similarity search verified successfully!**
+## 🖥️ Method A: Quick Mock Local Simulation
+This method simulates WhatsApp messages by hitting the backend webhook locally. You do **not** need a Meta developer account or a Twilio/WhatsApp setup.
 
-### 3. Freelancer Matchmaking Accuracy Test (`test_freelancer_matching.js`)
-*   Simulated a founder search query:
-    *   *Required skills*: `['React', 'Stripe']`
-    *   *Max budget limit*: `₹75,000`
-    *   *Description*: `We need a fullstack developer to build our billing dashboard with Stripe and React.`
-*   *Command run*: `node backend/scripts/test_freelancer_matching.js`
-*   *Result*: **✅ Success: Matchmaking engine executed successfully!** Top 3 candidates returned:
-    1.  **Piyush Raj Singh** (Match Score: 95%) - Full Stack Developer (Oracle-certified, Next.js expertise).
-    2.  **Pathina Harshith** (Match Score: 92%) - Full Stack Developer (React, Node.js, API Integration).
-    3.  **Mohamed Abdullah** (Match Score: 80%) - Full Stack Developer (React & Node.js, budget friendly).
+### Step 1: Install dependencies and prepare environment
+1.  Open your terminal, navigate to the `backend/` directory:
+    ```bash
+    cd backend
+    ```
+2.  Install packages (if not already installed):
+    ```bash
+    npm install
+    ```
+3.  Ensure your `backend/.env` has a valid `GEMINI_API_KEY` and `DATABASE_URL` (connected to Neon PostgreSQL).
+
+### Step 2: Start the backend server
+1.  In your terminal, start the server:
+    ```bash
+    node server.js
+    ```
+2.  Verify in the console that it says:
+    *   `🚀 FoundU backend running on 4000`
+    *   `[DB Init] whatsapp_onboarding_sessions table verified.`
+    *   `[DB Init] Column "embedding" verified...`
+
+### Step 3: Run the simulation script
+1.  Open a **second terminal window** (do not close the server terminal).
+2.  Navigate to the `backend/` directory:
+    ```bash
+    cd backend
+    ```
+3.  Run the simulation script:
+    ```bash
+    node scripts/simulate_whatsapp_onboarding.js
+    ```
+4.  **What to look for**:
+    *   The script sends mock incoming messages imitating a user chatting with the webhook.
+    *   You will see console logs printing each step:
+        *   Selecting role `1` (Freelancer).
+        *   Answering Name, Email, Skills, Tech Stack, Budget, and pasting Resume text.
+        *   On the final step, the simulation triggers the semantic matchmaker and prints the matched job postings returned by the AI.
+    *   Example success output:
+        ```text
+        [Sent text]: "1" (Selecting Freelancer)
+        [Sent text]: "Jane Freelancer"
+        [Sent text]: "React, Node.js, Stripe, PostgreSQL"
+        ...
+        🎉 Onboarding Simulation Completed successfully!
+        Check the database users and freelancer_profiles tables for user 'jane.free@example.com'!
+        ```
+
+### Step 4: Verify PostgreSQL Database entries
+Connect to your database (using a client like DBeaver or a command script) and check:
+*   `SELECT * FROM users WHERE email = 'jane.free@example.com';` (Should return the newly created user).
+*   `SELECT * FROM freelancer_profiles WHERE email = 'jane.free@example.com';` (Should contain the skills, experience, budget, and generated vector embeddings).
+
+---
+
+## 📱 Method B: Real Device Testing (Meta Cloud API Integration)
+This method connects a real WhatsApp phone number to the local backend using Meta's Cloud API and ngrok.
+
+### Step 1: Download and Start ngrok
+Since WhatsApp webhooks require a secure public HTTPS URL, we use ngrok to tunnel traffic to our local port `4000`.
+1.  Download ngrok from [ngrok.com](https://ngrok.com) and install it.
+2.  Open your terminal and run:
+    ```bash
+    ngrok http 4000
+    ```
+3.  Copy the secure **Forwarding URL** (e.g. `https://1234-abcd-5678.ngrok-free.app`). Keep this terminal open!
+
+### Step 2: Configure Meta Developer Portal
+1.  Log in to the [Meta Developer Dashboard](https://developers.facebook.com/).
+2.  Select your App -> Go to **WhatsApp** -> click **Configuration**.
+3.  Under **Webhook**, click **Edit**:
+    *   **Callback URL**: Paste your ngrok forwarding URL and append `/api/whatsapp/webhook` (e.g. `https://1234-abcd-5678.ngrok-free.app/api/whatsapp/webhook`).
+    *   **Verify Token**: Enter a secret verify token (e.g. `foundu_verify_secret_123`).
+    *   Click **Verify and Save**.
+4.  Click **Manage Webhook Fields** -> find **`messages`** -> click **Subscribe** -> click **Done**.
+
+### Step 3: Update backend `.env` variables
+Open your `backend/.env` file and set/verify:
+```env
+PORT=4000
+WHATSAPP_VERIFY_TOKEN=foundu_verify_secret_123   # Must match Verify Token in Meta
+META_ACCESS_TOKEN=your_meta_system_access_token # Temporary or permanent access token
+META_PHONE_NUMBER_ID=your_test_phone_id         # E.g. 1016957698174943
+```
+
+### Step 4: Run the Backend server
+Start the server in the `backend/` folder:
+```bash
+node server.js
+```
+
+### Step 5: Send a WhatsApp message from a phone
+1.  Get the WhatsApp test phone number assigned to your WhatsApp Business Account (found on the Meta WhatsApp Getting Started screen).
+2.  Add that number to your phone contacts.
+3.  Open WhatsApp on your phone and send a message like: **`Hi`**
+4.  **Observe the response**:
+    *   The test number should instantly welcome you and ask you to reply with `1`, `2`, or `3` to choose your role.
+5.  Follow the conversation on your phone:
+    *   Reply `1`
+    *   Send your name, email, portfolio link, skills, experience, etc.
+    *   Upload or paste a summary of your resume.
+6.  On completion:
+    *   The backend registers you in the database.
+    *   You will receive a WhatsApp message from Ginnie listing the top 3 best matching jobs/candidates, along with match percentages, explanations, and clickable links to view and apply on the web dashboard!
