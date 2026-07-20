@@ -5,7 +5,7 @@ dotenv.config();
 const genAI = new GoogleGenerativeAI((process.env.GEMINI_API_KEY || "").trim());
 
 // Priority list based on user discovery (using next-gen 2.0/2.5 models available to user)
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest", "gemini-pro-latest"];
+const MODELS = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-pro-latest"];
 
 /**
  * Robustly calls Gemini with model fallback.
@@ -540,7 +540,7 @@ exports.localAnalyzeStartupIdea = async ({ text, mode }) => {
 };
 
 exports.streamChatCompletion = async ({ systemInstruction, history, message, onChunk, onToolCall, context }) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction });
+  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction });
   
   const formattedHistory = (history || []).map(msg => ({
     role: msg.sender === 'user' ? 'user' : 'model',
@@ -562,12 +562,13 @@ exports.streamChatCompletion = async ({ systemInstruction, history, message, onC
 
   let functionCalls = [];
   for await (const chunk of responseStream.stream) {
-    if (chunk.functionCalls) {
-      functionCalls = [...functionCalls, ...chunk.functionCalls];
+    const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+    if (calls) {
+      functionCalls = [...functionCalls, ...calls];
     }
     let textChunk = "";
     try {
-      textChunk = chunk.text();
+      textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
     } catch (e) {}
     if (textChunk && onChunk) {
       onChunk(textChunk);
@@ -605,13 +606,130 @@ exports.streamChatCompletion = async ({ systemInstruction, history, message, onC
     for await (const chunk of followUpStream.stream) {
       let textChunk = "";
       try {
-        textChunk = chunk.text();
+        textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
       } catch (e) {}
       if (textChunk && onChunk) {
         onChunk(textChunk);
       }
     }
   }
+};
+
+exports.nonStreamChatCompletion = async ({ systemInstruction, history, message, context }) => {
+  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction });
+  
+  const formattedHistory = (history || []).map(msg => {
+    const role = (msg.role === 'user' || msg.sender === 'user') ? 'user' : 'model';
+    const text = msg.content || msg.message || "";
+    return { role, parts: [{ text }] };
+  });
+
+  const chat = model.startChat({
+    history: formattedHistory,
+    tools: [{
+      functionDeclarations: [
+        searchFreelancersDeclaration,
+        webSearchDeclaration,
+        analyzeStartupIdeaDeclaration
+      ]
+    }]
+  });
+
+  console.log("[nonStreamChatCompletion] Sending message via stream...");
+  const responseStream = await chat.sendMessageStream(message);
+  
+  let initialText = "";
+  let functionCalls = [];
+  let modelParts = [];
+  
+  for await (const chunk of responseStream.stream) {
+    if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
+      modelParts = [...modelParts, ...chunk.candidates[0].content.parts];
+    }
+    const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+    if (calls) {
+      functionCalls = [...functionCalls, ...calls];
+    }
+    try {
+      initialText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
+    } catch (e) {}
+  }
+  
+  console.log("[nonStreamChatCompletion] Initial text response:", initialText);
+  console.log("[nonStreamChatCompletion] Detected functionCalls:", JSON.stringify(functionCalls));
+
+  let currentFunctionCalls = functionCalls;
+  let currentModelParts = modelParts;
+
+  while (currentFunctionCalls.length > 0) {
+    // 1. Manually ensure the initial user turn exists in history
+    if (chat._history.length === 0) {
+      chat._history.push({
+        role: "user",
+        parts: [{ text: message }]
+      });
+    }
+
+    // 2. Manually push the model's functionCall turn to chat history (preserving thoughts)
+    chat._history.push({
+      role: "model",
+      parts: currentModelParts
+    });
+
+    // 2. Execute all detected function calls
+    const functionResponses = [];
+    for (const call of currentFunctionCalls) {
+      console.log("[nonStreamChatCompletion] Executing function:", call.name, "with args:", JSON.stringify(call.args));
+      let resultData;
+      if (call.name === "search_freelancers") {
+        resultData = await exports.localSearchFreelancers({
+          ...call.args,
+          founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
+        });
+      } else if (call.name === "web_search") {
+        resultData = await exports.localWebSearch(call.args);
+      } else if (call.name === "analyze_startup_idea") {
+        resultData = await exports.localAnalyzeStartupIdea(call.args);
+      }
+      console.log("[nonStreamChatCompletion] Function result:", JSON.stringify(resultData).substring(0, 300));
+      
+      functionResponses.push({
+        functionResponse: {
+          name: call.name,
+          response: { result: resultData }
+        }
+      });
+    }
+
+    console.log("[nonStreamChatCompletion] Sending functionResponses back to model...");
+    const followUpStream = await chat.sendMessageStream(functionResponses);
+    
+    let followUpText = "";
+    currentFunctionCalls = [];
+    currentModelParts = [];
+
+    for await (const chunk of followUpStream.stream) {
+      if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
+        currentModelParts = [...currentModelParts, ...chunk.candidates[0].content.parts];
+      }
+      const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+      if (calls) {
+        currentFunctionCalls = [...currentFunctionCalls, ...calls];
+      }
+      try {
+        followUpText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
+      } catch (e) {}
+    }
+
+    console.log("[nonStreamChatCompletion] Turn response text:", followUpText);
+    console.log("[nonStreamChatCompletion] Turn next functionCalls:", JSON.stringify(currentFunctionCalls));
+
+    if (currentFunctionCalls.length === 0) {
+      return followUpText;
+    }
+  }
+
+  return initialText;
 };
 
 // Helper: Calculate cosine similarity between two float arrays
@@ -687,10 +805,10 @@ exports.queryPineconeMemories = async (userId, queryText) => {
 
 exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
   const db = require("../config/db");
-  const recentTexts = chatHistory.slice(-6).map(h => `${h.sender}: ${h.message}`).join("\n");
+  const recentTexts = chatHistory.slice(-8).map(h => `${h.sender || h.role}: ${h.message || h.content || ""}`).join("\n");
   const prompt = `
     Analyze this conversation history between a startup founder and an AI assistant.
-    Extract key information about the founder's startup and needs if available.
+    Extract key structural information about the founder's startup and hiring needs if available.
     
     CONVERSATION:
     ${recentTexts}
@@ -699,10 +817,13 @@ exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
     Format:
     {
       "startupName": "Extracted startup name",
+      "solutionBuilding": "Brief description of the product or solution being built",
+      "industryNiche": "Industry sector e.g. EdTech, FinTech, Web3, SaaS, AI, E-commerce",
       "stage": "Idea / MVP / Early Revenue / Growth",
-      "hiringBudget": "Description of budget constraints",
-      "preferredTech": ["List", "of", "technologies"],
-      "facts": ["List of other 2-3 important facts about the business or hiring goals"]
+      "hiringNeeds": "Required roles e.g. React Developer, UI/UX Designer, Marketing Lead",
+      "hiringBudget": "Description of budget constraints e.g. ₹50,000 / $2,000/mo",
+      "preferredTech": ["React", "Node.js", "Python"],
+      "facts": ["List of 2-3 important facts about business goals, competitors, or target market"]
     }
   `;
 
@@ -710,7 +831,7 @@ exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
     const text = await generateWithFallback(prompt);
     const facts = extractAndParseJSON(text);
 
-    if (facts.facts && facts.facts.length > 0) {
+    if (facts && facts.facts && facts.facts.length > 0) {
       for (const fact of facts.facts) {
         const vector = await exports.generateEmbedding(fact);
         await db.promise().query(
@@ -721,7 +842,7 @@ exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
       }
     }
 
-    if (facts.startupName || facts.stage || facts.hiringBudget) {
+    if (facts && (facts.startupName || facts.stage || facts.hiringBudget || facts.solutionBuilding || facts.industryNiche || facts.hiringNeeds || facts.preferredTech)) {
       const [profiles] = await db.promise().query("SELECT id FROM startup_profiles WHERE user_id = ?", [userId]);
       if (profiles.length > 0) {
         let updateQuery = "UPDATE startup_profiles SET ";
@@ -731,19 +852,35 @@ exports.extractProfileFactsAndSave = async (userId, chatHistory) => {
           fields.push("startup_name = ?");
           params.push(facts.startupName);
         }
+        if (facts.solutionBuilding) {
+          fields.push("solution_building = ?");
+          params.push(facts.solutionBuilding);
+        }
+        if (facts.industryNiche) {
+          fields.push("industry_niche = ?");
+          params.push(facts.industryNiche);
+        }
         if (facts.stage) {
           fields.push("current_stage = ?");
           params.push(facts.stage);
+        }
+        if (facts.hiringNeeds) {
+          fields.push("current_need = ?");
+          params.push(facts.hiringNeeds);
         }
         if (facts.hiringBudget) {
           fields.push("monthly_investment = ?");
           params.push(facts.hiringBudget);
         }
+        if (facts.preferredTech && Array.isArray(facts.preferredTech)) {
+          fields.push("preferred_tech = ?");
+          params.push(JSON.stringify(facts.preferredTech));
+        }
         if (fields.length > 0) {
           updateQuery += fields.join(", ") + " WHERE user_id = ?";
           params.push(userId);
           await db.promise().query(updateQuery, params);
-          console.log(`[AI Worker] Updated startup profile details for user ${userId}.`);
+          console.log(`[AI Worker] Dynamically updated startup_profile autocompletions for user ${userId}.`);
         }
       }
     }
@@ -927,6 +1064,7 @@ exports.getSemanticTalentRecommendations = async (profile, talents) => {
 
 exports.autoBackfillEmbeddings = async () => {
   const db = require("../config/db");
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   try {
     // 1. Freelancers
     const [freelancers] = await db.promise().query(
@@ -941,6 +1079,7 @@ exports.autoBackfillEmbeddings = async () => {
         if (embedding) {
           await db.promise().query("UPDATE freelancer_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), f.user_id]);
         }
+        await sleep(1000); // 1-second delay to avoid 429 rate limit
       }
     }
 
@@ -956,6 +1095,7 @@ exports.autoBackfillEmbeddings = async () => {
         if (embedding) {
           await db.promise().query("UPDATE cofounder_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), c.user_id]);
         }
+        await sleep(1000); // 1-second delay to avoid 429 rate limit
       }
     }
 
@@ -971,6 +1111,7 @@ exports.autoBackfillEmbeddings = async () => {
         if (embedding) {
           await db.promise().query("UPDATE startup_profiles SET embedding = ? WHERE user_id = ?", [JSON.stringify(embedding), s.user_id]);
         }
+        await sleep(1000); // 1-second delay to avoid 429 rate limit
       }
     }
 
@@ -986,6 +1127,7 @@ exports.autoBackfillEmbeddings = async () => {
         if (embedding) {
           await db.promise().query("UPDATE foundu_jobs SET embedding = ? WHERE job_id = ?", [JSON.stringify(embedding), j.job_id]);
         }
+        await sleep(1000); // 1-second delay to avoid 429 rate limit
       }
     }
   } catch (err) {

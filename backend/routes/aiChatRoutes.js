@@ -7,5 +7,7 @@ const { isAuthenticated } = require("../middlewares/authMiddleware");
 router.post("/chat", isAuthenticated, aiChatController.chatStream);
 router.get("/chat/history", isAuthenticated, aiChatController.getHistory);
 router.post("/chat/reset", isAuthenticated, aiChatController.resetChat);
+router.get("/sessions", isAuthenticated, aiChatController.getUserSessions);
+router.get("/insights", isAuthenticated, aiChatController.getInsights);
 
 module.exports = router;

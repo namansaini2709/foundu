@@ -21,7 +21,7 @@ exports.getMyChats = (req, res) => {
       us.profile_picture_url,
       (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
       (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_time,
-      (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = false AND sender_id != ?) AS unread_count
+      (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = 0 AND sender_id != ?) AS unread_count
     FROM chats c
     JOIN chat_participants cp1 ON c.id = cp1.chat_id
     JOIN chat_participants cp2 ON c.id = cp2.chat_id
@@ -217,7 +217,7 @@ exports.markAsSeen = (req, res) => {
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   db.query(
-    "UPDATE messages SET is_seen = true WHERE chat_id = ? AND sender_id != ? AND is_seen = false",
+    "UPDATE messages SET is_seen = 1 WHERE chat_id = ? AND sender_id != ? AND is_seen = 0",
     [chatId, userId],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -234,7 +234,7 @@ exports.getTotalUnreadCount = (req, res) => {
 
   const query = `
     SELECT 
-      SUM((SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = false AND sender_id != ?)) as total
+      SUM((SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND is_seen = 0 AND sender_id != ?)) as total
     FROM chats c
     JOIN chat_participants cp ON c.id = cp.chat_id
     WHERE cp.user_id = ?

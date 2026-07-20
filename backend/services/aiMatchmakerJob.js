@@ -37,10 +37,8 @@ const runMatchmaker = async () => {
              SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
                     f.freelancer_type, f.skills_description, f.experience, f.job_profile, f.embedding 
              FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id 
-             WHERE u.is_profile_complete = true 
+             WHERE u.is_profile_complete = 1 
                AND u.user_type = 'freelancer'
-               AND u.whatsapp_subscription = true
-               AND u.whatsapp_expires_at > NOW()
         `);
 
         // B. Fetch Co-founder Talent
@@ -48,10 +46,8 @@ const runMatchmaker = async () => {
              SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
                     c.primary_identity, c.superpower1, c.superpower2, c.superpower3, c.domain_iq, c.embedding
              FROM users u LEFT JOIN cofounder_profiles c ON u.id = c.user_id 
-             WHERE u.is_profile_complete = true 
+             WHERE u.is_profile_complete = 1 
                AND u.user_type = 'cofounder'
-               AND u.whatsapp_subscription = true
-               AND u.whatsapp_expires_at > NOW()
         `);
 
         // C. Fetch Founders (to suggest talent to them)
@@ -59,9 +55,7 @@ const runMatchmaker = async () => {
              SELECT id AS NOTIFY_ID, founder_id, full_name, email, whatsapp_number, whatsapp_opt_in, user_type 
              FROM users 
              WHERE user_type = 'founder' 
-               AND whatsapp_subscription = true
-               AND whatsapp_expires_at > NOW()
-               AND is_profile_complete = true
+               AND is_profile_complete = 1
         `);
 
         // D. Fetch ALL Open Jobs & MAP founder_id TO NOTIFY_ID (user_id)

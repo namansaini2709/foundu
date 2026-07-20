@@ -183,7 +183,7 @@ async function saveProfileToDatabase(role, phone, data) {
       full_name, email, password_hash, user_type, 
       freelancer_id, founder_id, cofounder_id, 
       is_profile_complete, whatsapp_number
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)`,
     [data.name, data.email, dummyPassword, userType, freelancer_id, founder_id, cofounder_id, phone]
   );
 
@@ -235,6 +235,7 @@ async function saveProfileToDatabase(role, phone, data) {
       [userId, cofounder_id, data.name, data.expertise, superpowerText, data.equity, embedding ? JSON.stringify(embedding) : null]
     );
   }
+}
 
 // Dynamic recommendations notifier
 async function triggerRecommendationsAndAlerts(role, phone, data) {
@@ -254,7 +255,7 @@ async function triggerRecommendationsAndAlerts(role, phone, data) {
     } else if (role === "cofounder") {
       title = "🤝 Matching Startups for Co-Founder";
       const [startups] = await db.promise().query(
-        "SELECT id, startup_name, startup_idea, current_need, monthly_investment FROM startup_profiles LIMIT 15"
+        "SELECT id, startup_name, solution_building AS startup_idea, current_need, monthly_investment FROM startup_profiles LIMIT 15"
       );
 
       if (startups.length > 0) {

@@ -1,6 +1,5 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const genAI = new GoogleGenerativeAI((process.env.GEMINI_API_KEY || "").trim());
+const geminiService = require("../services/geminiService");
+const db = require("../config/db");
 
 const SYSTEM_PROMPT = `You are FounderGPT — an elite AI startup advisor built exclusively for founders on FoundU, India's premier startup platform.
 
@@ -30,51 +29,89 @@ Rules:
 - Always relate advice back to the founder's actual situation when possible.
 - Keep responses concise but complete. Aim for quality over length.
 
-You are NOT a general chatbot. You only advise on startup and business topics. If asked about unrelated topics, politely redirect the conversation back to building their startup.`;
+You are NOT a general chatbot. You only advise on startup and business topics. If asked about unrelated topics, politely redirect the conversation back to building their startup.
 
-const CHAT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+IF THE USER ASKS FOR TALENT, FREELANCERS, OR CO-FOUNDERS, CHOOSE TO CALL THE 'search_freelancers' FUNCTION AUTOMATICALLY TO MATCH CANDIDATES SEMANTICALLY FROM THE DATABASE.
+IF THEY WANT A DETAILED ANALYSIS OR REPORT FOR THEIR BUSINESS IDEA, RUN THE 'analyze_startup_idea' FUNCTION.`;
 
 exports.chat = async (req, res) => {
   const { message, history = [] } = req.body;
+  const userId = req.user?.id;
 
   if (!message || message.trim() === "") {
     return res.status(400).json({ success: false, error: "Message is required." });
   }
 
-  // Build conversation history for context
-  const chatHistory = history.map((msg) => ({
-    role: msg.role === "user" ? "user" : "model",
-    parts: [{ text: msg.content }],
-  }));
+  try {
+    let context = null;
+    let enrichedSystemPrompt = SYSTEM_PROMPT;
 
-  let lastError = null;
+    if (userId) {
+      // 1. Fetch startup profile context
+      const [profiles] = await db.promise().query(
+        "SELECT * FROM startup_profiles WHERE user_id = ?",
+        [userId]
+      );
+      if (profiles.length > 0) {
+        const p = profiles[0];
+        context = {
+          startupName: p.startup_name,
+          startupDesc: p.solution_building,
+          hiringNeeds: p.current_need,
+          budget: p.monthly_investment
+        };
+      }
 
-  for (const modelName of CHAT_MODELS) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        systemInstruction: SYSTEM_PROMPT,
-      });
+      // 2. Fetch semantic vector memories from database via local cosine similarity
+      let vectorMemories = [];
+      try {
+        vectorMemories = await geminiService.queryPineconeMemories(userId, message);
+        if (vectorMemories.length > 0) {
+          console.log(`[FounderAI] Retrieved ${vectorMemories.length} vector memories for user ${userId}`);
+        }
+      } catch (vecErr) {
+        console.warn("[FounderAI] Vector memory query warning:", vecErr.message);
+      }
 
-      const chat = model.startChat({
-        history: chatHistory,
-      });
+      // 3. Fetch recent extracted facts
+      const [rawMemories] = await db.promise().query(
+        "SELECT extracted_fact FROM founder_memories WHERE user_id = ? ORDER BY id DESC LIMIT 10",
+        [userId]
+      );
 
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
-      const text = response.text();
+      const allMemories = Array.from(new Set([
+        ...rawMemories.map(m => m.extracted_fact),
+        ...vectorMemories
+      ]));
 
-      return res.json({ success: true, reply: text });
-    } catch (err) {
-      console.warn(`[FounderGPT] Model ${modelName} failed:`, err.message);
-      lastError = err;
+      if (allMemories.length > 0) {
+        const memoryBlock = allMemories.map(f => `- ${f}`).join("\n");
+        enrichedSystemPrompt += `\n\nKNOWN HISTORICAL FACTS & MEMORIES ABOUT THIS FOUNDER/STARTUP:\n${memoryBlock}`;
+      }
     }
-  }
 
-  console.error("[FounderGPT] All models failed. Last error:", lastError ? lastError.message : "unknown");
-  return res.status(500).json({
-    success: false,
-    error: "AI is temporarily unavailable. Please try again in a moment.",
-  });
+    const reply = await geminiService.nonStreamChatCompletion({
+      systemInstruction: enrichedSystemPrompt,
+      history,
+      message,
+      context
+    });
+
+    // 4. Asynchronously trigger background worker for fact extraction & profile autocompletion
+    if (userId) {
+      const updatedHistory = [...history, { role: "user", content: message }, { role: "model", content: reply }];
+      geminiService.extractProfileFactsAndSave(userId, updatedHistory).catch(err => {
+        console.error("[FounderAI Worker Error]:", err.message);
+      });
+    }
+
+    return res.json({ success: true, reply });
+  } catch (err) {
+    console.error("[FounderGPT Error]:", err);
+    return res.status(500).json({
+      success: false,
+      error: "AI is temporarily unavailable. Please try again in a moment.",
+    });
+  }
 };
 

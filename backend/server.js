@@ -357,20 +357,26 @@ server.listen(PORT, () => {
     else console.log("[DB Init] ai_messages table verified.");
   });
 
-  // Verify and create founder_memories table
+  // Verify and create AI chat tables
   db.query(`
-    CREATE TABLE IF NOT EXISTS founder_memories (
+    CREATE TABLE IF NOT EXISTS ai_conversations (
       id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL,
-      extracted_fact TEXT NOT NULL,
-      embedding JSONB NULL,
-      category VARCHAR(50) NULL,
+      session_id VARCHAR(255) NOT NULL UNIQUE,
+      summary TEXT DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS ai_messages (
+      id SERIAL PRIMARY KEY,
+      session_id VARCHAR(255) NOT NULL,
+      sender VARCHAR(50) NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `, (err) => {
-    if (err) console.error("[DB Init] Error creating founder_memories:", err.message);
-    else console.log("[DB Init] founder_memories table verified.");
+    if (err) console.error("[DB Init] Error creating AI chat tables:", err.message);
+    else console.log("[DB Init] ai_conversations and ai_messages tables verified.");
   });
 
   // Verify and alter profiles/jobs to add embedding JSONB columns
@@ -378,6 +384,8 @@ server.listen(PORT, () => {
     "ALTER TABLE freelancer_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
     "ALTER TABLE cofounder_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
     "ALTER TABLE startup_profiles ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL",
+    "ALTER TABLE startup_profiles ADD COLUMN IF NOT EXISTS preferred_tech JSONB DEFAULT NULL",
+    "ALTER TABLE startup_profiles ADD COLUMN IF NOT EXISTS industry_niche VARCHAR(255) DEFAULT NULL",
     "ALTER TABLE foundu_jobs ADD COLUMN IF NOT EXISTS embedding JSONB DEFAULT NULL"
   ];
 
@@ -407,6 +415,7 @@ server.listen(PORT, () => {
       checkUnreadMessages();
       setInterval(checkUnreadMessages, 24 * 60 * 60 * 1000); // Then every 24 hours
     }, msUntilNoon);
+  };
   scheduleNoonCheck();
 
   // 🚀 Auto-Backfill missing embeddings in the background (DX Optimization)
@@ -416,4 +425,13 @@ server.listen(PORT, () => {
       .then(() => console.log("[Auto-Backfill] All vector embeddings verified and backfilled successfully."))
       .catch((err) => console.error("[Auto-Backfill Error]:", err.message));
   }, 5000);
+
+  // 🤖 AI Multi-Matchmaker Engine Background Worker (Runs on boot + every 24 hours)
+  const { runMatchmaker } = require("./services/aiMatchmakerJob");
+  setTimeout(() => {
+    runMatchmaker()
+      .then(() => console.log("[AI Matchmaker] Initial background matchmaking run complete."))
+      .catch((err) => console.error("[AI Matchmaker Error]:", err.message));
+    setInterval(runMatchmaker, 24 * 60 * 60 * 1000);
+  }, 10000);
 });

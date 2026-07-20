@@ -124,3 +124,25 @@ node server.js
 6.  On completion:
     *   The backend registers you in the database.
     *   You will receive a WhatsApp message from Ginnie listing the top 3 best matching jobs/candidates, along with match percentages, explanations, and clickable links to view and apply on the web dashboard!
+
+---
+
+## 🛠️ Local Similarity Engine & Postgres Vector Matching (Completed Upgrades)
+
+We have successfully migrated the AI Matchmaking and Chat tools from Pinecone to an **in-database PostgreSQL JSONB + local JS Cosine Similarity Engine**. 
+
+### 1. Vector Database Migration (Pinecone ➡️ PostgreSQL JSONB)
+* **Schema Alterations:** Added native `JSONB` `embedding` columns to `freelancer_profiles`, `cofounder_profiles`, `startup_profiles`, and `foundu_jobs` tables.
+* **Auto-Backfill on Server Startup:** The server dynamically checks for profiles/jobs missing embeddings on startup, generates vectors via Gemini `gemini-embedding-2`, and updates the database automatically in the background (fully hands-off for developers).
+* **JavaScript Cosine Similarity Engine:** Built a pure JS similarity calculation module inside `geminiService.js` that selects candidates locally, dramatically reducing latency and platform fees.
+
+### 2. FounderGPT Tool Calling & Integrations
+* **Dynamic Tool Calling:** The `/founder-ai` page now uses `nonStreamChatCompletion` which allows Ginnie to trigger functional tools dynamically:
+  * **validate_startup_idea:** Generates a structured venture analysis report containing TAM/SAM/SOM, roadmaps, competitors, and software vendor resources.
+  * **search_freelancers:** Runs the vector similarity engine on Postgres to recommend matching candidates directly inside the chat window.
+* **Typing Focus Fix:** Refactored the `Composer` text area component in the frontend (`FounderAI.jsx`) to resolve the character loss glitch so typing is completely smooth.
+
+### 3. Critical Postgres Type Mismatch Resolves
+* **Signup 500 error fixed:** Replaced boolean insert values (`false` -> `0`) for the `is_profile_complete` column to comply with PostgreSQL's strict typing rules for `smallint` columns.
+* **Chat 500 unread count error fixed:** Corrected boolean checks (`is_seen = false` -> `is_seen = 0`) inside `chatController.js` to ensure the unread count queries execute without operator type conflicts.
+

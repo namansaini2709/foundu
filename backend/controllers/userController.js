@@ -104,7 +104,7 @@ exports.signup = async (req, res) => {
         founder_id,
         cofounder_id,
         is_profile_complete
-      ) VALUES (?,?,?,?,?,?,?,false)`,
+      ) VALUES (?,?,?,?,?,?,?,0)`,
       [
         full_name,
         email,

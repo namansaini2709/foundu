@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/axiosConfig";
-import { getFullName } from "../utils/authUtils";
+import { getFullName, getUserId } from "../utils/authUtils";
 import {
   ArrowUp,
   Plus,
@@ -57,12 +57,16 @@ const STARTERS = [
 
 const FounderAI = () => {
   const navigate = useNavigate();
+  const userId = getUserId();
+  const chatsKey = userId ? `founder_ai_chats_${userId}` : "founder_ai_chats";
+  const activeChatIdKey = userId ? `founder_ai_active_chat_id_${userId}` : "founder_ai_active_chat_id";
+
   const [chats, setChats] = useState(() => {
-    const saved = localStorage.getItem("founder_ai_chats");
+    const saved = localStorage.getItem(chatsKey);
     return saved ? JSON.parse(saved) : [];
   });
   const [activeChatId, setActiveChatId] = useState(() => {
-    return localStorage.getItem("founder_ai_active_chat_id") || "";
+    return localStorage.getItem(activeChatIdKey) || "";
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,12 +112,12 @@ const FounderAI = () => {
 
   // Sync to localStorage
   useEffect(() => {
-    localStorage.setItem("founder_ai_chats", JSON.stringify(chats));
-  }, [chats]);
+    localStorage.setItem(chatsKey, JSON.stringify(chats));
+  }, [chats, chatsKey]);
 
   useEffect(() => {
-    localStorage.setItem("founder_ai_active_chat_id", activeChatId);
-  }, [activeChatId]);
+    localStorage.setItem(activeChatIdKey, activeChatId);
+  }, [activeChatId, activeChatIdKey]);
 
   // Auto-scroll on new messages
   const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
@@ -155,10 +159,12 @@ const FounderAI = () => {
     const userText = text || input.trim();
     if (!userText || loading) return;
 
-    // 1. Append user message and auto-update title if it's new
+    const currentSessionId = activeChatId;
+
+    // 1. Append user message immediately
     setChats((prev) =>
       prev.map((c) => {
-        if (c.id === activeChatId) {
+        if (c.id === currentSessionId) {
           const updatedMessages = [...c.messages, { role: "user", content: userText }];
           const isDefaultTitle = c.title === "New Chat" || c.title.trim() === "";
           const newTitle = isDefaultTitle
@@ -175,48 +181,122 @@ const FounderAI = () => {
     setLoading(true);
 
     try {
-      // Build history payload for Gemini context
-      const historyPayload = messages.map((m) => ({ role: m.role, content: m.content }));
+      const token = localStorage.getItem("token") || localStorage.getItem("userToken");
+      const baseURL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
-      const res = await api.post("/api/founder-ai/chat", {
-        message: userText,
-        history: historyPayload,
-      });
-
-      if (res.data.success) {
-        setChats((prev) =>
-          prev.map((c) => {
-            if (c.id === activeChatId) {
-              return {
-                ...c,
-                messages: [...c.messages, { role: "assistant", content: res.data.reply }],
-              };
-            }
-            return c;
-          })
-        );
-      } else {
-        throw new Error(res.data.error || "Unknown error");
-      }
-    } catch {
+      // Append assistant message placeholder for word streaming
       setChats((prev) =>
         prev.map((c) => {
-          if (c.id === activeChatId) {
+          if (c.id === currentSessionId) {
             return {
               ...c,
-              messages: [
-                ...c.messages,
-                {
-                  role: "assistant",
-                  content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
-                  isError: true,
-                },
-              ],
+              messages: [...c.messages, { role: "assistant", content: "" }]
             };
           }
           return c;
         })
       );
+
+      const response = await fetch(`${baseURL}/api/ai/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token ? `Bearer ${token}` : ""
+        },
+        body: JSON.stringify({
+          message: userText,
+          sessionId: currentSessionId
+        })
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Streaming connection failed");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let streamBuffer = "";
+      let accumulatedReply = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        streamBuffer += decoder.decode(value, { stream: true });
+
+        const lines = streamBuffer.split("\n\n");
+        streamBuffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const cleanLine = line.replace(/^data:\s*/, "").trim();
+          if (!cleanLine) continue;
+          if (cleanLine === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(cleanLine);
+            if (parsed.text) {
+              accumulatedReply += parsed.text;
+              setChats((prev) =>
+                prev.map((c) => {
+                  if (c.id === currentSessionId) {
+                    const msgs = [...c.messages];
+                    if (msgs.length > 0 && msgs[msgs.length - 1].role === "assistant") {
+                      msgs[msgs.length - 1] = { role: "assistant", content: accumulatedReply };
+                    }
+                    return { ...c, messages: msgs };
+                  }
+                  return c;
+                })
+              );
+            }
+          } catch (e) {}
+        }
+      }
+    } catch {
+      // Fallback to standard non-stream endpoint if token or SSE stream fails
+      try {
+        const historyPayload = messages.map((m) => ({ role: m.role, content: m.content }));
+        const res = await api.post("/api/founder-ai/chat", {
+          message: userText,
+          history: historyPayload,
+        });
+
+        if (res.data.success) {
+          setChats((prev) =>
+            prev.map((c) => {
+              if (c.id === currentSessionId) {
+                const msgs = c.messages.filter((m) => m.content !== "");
+                return {
+                  ...c,
+                  messages: [...msgs, { role: "assistant", content: res.data.reply }],
+                };
+              }
+              return c;
+            })
+          );
+        } else {
+          throw new Error(res.data.error || "Unknown error");
+        }
+      } catch {
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id === currentSessionId) {
+              const msgs = c.messages.filter((m) => m.content !== "");
+              return {
+                ...c,
+                messages: [
+                  ...msgs,
+                  {
+                    role: "assistant",
+                    content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
+                    isError: true,
+                  },
+                ],
+              };
+            }
+            return c;
+          })
+        );
+      }
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -232,8 +312,8 @@ const FounderAI = () => {
 
   const isEmpty = messages.length === 0;
 
-  // Reusable ChatGPT-style composer — rendered centered when empty, docked when active
-  const Composer = ({ compact }) => (
+  // Reusable ChatGPT-style composer helper
+  const renderComposer = (compact) => (
     <div className={`w-full ${compact ? "max-w-3xl mx-auto" : "max-w-2xl"}`}>
       <div className="flex items-end gap-2 bg-[#2f2f2f] border border-white/10 focus-within:border-white/20 rounded-[26px] px-2.5 py-2 shadow-lg shadow-black/30 transition-all">
         <button
@@ -369,7 +449,7 @@ const FounderAI = () => {
               What are we building, {userName}?
             </h1>
 
-            <Composer />
+            {renderComposer(false)}
 
             {/* Starter action chips */}
             <div className="flex flex-wrap items-center justify-center gap-2 mt-5 max-w-2xl">
@@ -434,7 +514,7 @@ const FounderAI = () => {
             {/* Docked Composer */}
             <div className="w-full bg-[#212121] shrink-0">
               <div className="px-4 md:px-6 pb-4 pt-2">
-                <Composer compact />
+                {renderComposer(true)}
                 <p className="text-center text-[11px] text-gray-500 mt-2">
                   FounderGPT can make mistakes. Use critical thinking before acting on advice.
                 </p>

@@ -191,3 +191,73 @@ exports.resetChat = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * Fetch all sessions for authenticated user.
+ */
+exports.getUserSessions = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ success: false, error: "Authentication required." });
+  }
+
+  try {
+    const [sessions] = await db.promise().query(
+      "SELECT session_id, summary, created_at, updated_at FROM ai_conversations WHERE user_id = ? ORDER BY updated_at DESC",
+      [userId]
+    );
+    res.json({ success: true, sessions });
+  } catch (error) {
+    console.error("[AI Sessions Error]:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Get Founder Insights & Autocompleted Profile Data.
+ */
+exports.getInsights = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ success: false, error: "Authentication required." });
+  }
+
+  try {
+    const [profiles] = await db.promise().query(
+      "SELECT * FROM startup_profiles WHERE user_id = ?",
+      [userId]
+    );
+    const p = profiles[0] || {};
+
+    const [memories] = await db.promise().query(
+      "SELECT extracted_fact, category, created_at FROM founder_memories WHERE user_id = ? ORDER BY id DESC LIMIT 15",
+      [userId]
+    );
+
+    let parsedTech = [];
+    try {
+      parsedTech = typeof p.preferred_tech === "string" ? JSON.parse(p.preferred_tech) : (p.preferred_tech || []);
+    } catch (e) {}
+
+    return res.json({
+      success: true,
+      extractedProfile: {
+        startupName: p.startup_name || "Not Specified",
+        solutionBuilding: p.solution_building || "Not Specified",
+        targetSector: p.industry_niche || "General Tech",
+        currentStage: p.current_stage || "Idea",
+        hiringNeeds: p.current_need || "Not Specified",
+        hiringBudget: p.monthly_investment || "Not Specified",
+        preferredTech: parsedTech
+      },
+      marketInsights: memories.map(m => ({
+        topic: m.category || "Business Insight",
+        summary: m.extracted_fact,
+        createdAt: m.created_at
+      }))
+    });
+  } catch (error) {
+    console.error("[AI Insights Error]:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
