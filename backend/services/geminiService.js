@@ -411,63 +411,99 @@ exports.localSearchFreelancers = async ({ skills, maxBudget, founderNeeds }) => 
       WHERE u.user_type IN ('freelancer', 'cofounder')
     `);
 
-  if (!rows.length) return [];
+    if (!rows.length) return [];
 
-  // Optimize with local vector similarity:
-  const queryText = `Skills: ${skills ? skills.join(", ") : ""} | Needs: ${founderNeeds || ""} | Budget: ${maxBudget || ""}`;
-  const queryVector = await exports.generateEmbedding(queryText);
+    // Optimize with local vector similarity:
+    const queryText = `Skills: ${skills ? skills.join(", ") : ""} | Needs: ${founderNeeds || ""} | Budget: ${maxBudget || ""}`;
+    const queryVector = await exports.generateEmbedding(queryText);
 
-  let candidatesToMatch = rows;
-
-  if (queryVector) {
-    // Calculate scores
-    const scoredCandidates = rows.map(c => {
-      const rawEmb = c.user_type === 'cofounder' ? c.co_emb : c.free_emb;
-      let vec = null;
-      if (rawEmb) {
-        try {
-          vec = typeof rawEmb === "string" ? JSON.parse(rawEmb) : rawEmb;
-        } catch (e) {
-          vec = null;
-        }
+    // Helper: Categorize profiles into functional buckets
+    const categorizeCandidate = (c) => {
+      const typeStr = ((c.freelancer_type || "") + " " + (c.primary_identity || "") + " " + (c.skills_description || "") + " " + (c.describe_best || "")).toLowerCase();
+      if (typeStr.includes("developer") || typeStr.includes("engineer") || typeStr.includes("coder") || typeStr.includes("tech") || typeStr.includes("ml") || typeStr.includes("ai") || typeStr.includes("programmer")) {
+        return "Technical / Developer";
       }
-      const score = vec ? cosineSimilarity(queryVector, vec) : 0;
-      return { c, score };
-    });
+      if (typeStr.includes("design") || typeStr.includes("ui") || typeStr.includes("ux") || typeStr.includes("creative") || typeStr.includes("figma") || typeStr.includes("art")) {
+        return "Creative / UI-UX Designer";
+      }
+      if (typeStr.includes("market") || typeStr.includes("social") || typeStr.includes("growth") || typeStr.includes("influencer") || typeStr.includes("seo") || typeStr.includes("sales") || typeStr.includes("writer")) {
+        return "Growth / Marketing & Sales";
+      }
+      return "Business / Co-founder / Product Strategy";
+    };
 
-    // If we have candidates with vectors, filter and sort by similarity
-    const hasEmbeddings = scoredCandidates.some(sc => sc.score > 0);
-    if (hasEmbeddings) {
-      // Sort and select top 6 candidates to pass to Gemini
-      candidatesToMatch = scoredCandidates
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 6)
-        .map(sc => sc.c);
-      console.log(`[AI Tools] Vector search matched top ${candidatesToMatch.length} candidates.`);
+    let candidatesToMatch = [];
+
+    if (queryVector) {
+      // Score all candidates
+      const scored = rows.map(c => {
+        const rawEmb = c.user_type === 'cofounder' ? c.co_emb : c.free_emb;
+        let vec = null;
+        if (rawEmb) {
+          try {
+            vec = typeof rawEmb === "string" ? JSON.parse(rawEmb) : rawEmb;
+          } catch (e) {
+            vec = null;
+          }
+        }
+        const score = vec ? cosineSimilarity(queryVector, vec) : 0;
+        return { c, score, cat: categorizeCandidate(c) };
+      });
+
+      // Group scored candidates by category
+      const categories = {
+        "Technical / Developer": [],
+        "Creative / UI-UX Designer": [],
+        "Growth / Marketing & Sales": [],
+        "Business / Co-founder / Product Strategy": []
+      };
+
+      scored.forEach(sc => {
+        if (categories[sc.cat]) {
+          categories[sc.cat].push(sc);
+        } else {
+          categories["Business / Co-founder / Product Strategy"].push(sc);
+        }
+      });
+
+      // For each category, select the top 5 best matching candidates
+      Object.keys(categories).forEach(catKey => {
+        const topInCat = categories[catKey]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map(sc => sc.c);
+        candidatesToMatch = [...candidatesToMatch, ...topInCat];
+      });
+
+      console.log(`[AI Tools] Extracted diverse shortlist of ${candidatesToMatch.length} candidates across 4 categories.`);
     }
-  }
 
-  const candidatesText = candidatesToMatch.map((c, i) => {
-    if (c.user_type === 'cofounder') {
-      return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Co-founder | Expertise: ${c.primary_identity || 'N/A'} | Superpowers: ${c.anti_portfolio || 'N/A'} | Equity: ${c.equity_minimum || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
-    } else {
-      return `Candidate ${i+1} (ID: ${c.id}) | Name: ${c.full_name} | Type: Freelancer | Skills: ${c.skills_description || 'N/A'} | Tech Stack: ${c.describe_best || 'N/A'} | Domain: ${c.freelancer_type || 'N/A'} | Experience: ${c.experience || 'N/A'} | Budget: ${c.stipend_expectations || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+    if (candidatesToMatch.length === 0) {
+      candidatesToMatch = rows.slice(0, 15);
     }
-  }).join("\n---\n");
 
-  const prompt = `
-      You are the FoundU AI talent matchmaker.
-      Your task is to select the best matching professionals from our candidates list for the founder's hiring requirements.
+    const candidatesText = candidatesToMatch.map((c, i) => {
+      const cat = categorizeCandidate(c);
+      if (c.user_type === 'cofounder') {
+        return `Candidate ${i+1} (ID: ${c.id}) | Category: ${cat} | Name: ${c.full_name} | Type: Co-founder | Expertise: ${c.primary_identity || 'N/A'} | Superpowers: ${c.anti_portfolio || 'N/A'} | Equity: ${c.equity_minimum || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+      } else {
+        return `Candidate ${i+1} (ID: ${c.id}) | Category: ${cat} | Name: ${c.full_name} | Type: Freelancer | Skills: ${c.skills_description || 'N/A'} | Tech Stack: ${c.describe_best || 'N/A'} | Domain: ${c.freelancer_type || 'N/A'} | Experience: ${c.experience || 'N/A'} | Budget: ${c.stipend_expectations || 'N/A'} | Credibility: ${c.credibility_score || 'N/A'}`;
+      }
+    }).join("\n---\n");
+
+    const prompt = `
+      You are the FoundU AI talent team matchmaker.
+      Your task is to select and assemble a cross-functional launch team for the founder's startup idea.
       
       Hiring Requirements:
       - Preferred Skills/Roles: ${skills ? skills.join(", ") : "Any"}
       - Max Budget: ${maxBudget || "Not Specified"}
       - Founder Startup Needs: ${founderNeeds || "Not Specified"}
       
-      CANDIDATES:
+      CANDIDATES SHORTLIST:
       ${candidatesText}
       
-      Select the top 3-5 candidates who best fit these requirements. Recommend candidates across diverse, relevant categories (e.g. 1 Developer, 1 Designer, 1 Co-founder, 1 Marketer) depending on the startup needs.
+      For each category (Technical/Developer, Creative/Designer, Growth/Marketing, Co-founder), select 2-3 candidates who are the best matches. Recommending a total of 6-10 candidates overall from the shortlist.
       For each selected candidate, assign a match score (0-100%) and write a brief explanation showing why they fit.
       
       Return ONLY a JSON array format (no markdown blocks or other text):
@@ -475,8 +511,8 @@ exports.localSearchFreelancers = async ({ skills, maxBudget, founderNeeds }) => 
         {
           "id": 123,
           "score": 94,
-          "category": "Frontend Developer",
-          "reason": "Text explanation referencing their skills, experience, and budget fit."
+          "category": "Machine Learning Engineer / Developer",
+          "reason": "Explain how they fit into the launch team category and match their budget/skills."
         }
       ]
     `;
@@ -540,196 +576,219 @@ exports.localAnalyzeStartupIdea = async ({ text, mode }) => {
 };
 
 exports.streamChatCompletion = async ({ systemInstruction, history, message, onChunk, onToolCall, context }) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction });
-  
-  const formattedHistory = (history || []).map(msg => ({
-    role: msg.sender === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.message }]
-  }));
+  const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
+  let lastError = null;
 
-  const chat = model.startChat({
-    history: formattedHistory,
-    tools: [{
-      functionDeclarations: [
-        searchFreelancersDeclaration,
-        webSearchDeclaration,
-        analyzeStartupIdeaDeclaration
-      ]
-    }]
-  });
-
-  let responseStream = await chat.sendMessageStream(message);
-
-  let functionCalls = [];
-  for await (const chunk of responseStream.stream) {
-    const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
-    if (calls) {
-      functionCalls = [...functionCalls, ...calls];
-    }
-    let textChunk = "";
+  for (const modelName of modelsToTry) {
     try {
-      textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
-    } catch (e) {}
-    if (textChunk && onChunk) {
-      onChunk(textChunk);
-    }
-  }
+      const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
+      
+      const formattedHistory = (history || []).map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.message }]
+      }));
 
-  if (functionCalls.length > 0) {
-    const functionResponses = [];
-    for (const call of functionCalls) {
-      if (onToolCall) {
-        onToolCall(call.name, call.args);
-      }
-      
-      let resultData;
-      if (call.name === "search_freelancers") {
-        resultData = await exports.localSearchFreelancers({
-          ...call.args,
-          founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
-        });
-      } else if (call.name === "web_search") {
-        resultData = await exports.localWebSearch(call.args);
-      } else if (call.name === "analyze_startup_idea") {
-        resultData = await exports.localAnalyzeStartupIdea(call.args);
-      }
-      
-      functionResponses.push({
-        functionResponse: {
-          name: call.name,
-          response: { result: resultData }
-        }
+      const chat = model.startChat({
+        history: formattedHistory,
+        tools: [{
+          functionDeclarations: [
+            searchFreelancersDeclaration,
+            webSearchDeclaration,
+            analyzeStartupIdeaDeclaration
+          ]
+        }]
       });
-    }
 
-    const followUpStream = await chat.sendMessageStream(functionResponses);
-    for await (const chunk of followUpStream.stream) {
-      let textChunk = "";
-      try {
-        textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
-      } catch (e) {}
-      if (textChunk && onChunk) {
-        onChunk(textChunk);
+      let responseStream = await chat.sendMessageStream(message);
+
+      let functionCalls = [];
+      for await (const chunk of responseStream.stream) {
+        const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+        if (calls) {
+          functionCalls = [...functionCalls, ...calls];
+        }
+        let textChunk = "";
+        try {
+          textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
+        } catch (e) {}
+        if (textChunk && onChunk) {
+          onChunk(textChunk);
+        }
       }
+
+      if (functionCalls.length > 0) {
+        const functionResponses = [];
+        for (const call of functionCalls) {
+          if (onToolCall) {
+            onToolCall(call.name, call.args);
+          }
+          
+          let resultData;
+          if (call.name === "search_freelancers") {
+            resultData = await exports.localSearchFreelancers({
+              ...call.args,
+              founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
+            });
+          } else if (call.name === "web_search") {
+            resultData = await exports.localWebSearch(call.args);
+          } else if (call.name === "analyze_startup_idea") {
+            resultData = await exports.localAnalyzeStartupIdea(call.args);
+          }
+          
+          functionResponses.push({
+            functionResponse: {
+              name: call.name,
+              response: { result: resultData }
+            }
+          });
+        }
+
+        const followUpStream = await chat.sendMessageStream(functionResponses);
+        for await (const chunk of followUpStream.stream) {
+          let textChunk = "";
+          try {
+            textChunk = typeof chunk.text === "function" ? chunk.text() : chunk.text;
+          } catch (e) {}
+          if (textChunk && onChunk) {
+            onChunk(textChunk);
+          }
+        }
+      }
+      return;
+    } catch (err) {
+      console.warn(`[streamChatCompletion] Model ${modelName} failed. Retrying... Reason: ${err.message}`);
+      lastError = err;
     }
   }
+  throw lastError;
 };
 
 exports.nonStreamChatCompletion = async ({ systemInstruction, history, message, context }) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction });
-  
-  const formattedHistory = (history || []).map(msg => {
-    const role = (msg.role === 'user' || msg.sender === 'user') ? 'user' : 'model';
-    const text = msg.content || msg.message || "";
-    return { role, parts: [{ text }] };
-  });
+  const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
+  let lastError = null;
 
-  const chat = model.startChat({
-    history: formattedHistory,
-    tools: [{
-      functionDeclarations: [
-        searchFreelancersDeclaration,
-        webSearchDeclaration,
-        analyzeStartupIdeaDeclaration
-      ]
-    }]
-  });
-
-  console.log("[nonStreamChatCompletion] Sending message via stream...");
-  const responseStream = await chat.sendMessageStream(message);
-  
-  let initialText = "";
-  let functionCalls = [];
-  let modelParts = [];
-  
-  for await (const chunk of responseStream.stream) {
-    if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
-      modelParts = [...modelParts, ...chunk.candidates[0].content.parts];
-    }
-    const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
-    if (calls) {
-      functionCalls = [...functionCalls, ...calls];
-    }
+  for (const modelName of modelsToTry) {
     try {
-      initialText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
-    } catch (e) {}
-  }
-  
-  console.log("[nonStreamChatCompletion] Initial text response:", initialText);
-  console.log("[nonStreamChatCompletion] Detected functionCalls:", JSON.stringify(functionCalls));
-
-  let currentFunctionCalls = functionCalls;
-  let currentModelParts = modelParts;
-
-  while (currentFunctionCalls.length > 0) {
-    // 1. Manually ensure the initial user turn exists in history
-    if (chat._history.length === 0) {
-      chat._history.push({
-        role: "user",
-        parts: [{ text: message }]
-      });
-    }
-
-    // 2. Manually push the model's functionCall turn to chat history (preserving thoughts)
-    chat._history.push({
-      role: "model",
-      parts: currentModelParts
-    });
-
-    // 2. Execute all detected function calls
-    const functionResponses = [];
-    for (const call of currentFunctionCalls) {
-      console.log("[nonStreamChatCompletion] Executing function:", call.name, "with args:", JSON.stringify(call.args));
-      let resultData;
-      if (call.name === "search_freelancers") {
-        resultData = await exports.localSearchFreelancers({
-          ...call.args,
-          founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
-        });
-      } else if (call.name === "web_search") {
-        resultData = await exports.localWebSearch(call.args);
-      } else if (call.name === "analyze_startup_idea") {
-        resultData = await exports.localAnalyzeStartupIdea(call.args);
-      }
-      console.log("[nonStreamChatCompletion] Function result:", JSON.stringify(resultData).substring(0, 300));
+      const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
       
-      functionResponses.push({
-        functionResponse: {
-          name: call.name,
-          response: { result: resultData }
-        }
+      const formattedHistory = (history || []).map(msg => {
+        const role = (msg.role === 'user' || msg.sender === 'user') ? 'user' : 'model';
+        const text = msg.content || msg.message || "";
+        return { role, parts: [{ text }] };
       });
-    }
 
-    console.log("[nonStreamChatCompletion] Sending functionResponses back to model...");
-    const followUpStream = await chat.sendMessageStream(functionResponses);
-    
-    let followUpText = "";
-    currentFunctionCalls = [];
-    currentModelParts = [];
+      const chat = model.startChat({
+        history: formattedHistory,
+        tools: [{
+          functionDeclarations: [
+            searchFreelancersDeclaration,
+            webSearchDeclaration,
+            analyzeStartupIdeaDeclaration
+          ]
+        }]
+      });
 
-    for await (const chunk of followUpStream.stream) {
-      if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
-        currentModelParts = [...currentModelParts, ...chunk.candidates[0].content.parts];
+      console.log(`[nonStreamChatCompletion] Sending message via stream using model ${modelName}...`);
+      const responseStream = await chat.sendMessageStream(message);
+      
+      let initialText = "";
+      let functionCalls = [];
+      let modelParts = [];
+      
+      for await (const chunk of responseStream.stream) {
+        if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
+          modelParts = [...modelParts, ...chunk.candidates[0].content.parts];
+        }
+        const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+        if (calls) {
+          functionCalls = [...functionCalls, ...calls];
+        }
+        try {
+          initialText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
+        } catch (e) {}
       }
-      const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
-      if (calls) {
-        currentFunctionCalls = [...currentFunctionCalls, ...calls];
+      
+      console.log("[nonStreamChatCompletion] Initial text response:", initialText);
+      console.log("[nonStreamChatCompletion] Detected functionCalls:", JSON.stringify(functionCalls));
+
+      let currentFunctionCalls = functionCalls;
+      let currentModelParts = modelParts;
+
+      while (currentFunctionCalls.length > 0) {
+        // 1. Manually ensure the initial user turn exists in history
+        if (chat._history.length === 0) {
+          chat._history.push({
+            role: "user",
+            parts: [{ text: message }]
+          });
+        }
+
+        // 2. Manually push the model's functionCall turn to chat history (preserving thoughts)
+        chat._history.push({
+          role: "model",
+          parts: currentModelParts
+        });
+
+        // 2. Execute all detected function calls
+        const functionResponses = [];
+        for (const call of currentFunctionCalls) {
+          console.log("[nonStreamChatCompletion] Executing function:", call.name, "with args:", JSON.stringify(call.args));
+          let resultData;
+          if (call.name === "search_freelancers") {
+            resultData = await exports.localSearchFreelancers({
+              ...call.args,
+              founderNeeds: context ? `Startup Name: ${context.startupName} | Idea: ${context.startupDesc} | Needs: ${context.hiringNeeds} | Budget: ${context.budget}` : ""
+            });
+          } else if (call.name === "web_search") {
+            resultData = await exports.localWebSearch(call.args);
+          } else if (call.name === "analyze_startup_idea") {
+            resultData = await exports.localAnalyzeStartupIdea(call.args);
+          }
+          console.log("[nonStreamChatCompletion] Function result:", JSON.stringify(resultData).substring(0, 300));
+          
+          functionResponses.push({
+            functionResponse: {
+              name: call.name,
+              response: { result: resultData }
+            }
+          });
+        }
+
+        console.log("[nonStreamChatCompletion] Sending functionResponses back to model...");
+        const followUpStream = await chat.sendMessageStream(functionResponses);
+        
+        let followUpText = "";
+        currentFunctionCalls = [];
+        currentModelParts = [];
+
+        for await (const chunk of followUpStream.stream) {
+          if (chunk.candidates && chunk.candidates[0] && chunk.candidates[0].content && chunk.candidates[0].content.parts) {
+            currentModelParts = [...currentModelParts, ...chunk.candidates[0].content.parts];
+          }
+          const calls = typeof chunk.functionCalls === "function" ? chunk.functionCalls() : chunk.functionCalls;
+          if (calls) {
+            currentFunctionCalls = [...currentFunctionCalls, ...calls];
+          }
+          try {
+            followUpText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
+          } catch (e) {}
+        }
+
+        console.log("[nonStreamChatCompletion] Turn response text:", followUpText);
+        console.log("[nonStreamChatCompletion] Turn next functionCalls:", JSON.stringify(currentFunctionCalls));
+
+        if (currentFunctionCalls.length === 0) {
+          return followUpText;
+        }
       }
-      try {
-        followUpText += typeof chunk.text === "function" ? chunk.text() : chunk.text;
-      } catch (e) {}
-    }
 
-    console.log("[nonStreamChatCompletion] Turn response text:", followUpText);
-    console.log("[nonStreamChatCompletion] Turn next functionCalls:", JSON.stringify(currentFunctionCalls));
-
-    if (currentFunctionCalls.length === 0) {
-      return followUpText;
+      return initialText;
+    } catch (err) {
+      console.warn(`[nonStreamChatCompletion] Model ${modelName} failed. Retrying... Reason: ${err.message}`);
+      lastError = err;
     }
   }
-
-  return initialText;
+  throw lastError;
 };
 
 // Helper: Calculate cosine similarity between two float arrays
