@@ -2,6 +2,7 @@ const db = require("../config/db");
 const whatsappService = require("./whatsappService");
 const geminiService = require("./geminiService");
 const bcrypt = require("bcrypt");
+const axios = require("axios");
 
 // Validate email address helper
 const isValidEmail = (email) => {
@@ -115,6 +116,104 @@ To get started, please reply with the number of your role:
       return;
     }
 
+    // Intercept document/resume upload and parse via Gemini
+    if (text.startsWith("[DOCUMENT_UPLOAD] id:")) {
+      const match = text.match(/\[DOCUMENT_UPLOAD\] id: (\S+) filename: (.+)$/);
+      if (match) {
+        const mediaId = match[1];
+        const filename = match[2];
+
+        console.log(`[WhatsApp Onboarding] Intercepted document upload. Media ID: ${mediaId}, Filename: ${filename}`);
+
+        let documentUrl = null;
+        let resumeSummary = null;
+
+        if (mediaId === "mock_media_id") {
+          documentUrl = "https://res.cloudinary.com/demo/image/upload/sample_resume.pdf";
+          resumeSummary = "Experienced fullstack developer with 3+ years experience. Core stack includes React, Node.js, Stripe, and PostgreSQL. Professional, proactive, and focused on clean code.";
+        } else {
+          try {
+            const metaAccessToken = process.env.META_ACCESS_TOKEN;
+            if (!metaAccessToken) {
+              throw new Error("META_ACCESS_TOKEN is missing in environment variables.");
+            }
+
+            // Step 1: Get media URL from Meta API
+            console.log(`[WhatsApp Onboarding] Requesting media details from Meta for ID: ${mediaId}...`);
+            const metaRes = await axios.get(`https://graph.facebook.com/v19.0/${mediaId}`, {
+              headers: { Authorization: `Bearer ${metaAccessToken}` }
+            });
+            const downloadUrl = metaRes.data.url;
+
+            // Step 2: Download binary buffer
+            console.log(`[WhatsApp Onboarding] Downloading document from Meta lookaside: ${downloadUrl}`);
+            const fileRes = await axios.get(downloadUrl, {
+              headers: { Authorization: `Bearer ${metaAccessToken}` },
+              responseType: "arraybuffer"
+            });
+            const fileBuffer = Buffer.from(fileRes.data);
+
+            // Step 3: Upload raw document to Cloudinary
+            console.log(`[WhatsApp Onboarding] Uploading document to Cloudinary...`);
+            const { cloudinary } = require("../config/cloudinary");
+            documentUrl = await new Promise((resolve, reject) => {
+              const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                  folder: "foundu_resumes",
+                  resource_type: "raw",
+                  public_id: `${Date.now()}_${filename.replace(/\.[^/.]+$/, "")}`
+                },
+                (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result.secure_url);
+                }
+              );
+              uploadStream.end(fileBuffer);
+            });
+            console.log(`[WhatsApp Onboarding] Uploaded to Cloudinary successfully: ${documentUrl}`);
+
+            // Step 4: Parse with Gemini
+            console.log(`[WhatsApp Onboarding] Requesting Gemini to parse CV document buffer...`);
+            const extractedInfo = await geminiService.extractResumeInfo(
+              fileBuffer,
+              fileRes.headers["content-type"] || "application/pdf"
+            );
+            console.log("[WhatsApp Onboarding] Gemini Extracted Info:", JSON.stringify(extractedInfo));
+
+            resumeSummary = extractedInfo.resume || "Resume uploaded.";
+
+            // Merge details into onboarding session data if blank
+            if (extractedInfo.skills && (!data.skills || data.skills.toLowerCase() === "none")) {
+              data.skills = extractedInfo.skills;
+            }
+            if (extractedInfo.preferred_tech && (!data.preferred_tech || data.preferred_tech.toLowerCase() === "none")) {
+              data.preferred_tech = extractedInfo.preferred_tech;
+            }
+            if (extractedInfo.domain_expertise && (!data.domain_expertise || data.domain_expertise.toLowerCase() === "none")) {
+              data.domain_expertise = extractedInfo.domain_expertise;
+            }
+            if (extractedInfo.experience && (!data.experience || data.experience.toLowerCase() === "none")) {
+              data.experience = extractedInfo.experience;
+            }
+            if (extractedInfo.budget && (!data.budget || data.budget.toLowerCase() === "none")) {
+              data.budget = extractedInfo.budget;
+            }
+            if (extractedInfo.portfolio && (!data.portfolio || data.portfolio.toLowerCase() === "none")) {
+              data.portfolio = extractedInfo.portfolio;
+            }
+          } catch (err) {
+            console.error("[WhatsApp Onboarding Document Process Error]:", err.message);
+            resumeSummary = "Resume document uploaded but text extraction failed. Details: " + err.message;
+          }
+        }
+
+        // Set resume summary as the response to the resume question step
+        text = resumeSummary;
+        data.resume_url = documentUrl;
+        data.resume_summary = resumeSummary;
+      }
+    }
+
     // Save answer
     data[prevQuestion.key] = text;
 
@@ -196,18 +295,20 @@ async function saveProfileToDatabase(role, phone, data) {
     const lastName = data.name.split(" ").slice(1).join(" ") || "";
     
     // Generate profile embedding
-    const profileText = `Name: ${data.name} | Skills: ${data.skills} | Stack: ${data.preferred_tech} | Expertise: ${data.domain_expertise} | Experience: ${data.experience} | Budget: ${data.budget} | Resume: ${data.resume}`;
+    const profileText = `Name: ${data.name} | Skills: ${data.skills} | Stack: ${data.preferred_tech} | Expertise: ${data.domain_expertise} | Experience: ${data.experience} | Budget: ${data.budget} | Resume Summary: ${data.resume_summary || data.resume}`;
     const embedding = await geminiService.generateEmbedding(profileText);
     
     await db.promise().query(
       `INSERT INTO freelancer_profiles (
         user_id, freelancer_id, first_name, last_name, email, phone_number,
-        skills_description, experience, stipend_expectations, github, other_links, freelancer_type, describe_best, embedding
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        skills_description, experience, stipend_expectations, github, other_links, freelancer_type, describe_best, embedding, resume_url, resume_summary
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId, freelancer_id, firstName, lastName, data.email, phone,
-        data.skills, data.experience, data.budget, data.portfolio, data.resume, data.domain_expertise, data.preferred_tech,
-        embedding ? JSON.stringify(embedding) : null
+        data.skills, data.experience, data.budget, data.portfolio, data.resume_url || data.resume, data.domain_expertise, data.preferred_tech,
+        embedding ? JSON.stringify(embedding) : null,
+        data.resume_url || null,
+        data.resume_summary || null
       ]
     );
   } else if (role === "founder") {

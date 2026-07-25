@@ -17,14 +17,14 @@ async function backfill() {
     // 1. Backfill Freelancer Profiles
     console.log("\n1. Processing Freelancer Profiles...");
     const freelancers = await queryAsync(`
-      SELECT f.user_id, f.first_name, f.last_name, f.skills_description, f.experience, f.stipend_expectations, f.github, f.other_links, f.freelancer_type, f.describe_best
+      SELECT f.user_id, f.first_name, f.last_name, f.skills_description, f.experience, f.stipend_expectations, f.github, f.other_links, f.freelancer_type, f.describe_best, f.resume_summary
       FROM freelancer_profiles f
       WHERE f.embedding IS NULL
     `);
     console.log(`Found ${freelancers.length} freelancers needing embeddings.`);
     for (const f of freelancers) {
       const name = `${f.first_name || ""} ${f.last_name || ""}`.trim();
-      const profileText = `Name: ${name} | Skills: ${f.skills_description || ""} | Stack: ${f.describe_best || ""} | Expertise: ${f.freelancer_type || ""} | Experience: ${f.experience || ""} | Budget: ${f.stipend_expectations || ""} | Portfolio: ${f.github || ""} | Resume: ${f.other_links || ""}`;
+      const profileText = `Name: ${name} | Skills: ${f.skills_description || ""} | Stack: ${f.describe_best || ""} | Expertise: ${f.freelancer_type || ""} | Experience: ${f.experience || ""} | Budget: ${f.stipend_expectations || ""} | Portfolio: ${f.github || ""} | Resume Summary: ${f.resume_summary || f.other_links || ""}`;
       console.log(`Generating embedding for Freelancer: ${name}...`);
       const embedding = await generateEmbedding(profileText);
       if (embedding) {

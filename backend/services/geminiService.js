@@ -1194,3 +1194,46 @@ exports.autoBackfillEmbeddings = async () => {
   }
 };
 
+exports.extractResumeInfo = async (pdfBuffer, mimeType = "application/pdf") => {
+  const prompt = `
+    You are an expert technical recruiter analyzing a candidate's CV/Resume.
+    Analyze the uploaded document and extract the following structured details in JSON format.
+    
+    Return ONLY a JSON object in this format:
+    {
+      "name": "Full legal name",
+      "email": "Email address",
+      "skills": "Comma separated list of core skills e.g. React, Node.js, PostgreSQL",
+      "preferred_tech": "Preferred frameworks/tech stack e.g. MERN, Python, iOS",
+      "domain_expertise": "Domain niche e.g. FinTech, EdTech, E-commerce, SaaS",
+      "experience": "Total years of experience e.g. 3 years",
+      "budget": "Expected monthly rate/budget based on their profile e.g. ₹40,000/mo (if not specified, estimate a realistic market rate)",
+      "portfolio": "Portfolio/GitHub links if mentioned (otherwise 'none')",
+      "resume": "A detailed 2-3 paragraph summary of their background, key achievements, projects, and credentials extracted from their CV"
+    }
+  `;
+
+  let lastError = null;
+  const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-1.5-flash", "gemini-flash-latest"];
+  for (const modelName of modelsToTry) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            data: pdfBuffer.toString("base64"),
+            mimeType
+          }
+        },
+        prompt
+      ]);
+      const response = await result.response;
+      return extractAndParseJSON(response.text());
+    } catch (e) {
+      console.warn(`[extractResumeInfo] Model ${modelName} failed. Reason: ${e.message}`);
+      lastError = e;
+    }
+  }
+  throw lastError;
+};
+

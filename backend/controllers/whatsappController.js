@@ -384,7 +384,26 @@ exports.handleIncomingMessage = async (req, res) => {
             messageText = messageObj.interactive.list_reply.title;
           }
         } else if (messageObj.type === "document") {
-          messageText = `[DOCUMENT_UPLOAD] id: ${messageObj.document.id} filename: ${messageObj.document.filename || "resume.pdf"}`;
+          const doc = messageObj.document;
+          const mime = (doc.mime_type || "").toLowerCase();
+          const filename = (doc.filename || "").toLowerCase();
+          const isValid = mime === "application/pdf" || mime === "image/jpeg" || mime === "image/jpg" || 
+                          filename.endsWith(".pdf") || filename.endsWith(".jpg") || filename.endsWith(".jpeg");
+          
+          if (!isValid) {
+            console.log(`[WhatsApp Webhook] Rejected unsupported document from ${senderPhone}: ${filename} (${mime})`);
+            const whatsappService = require("../services/whatsappService");
+            await whatsappService.sendWhatsAppDirectMessage(
+              senderPhone,
+              "❌ Unsupported file format! Please upload your Resume/CV only in PDF or JPG/JPEG format."
+            );
+            continue;
+          }
+          messageText = `[DOCUMENT_UPLOAD] id: ${doc.id} filename: ${doc.filename || "resume.pdf"}`;
+        } else if (messageObj.type === "image") {
+          const img = messageObj.image;
+          console.log(`[WhatsApp Webhook] Received direct photo/image from ${senderPhone}. Mapping to JPG document.`);
+          messageText = `[DOCUMENT_UPLOAD] id: ${img.id} filename: resume_photo.jpg`;
         }
 
         if (messageText.trim()) {

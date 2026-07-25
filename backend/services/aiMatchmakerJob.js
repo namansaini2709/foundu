@@ -35,7 +35,7 @@ const runMatchmaker = async () => {
         // A. Fetch Freelancer Talent
         const freelancers = await queryAsync(`
              SELECT u.id AS NOTIFY_ID, u.full_name, u.email, u.whatsapp_number, u.whatsapp_opt_in, u.user_type,
-                    f.freelancer_type, f.skills_description, f.experience, f.job_profile, f.embedding 
+                    f.freelancer_type, f.skills_description, f.experience, f.job_profile, f.embedding, f.resume_summary
              FROM users u LEFT JOIN freelancer_profiles f ON u.id = f.user_id 
              WHERE u.is_profile_complete = 1 
                AND u.user_type = 'freelancer'
@@ -121,6 +121,7 @@ const runMatchmaker = async () => {
                 Skills: ${free.skills_description}
                 Experience: ${free.experience}
                 Job Profile: ${free.job_profile || "N/A"}
+                Resume Summary: ${free.resume_summary || "N/A"}
 
                 CANDIDATE JOBS:
                 ${JSON.stringify(jobScores.map(js => ({
@@ -267,7 +268,8 @@ const runMatchmaker = async () => {
                         name: cs.cand.full_name,
                         role: cs.cand.user_type,
                         skills: cs.cand.skills_description || cs.cand.primary_identity || "N/A",
-                        experience: cs.cand.experience || "N/A"
+                        experience: cs.cand.experience || "N/A",
+                        resume_summary: cs.cand.resume_summary || "N/A"
                     })))}
 
                     Return ONLY a JSON array format:

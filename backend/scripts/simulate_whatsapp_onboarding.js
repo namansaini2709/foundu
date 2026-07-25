@@ -76,9 +76,9 @@ async function simulate() {
   console.log("\nStep 10: Providing Budget Expectations...");
   await sendWhatsAppMessage("₹60,000/mo");
   
-  // 11. Provide Resume Text (Completes onboarding, registers user, generates embedding!)
-  console.log("\nStep 11: Pasting Resume text (completing onboarding)...");
-  await sendWhatsAppMessage("Experienced fullstack JavaScript developer who has built 5 fintech products with Stripe payment gateway integrations.");
+  // 11. Provide Resume Document (Completes onboarding, registers user, generates embedding!)
+  console.log("\nStep 11: Uploading mock Resume Document (completing onboarding)...");
+  await sendWhatsAppMessage("[DOCUMENT_UPLOAD] id: mock_media_id filename: resume.pdf");
   
   console.log("\n=== 🎉 Onboarding Simulation Completed successfully! ===");
   console.log("Check the database users and freelancer_profiles tables for user 'jane.free@example.com'!");
