@@ -1,5 +1,10 @@
 const axios = require("axios");
 
+const graphApiBaseUrl = () => {
+    const version = process.env.META_GRAPH_API_VERSION?.trim() || "v26.0";
+    return `https://graph.facebook.com/${version}`;
+};
+
 /**
  * Send WhatsApp Match Alerts or Broadcasts via Meta WhatsApp Cloud API
  * @param {string} to - Recipient phone number (with country code)
@@ -9,8 +14,8 @@ const axios = require("axios");
  */
 const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "") => {
     try {
-        const accessToken = process.env.META_ACCESS_TOKEN;
-        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+        const accessToken = process.env.META_ACCESS_TOKEN?.trim();
+        const phoneNumberId = process.env.META_PHONE_NUMBER_ID?.trim();
 
         if (!accessToken || !phoneNumberId) {
             console.error("❌ Meta WhatsApp API credentials (META_ACCESS_TOKEN / META_PHONE_NUMBER_ID) missing in .env");
@@ -34,7 +39,7 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
 
         // 3. Send via Meta API (Template)
         const response = await axios.post(
-            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+            `${graphApiBaseUrl()}/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",
@@ -77,8 +82,8 @@ const sendWhatsAppMatchAlert = async (to, userName, matches, customMessage = "")
  */
 const sendWhatsAppDirectMessage = async (to, message) => {
     try {
-        const accessToken = process.env.META_ACCESS_TOKEN;
-        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+        const accessToken = process.env.META_ACCESS_TOKEN?.trim();
+        const phoneNumberId = process.env.META_PHONE_NUMBER_ID?.trim();
 
         if (!accessToken || !phoneNumberId) return { success: false, error: "Credentials missing" };
 
@@ -88,7 +93,7 @@ const sendWhatsAppDirectMessage = async (to, message) => {
         }
 
         const response = await axios.post(
-            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+            `${graphApiBaseUrl()}/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",
@@ -116,8 +121,8 @@ const sendWhatsAppDirectMessage = async (to, message) => {
  */
 const sendWhatsAppTemplate = async (to, templateName, components = []) => {
     try {
-        const accessToken = process.env.META_ACCESS_TOKEN;
-        const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
+        const accessToken = process.env.META_ACCESS_TOKEN?.trim();
+        const phoneNumberId = process.env.META_PHONE_NUMBER_ID?.trim();
 
         if (!accessToken || !phoneNumberId) return { success: false, error: "Credentials missing" };
 
@@ -127,7 +132,7 @@ const sendWhatsAppTemplate = async (to, templateName, components = []) => {
         }
 
         const response = await axios.post(
-            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+            `${graphApiBaseUrl()}/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",

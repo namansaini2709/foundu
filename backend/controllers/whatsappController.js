@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const crypto = require("crypto");
 const notificationService = require("../services/notificationService");
 const whatsappService = require("../services/whatsappService");
 
@@ -329,10 +330,15 @@ exports.getCouponUsers = async (req, res) => {
    GET /api/whatsapp/webhook
 ============================================================= */
 exports.verifyWebhook = (req, res) => {
-  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "foundu_verify_token_123";
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
+
+  if (!verifyToken) {
+    console.error("[WhatsApp Webhook] WHATSAPP_VERIFY_TOKEN is not configured.");
+    return res.sendStatus(500);
+  }
 
   if (mode && token) {
     if (mode === "subscribe" && token === verifyToken) {
@@ -351,6 +357,20 @@ exports.verifyWebhook = (req, res) => {
    POST /api/whatsapp/webhook
 ============================================================= */
 exports.handleIncomingMessage = async (req, res) => {
+  const appSecret = process.env.META_APP_SECRET;
+  if (appSecret) {
+    const signature = req.get("x-hub-signature-256");
+    const expected = `sha256=${crypto
+      .createHmac("sha256", appSecret)
+      .update(req.rawBody || Buffer.alloc(0))
+      .digest("hex")}`;
+
+    if (!signature || signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+      console.warn("[WhatsApp Webhook] Rejected invalid signature.");
+      return res.sendStatus(401);
+    }
+  }
+
   // Respond immediately to prevent Meta from retrying
   res.sendStatus(200);
 

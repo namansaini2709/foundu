@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "whatsapp:check": "node scripts/whatsappPreflight.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

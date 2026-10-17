@@ -57,13 +57,20 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buffer) => {
+      if (req.originalUrl === "/api/whatsapp/webhook") req.rawBody = buffer;
+    },
+  }),
+);
 
 app.set("trust proxy", 1);
 const isProduction =
   process.env.NODE_ENV === "production" ||
   process.env.RAILWAY_ENVIRONMENT ||
   process.env.RAILWAY_PROJECT_NAME;
+const backgroundJobsEnabled = process.env.DISABLE_BACKGROUND_JOBS !== "true";
 
 app.use(
   session({
@@ -252,7 +259,11 @@ const io = new Server(server, {
 });
 
 notificationService.setIO(io);
-onboardingReminderService.initOnboardingReminders();
+if (backgroundJobsEnabled) {
+  onboardingReminderService.initOnboardingReminders();
+} else {
+  console.log("[Background Jobs] Disabled by DISABLE_BACKGROUND_JOBS=true");
+}
 
 io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
@@ -399,6 +410,8 @@ server.listen(PORT, () => {
       }
     });
   });
+
+  if (!backgroundJobsEnabled) return;
 
   // Check for users with 5+ unread messages — runs daily at 12:00 PM IST
   const { checkUnreadMessages } = require("./services/unreadMessageService");

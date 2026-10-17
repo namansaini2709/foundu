@@ -3,6 +3,7 @@ const whatsappService = require("./whatsappService");
 const geminiService = require("./geminiService");
 const bcrypt = require("bcrypt");
 const axios = require("axios");
+const isDemoMode = process.env.WHATSAPP_ONBOARDING_DEMO_MODE === "true";
 
 // Validate email address helper
 const isValidEmail = (email) => {
@@ -45,6 +46,18 @@ exports.processMessage = async (phone, name, text) => {
   const formattedPhone = phone.replace(/\D/g, "");
 
   try {
+    if (text.trim().toLowerCase() === "reset") {
+      await db.promise().query(
+        "DELETE FROM whatsapp_onboarding_sessions WHERE phone_number = ?",
+        [formattedPhone],
+      );
+      await whatsappService.sendWhatsAppDirectMessage(
+        formattedPhone,
+        "Your FoundU onboarding has been reset. Send any message to begin again.",
+      );
+      return;
+    }
+
     // 1. Fetch active onboarding session
     const [sessions] = await db.promise().query(
       "SELECT * FROM whatsapp_onboarding_sessions WHERE phone_number = ?",
@@ -140,7 +153,8 @@ To get started, please reply with the number of your role:
 
             // Step 1: Get media URL from Meta API
             console.log(`[WhatsApp Onboarding] Requesting media details from Meta for ID: ${mediaId}...`);
-            const metaRes = await axios.get(`https://graph.facebook.com/v19.0/${mediaId}`, {
+            const graphApiVersion = process.env.META_GRAPH_API_VERSION || "v26.0";
+            const metaRes = await axios.get(`https://graph.facebook.com/${graphApiVersion}/${mediaId}`, {
               headers: { Authorization: `Bearer ${metaAccessToken}` }
             });
             const downloadUrl = metaRes.data.url;
@@ -240,7 +254,14 @@ To get started, please reply with the number of your role:
       await db.promise().query("DELETE FROM whatsapp_onboarding_sessions WHERE phone_number = ?", [formattedPhone]);
 
       // Generate & send initial recommendations
-      await triggerRecommendationsAndAlerts(role, formattedPhone, data);
+      if (isDemoMode) {
+        await whatsappService.sendWhatsAppDirectMessage(
+          formattedPhone,
+          "🎉 FoundU demo onboarding complete! Your profile was created successfully. AI matching is skipped in demo mode.",
+        );
+      } else {
+        await triggerRecommendationsAndAlerts(role, formattedPhone, data);
+      }
     }
   } catch (err) {
     console.error("[WhatsApp Onboarding Error]:", err);
@@ -296,7 +317,7 @@ async function saveProfileToDatabase(role, phone, data) {
     
     // Generate profile embedding
     const profileText = `Name: ${data.name} | Skills: ${data.skills} | Stack: ${data.preferred_tech} | Expertise: ${data.domain_expertise} | Experience: ${data.experience} | Budget: ${data.budget} | Resume Summary: ${data.resume_summary || data.resume}`;
-    const embedding = await geminiService.generateEmbedding(profileText);
+    const embedding = isDemoMode ? null : await geminiService.generateEmbedding(profileText);
     
     await db.promise().query(
       `INSERT INTO freelancer_profiles (
@@ -314,7 +335,7 @@ async function saveProfileToDatabase(role, phone, data) {
   } else if (role === "founder") {
     // Generate profile embedding
     const profileText = `Name: ${data.name} | Startup: ${data.startupName} | Description: ${data.startupDesc} | Needs: ${data.hiringNeeds} | Budget: ${data.budget}`;
-    const embedding = await geminiService.generateEmbedding(profileText);
+    const embedding = isDemoMode ? null : await geminiService.generateEmbedding(profileText);
 
     await db.promise().query(
       `INSERT INTO startup_profiles (
@@ -327,7 +348,7 @@ async function saveProfileToDatabase(role, phone, data) {
     
     // Generate profile embedding
     const profileText = `Name: ${data.name} | Expertise: ${data.expertise} | Stage: ${data.stage} | Equity: ${data.equity} | Superpowers: ${data.superpowers}`;
-    const embedding = await geminiService.generateEmbedding(profileText);
+    const embedding = isDemoMode ? null : await geminiService.generateEmbedding(profileText);
 
     await db.promise().query(
       `INSERT INTO cofounder_profiles (

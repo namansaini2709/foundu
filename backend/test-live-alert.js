@@ -4,7 +4,12 @@ require("dotenv").config();
 async function testMatchAlertTemplate() {
     const accessToken = process.env.META_ACCESS_TOKEN;
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-    const testRecipient = "919311293521"; // Unverified test number
+    const testRecipient = process.env.TEST_WHATSAPP_RECIPIENT;
+    const graphApiVersion = process.env.META_GRAPH_API_VERSION || "v26.0";
+
+    if (!accessToken || !phoneNumberId || !testRecipient) {
+        throw new Error("Set META_ACCESS_TOKEN, META_PHONE_NUMBER_ID, and TEST_WHATSAPP_RECIPIENT before running this test.");
+    }
 
     console.log("🚀 Starting LIVE WhatsApp Template Test...");
     console.log(`📡 Sending 'foundu_match_alert' to: ${testRecipient}...`);
@@ -13,7 +18,7 @@ async function testMatchAlertTemplate() {
 
     try {
         const response = await axios.post(
-            `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
+            `https://graph.facebook.com/${graphApiVersion}/${phoneNumberId}/messages`,
             {
                 messaging_product: "whatsapp",
                 recipient_type: "individual",
