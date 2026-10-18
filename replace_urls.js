@@ -1,3 +1,4 @@
+// URL replacement utility maintained with the repository.
 const fs = require('fs');
 const path = require('path');
 

@@ -1,3 +1,4 @@
+// Temporary utility maintained with the repository.
 const db = require("../backend/config/db");
 require('dotenv').config({ path: '../backend/.env' });
 

@@ -1,4 +1,5 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- Repository maintenance marker: October 2026
 --
 -- Host: centerbeam.proxy.rlwy.net    Database: railway
 -- ------------------------------------------------------

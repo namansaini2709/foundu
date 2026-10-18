@@ -1,5 +1,7 @@
 # 📖 WhatsApp-First Onboarding & Matchmaker Testing Guide
 
+> Repository maintenance update: October 2026.
+
 This guide is designed for **beginners and testers** to walk through and verify the WhatsApp-First Onboarding & Semantic Matchmaking features. It contains two testing methods:
 *   **Method A: Mock Local Simulation** (Quickest, runs locally in seconds, no configuration or accounts needed).
 *   **Method B: Real WhatsApp Meta Cloud API Integration** (End-to-end testing with a real phone and WhatsApp messages).
